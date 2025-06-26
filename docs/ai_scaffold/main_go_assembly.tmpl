@@ -10,16 +10,17 @@ import (
 	"log" // 臨時使用標準庫 log，未來會替換為實際的 Logger 接口實作
 
 	// 引入平台合約接口，確保類型安全
-	"detectviz-platform/pkg/platform/contracts" 
+	"detectviz-platform/pkg/platform/contracts"
 	// 引入插件工廠註冊相關接口
-	"detectviz-platform/internal/platform/plugin_registry" 
+	"detectviz-platform/internal/platform/plugin_registry"
 
 	// AI 將在此處根據 composition.yaml 動態引入各個插件的 package
+	// 這些導入路徑將根據 interface_spec.md 中 AI_IMPL_PACKAGE 標籤生成
 	// 例如：
-	// "detectviz-platform/internal/platform/plugins/logger/otelzap_logger"
-	// "detectviz-platform/internal/platform/plugins/config/viper_config"
-	// "detectviz-platform/internal/platform/providers/llm/gemini_provider"
-	// {{.DynamicPluginImports}}
+	// "detectviz-platform/internal/platform/providers/logger/otelzap_logger"
+	// "detectviz-platform/internal/platform/providers/config/viper_config"
+	// "detectviz-platform/internal/platform/providers/llm/gemini_llm"
+	{{.DynamicPluginImports}}
 )
 
 func main() {
@@ -28,38 +29,32 @@ func main() {
 	// Step 1: 初始化日誌系統
 	// AI 將根據 configuration_reference.md 和 composition.yaml 來具體生成日誌初始化代碼
 	// 目前使用標準庫 log 進行佔位，未來會替換為 contracts.Logger 實作
-	// loggerFactory := otelzap_logger.NewFactory() // 假設有一個工廠
-	// logger, err := loggerFactory.CreateLogger("main") // 假設 CreateLogger 方法
-	// if err != nil {
-	//    log.Fatalf("無法初始化日誌系統: %v", err)
-	// }
-	// logger.Info(ctx, "Detectviz 平台啟動中...")
+	// 建議使用 otelzap_logger.NewFactory() 創建 LoggerProvider
 	log.Println("Detectviz 平台啟動中...") // 臨時日誌
-	
-	// {{.LoggerInitializationCode}}
+	{{.LoggerInitializationCode}} // AI 將在此處生成具體的日誌初始化代碼
 
 	// Step 2: 加載平台配置
 	// AI 將根據 configuration_reference.md 和 composition.yaml 來具體生成配置加載代碼
-	// 例如使用 Viper
+	// 建議使用 viper_config.NewFactory() 創建 ConfigProvider
 	// configProviderFactory := viper_config.NewFactory()
-	// configProvider, err := configProviderFactory.CreateConfigProvider()
+	// configProvider, err := configProviderFactory.CreateConfigProvider() // 假設 CreateConfigProvider 方法
 	// if err != nil {
 	//    log.Fatalf("無法初始化配置系統: %v", err)
 	// }
-	// platformConfig, err := configProvider.LoadConfig()
+	// platformConfig, err := configProvider.LoadAppConfig(ctx, "configs/app_config.yaml") // 假設 LoadAppConfig 方法
 	// if err != nil {
 	//    log.Fatalf("無法加載平台配置: %v", err)
 	// }
 	// log.Println("平台配置加載完成。")
-	// {{.ConfigurationLoadingCode}}
-
+	{{.ConfigurationLoadingCode}} // AI 將在此處生成具體的配置加載代碼
 
 	// Step 3: 建立插件註冊中心
-	// AI 將根據 plugin_registry.go 介面和 composition.yaml 來生成註冊邏輯
+	// AI 將根據 plugin_registry.go 介面來生成註冊邏輯
 	registry := plugin_registry.NewDefaultPluginRegistry() // 假設有一個預設實作
 
 	// Step 4: 註冊所有插件工廠
 	// AI 將在此處根據 composition.yaml 中的 'plugins' 區塊動態生成插件工廠的註冊代碼
+	// 每個插件的 NewFactory() 函數將被呼叫並註冊到 PluginRegistry
 	// 例如：
 	// err = registry.RegisterPluginFactory("logger_otelzap", otelzap_logger.NewFactory())
 	// if err != nil {
@@ -69,11 +64,12 @@ func main() {
 	// if err != nil {
 	//    log.Fatalf("註冊 config_viper 失敗: %v", err)
 	// }
-	// {{.PluginFactoryRegistrationCode}}
+	{{.PluginFactoryRegistrationCode}} // AI 將在此處生成具體的插件工廠註冊代碼
 
 	// Step 5: 初始化並組裝插件實例
-	// AI 將在此處根據 composition.yaml 中的 'composition' 區塊動態生成插件實例的初始化和依賴組裝代碼
-	// 這將是最複雜的部分，需要 AI 根據依賴關係圖進行排序和生成
+	// AI 將在此處根據 composition.yaml 中的 'composition' 區塊和 interface_spec.md 中的 AI 標籤
+	// 動態生成插件實例的初始化和依賴組裝代碼。
+	// 這將是最複雜的部分，需要 AI 根據依賴關係圖進行排序和生成。
 	//
 	// 範例結構 (假設的組裝流程)：
 	//
@@ -81,18 +77,20 @@ func main() {
 	// components := make(map[string]any)
 	//
 	// // 2. 依照依賴順序，逐一創建並組裝組件
-	// //    AI 需要根據 composition.yaml 中的依賴關係來決定這些呼叫的順序
+	// //    AI 需要根據 composition.yaml 中的依賴關係和介面定義來決定這些呼叫的順序
 	//
 	// // 範例：初始化 Logger (如果它不依賴其他組件)
+	// // 從註冊中心取得工廠並創建實例
 	// loggerFactory, err := registry.GetPluginFactory("logger_otelzap")
 	// if err != nil {
 	//     log.Fatalf("無法取得 logger_otelzap 工廠: %v", err)
 	// }
-	// loggerInstance, err := loggerFactory.Create(ctx, map[string]any{"level": "info"}) // 假設 Create 接收配置
+	// // 假設 Create 方法接收 context 和配置
+	// loggerInstance, err := loggerFactory.Create(ctx, map[string]any{"level": "info"})
 	// if err != nil {
 	//     log.Fatalf("無法創建 logger 實例: %v", err)
 	// }
-	// components["logger"] = loggerInstance.(contracts.Logger) // 類型斷言
+	// components["logger"] = loggerInstance.(contracts.LoggerProvider) // 類型斷言
 	// log.Println("Logger 實例化完成。")
 	//
 	// // 範例：初始化 ConfigProvider (假設不依賴其他組件)
@@ -123,7 +121,7 @@ func main() {
 	// components["llmProvider"] = llmInstance.(contracts.LLMProvider)
 	// log.Println("LLMProvider 實例化完成。")
 	//
-	// {{.PluginAssemblyCode}}
+	{{.PluginAssemblyCode}} // AI 將在此處生成具體的插件組裝代碼
 
 
 	log.Println("所有平台組件初始化與組裝完成。Detectviz 平台已準備就緒！")
@@ -131,7 +129,7 @@ func main() {
 	// Step 6: 啟動平台服務 (如果有的話)
 	// 例如：啟動 Web 服務、API 服務等
 	// 這部分也將是動態生成，基於 composition.yaml 中定義的服務
-	// {{.PlatformServiceStartupCode}}
+	{{.PlatformServiceStartupCode}} // AI 將在此處生成平台服務啟動代碼
 
 	// 保持主 goroutine 運行，等待中斷信號
 	select {}
@@ -141,8 +139,6 @@ func main() {
 	// <-c
 	// log.Println("接收到關閉信號，正在停止 Detectviz 平台...")
 	// // 在此處執行清理工作，例如關閉資料庫連接、停止服務等
-	// {{.GracefulShutdownCode}}
+	// {{.GracefulShutdownCode}} // AI 將在此處生成優雅關閉代碼
 	// log.Println("Detectviz 平台已安全停止。")
 }
-
-

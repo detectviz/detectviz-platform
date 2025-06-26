@@ -17,7 +17,7 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
 * **依賴注入/服務組裝**: 自定義的 Plugin Registry 機制  
 * **YAML**: 主要的配置檔案格式 (app_config.yaml, composition.yaml)。  
 * **JSON Schema**: 用於定義和驗證所有配置檔案的結構與內容。這是實現 AI 自動化配置和確保配置正確性的核心工具。**平台在啟動時會自動執行 Schema 驗證，確保配置的一致性和正確性。**  
-* **Go JSON Schema 驗證**: 使用 `github.com/xeipuuv/gojsonschema` 庫實現運行時配置驗證。
+* **Go JSON Schema 驗證**: 使用 github.com/xeipuuv/gojsonschema 庫實現運行時配置驗證。
 
 ### **1.2 資料儲存**
 
@@ -29,72 +29,71 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
 清晰的專案結構對於可維護性和協作至關重要，尤其在 AI 輔助開發中，標準化能提高 AI 理解與操作的準確性。
 
 detectviz-platform/  
-├── .github/                       # GitHub Actions CI/CD workflows (或 .gitlab-ci.yml for GitLab)  
-├── cmd/                           # 應用程式主入口點  
-│   └── main.go                    # Detectviz 平台的啟動與核心組裝邏輯  
-├── configs/                       # 應用程式運行時讀取的配置檔案  
-│   ├── app_config.yaml            # 核心應用程式全局配置  
-│   └── composition.yaml           # 平台插件的組合與具體配置  
-├── internal/                      # 僅供內部使用，不應被外部專案直接引用  
-│   ├── domain_logic/              # 核心業務邏輯的內部實現  
-│   │   └── plugins/               # 業務插件的具體實現  
-│   │       └── ui_page/  
-│   │           └── hello_world_ui_page.go  
-│   ├── platform/                  # 平台層面的內部實現  
-│   │   ├── plugin_registry/       # 插件註冊與組裝的核心邏輯  
-│   │   │   └── registry.go  
-│   │   └── providers/             # 平台核心供應商的具體實現  
-│   │       ├── config/  
-│   │       │   └── viper_config.go  
-│   │       ├── http_server/  
-│   │       │   └── echo_server.go  
-│   │       └── logger/  
-│   │           └── otelzap_logger.go  
-│   └── repositories/              # 資料庫操作的具體實現 (例如 mysql_user_repository.go)  
-│   └── services/                  # 應用層業務邏輯的實現 (例如 user_service.go)  
-├── pkg/                           # 可供外部專案引用的公共程式碼  
-│   ├── domain/                    # 領域層定義，不依賴任何外部框架  
-│   │   ├── entities/              # 領域實體定義 (`user.go`, `detector.go`)  
-│   │   ├── interfaces/            # 領域層介面定義 (`user_repository.go`, `analysis_engine.go`)  
-│   │   └── plugins/               # 插件領域介面（平台無關）  
-│   │       ├── plugin.go          # 所有插件的基礎介面  
-│   │       └── ui_page.go         # UI 頁面插件的介面  
-│   ├── platform/                  # 平台級契約 (Contracts) 和通用類型  
-│   │   └── contracts/             # 平台核心供應商介面定義  
-│   │       ├── config.go  
-│   │       ├── http_server.go  
-│   │       ├── logger.go  
-│   │       ├── plugin.go  
-│   │       └── plugin_registry.go  
-│   └── plugins/                   # 各類插件的公共介面和工廠定義 (如果需要更細化的分類)  
-├── schemas/                       # **JSON Schema 定義檔案，用於驗證 `/configs` 目錄下的 YAML 配置。**  
-│   ├── app_config.json            # `app_config.yaml` 的 Schema  
-│   ├── composition.json           # `composition.yaml` 的 Schema  
-│   └── plugins/                   # **各個插件的獨立配置 Schema**  
-│       ├── gorm_mysql_client_provider.json  
-│       ├── http_server_provider.json
-│       ├── keycloak_auth_provider.json 
-│       ├── otelzap_logger_provider.json  
-│       └── ... (其他插件的 Schema)  
-├── docs/                          # **專案所有文檔的集中存放地。這對 AI 理解專案結構和生成文檔至關重要。**  
-│   ├── ARCHITECTURE.md            # 平台整體架構、核心設計原則、模組劃分  
-│   ├── ENGINEERING_SPEC.md        # 技術棧、開發與實作細節、程式碼規範 (即本文件)  
-│   ├── ROADMAP.md                 # 專案發展路線圖  
-│   ├── CONFIGURATION_REFERENCE.md # 平台配置的詳細說明與指南  
-│   ├── ai_scaffold/               # **AI 驅動開發的專屬文檔和指導，供 AI 參考**  
-│   │   ├── ai_directives_spec.md    # 定義 AI 專用標籤/註解規範 (e.g., AI_SCAFFOLD_HINT)  
-│   │   ├── scaffold_workflow.md     # AI Scaffold 總體流程與決策邏輯  
-│   │   └── scaffolding_blueprints/  # 針對不同 Scaffold 類型的高層次藍圖/設計模式  
-│   │       └── new_plugin_blueprint.md  
-│   ├── templates/                 # AI 生成程式碼時可能需要參考的代碼範本或結構  
-│   │   └── ai_scaffolding/        # 供 AI Scaffold 使用的程式碼骨架模板  
-│   │       └── main_go_assembly.tmpl  
-│   │       └── plugin_skeleton.go  
-│   └── README.md -> ../README.md  # (軟連結或複製) 專案總覽的入口文件  
-├── migrations/                    # 資料庫遷移腳本  
-├── test/                          # 測試相關檔案，如測試數據、測試工具  
-└── README.md                      # 專案概述、願景、核心特色、快速上手指南 (專案的總覽入口)
-
+├── .github/ # GitHub Actions CI/CD workflows (或 .gitlab-ci.yml for GitLab)  
+├── cmd/ # 應用程式主入口點  
+│ └── main.go # Detectviz 平台的啟動與核心組裝邏輯  
+├── configs/ # 應用程式運行時讀取的配置檔案  
+│ ├── app_config.yaml # 核心應用程式全局配置  
+│ └── composition.yaml # 平台插件的組合與具體配置  
+├── internal/ # 僅供內部使用，不應被外部專案直接引用  
+│ ├── domain_logic/ # 核心業務邏輯的內部實現  
+│ │ └── plugins/ # 業務插件的具體實現  
+│ │ └── ui_page/  
+│ │ └── hello_world_ui_page.go  
+│ ├── platform/ # 平台層面的內部實現  
+│ │ ├── plugin_registry/ # 插件註冊與組裝的核心邏輯  
+│ │ │ └── registry.go  
+│ │ └── providers/ # 平台核心供應商的具體實現  
+│ │ ├── config/  
+│ │ │ └── viper_config.go  
+│ │ ├── http_server/  
+│ │ │ └── echo_server.go  
+│ │ └── logger/  
+│ │ └── otelzap_logger.go  
+│ └── repositories/ # 資料庫操作的具體實現 (例如 mysql_user_repository.go)  
+│ └── services/ # 應用層業務邏輯的實現 (例如 user_service.go)  
+├── pkg/ # 可供外部專案引用的公共程式碼  
+│ ├── domain/ # 領域層定義，不依賴任何外部框架  
+│ │ ├── entities/ # 領域實體定義 (user.go, detector.go)  
+│ │ ├── interfaces/ # 領域層介面定義 (user_repository.go, analysis_engine.go)  
+│ │ └── plugins/ # 插件領域介面（平台無關）  
+│ │ ├── plugin.go # 所有插件的基礎介面  
+│ │ └── ui_page.go # UI 頁面插件的介面  
+│ ├── platform/ # 平台級契約 (Contracts) 和通用類型  
+│ │ └── contracts/ # 平台核心供應商介面定義  
+│ │ ├── config.go  
+│ │ ├── http_server.go  
+│ │ ├── logger.go  
+│ │ ├── plugin.go  
+│ │ └── plugin_registry.go  
+│ └── plugins/ # 各類插件的公共介面和工廠定義 (如果需要更細化的分類)  
+├── schemas/ # JSON Schema 定義檔案，用於驗證 /configs 目錄下的 YAML 配置。  
+│ ├── app_config.json # app_config.yaml 的 Schema  
+│ ├── composition.json # composition.yaml 的 Schema  
+│ └── plugins/ # 各個插件的獨立配置 Schema  
+│ ├── gorm_mysql_client_provider.json  
+│ ├── http_server_provider.json  
+│ ├── keycloak_auth_provider.json  
+│ ├── otelzap_logger_provider.json  
+│ └── ... (其他插件的 Schema)  
+├── docs/ # 專案所有文檔的集中存放地。這對 AI 理解專案結構和生成文檔至關重要。  
+│ ├── ARCHITECTURE.md # 平台整體架構、核心設計原則、模組劃分  
+│ ├── ENGINEERING_SPEC.md # 技術棧、開發與實作細節、程式碼規範 (即本文件)  
+│ ├── ROADMAP.md # 專案發展路線圖  
+│ ├── CONFIGURATION_REFERENCE.md # 平台配置的詳細說明與指南  
+│ ├── ai_scaffold/ # AI 驅動開發的專屬文檔和指導，供 AI 參考  
+│ │ ├── ai_directives_spec.md # 定義 AI 專用標籤/註解規範 (e.g., AI_SCAFFOLD_HINT)  
+│ │ ├── scaffold_workflow.md # AI Scaffold 總體流程與決策邏輯 (詳見此文件)  
+│ │ └── scaffolding_blueprints/ # 針對不同 Scaffold 類型的高層次藍圖/設計模式  
+│ │ └── new_plugin_blueprint.md  
+│ ├── templates/ # AI 生成程式碼時可能需要參考的代碼範本或結構  
+│ │ └── ai_scaffolding/ # 供 AI Scaffold 使用的程式碼骨架模板  
+│ │ └── main_go_assembly.tmpl  
+│ │ └── plugin_skeleton.go  
+│ └── README.md -> ../README.md # (軟連結或複製) 專案總覽的入口文件  
+├── migrations/ # 資料庫遷移腳本  
+├── test/ # 測試相關檔案，如測試數據、測試工具  
+└── README.md # 專案概述、願景、核心特色、快速上手指南 (專案的總覽入口)  
 **檔案命名**：
 
 * Go 檔案名使用 snake_case (例如 user_service.go)。  
@@ -121,10 +120,10 @@ detectviz-platform/
   * 變數、函數、類型命名遵循 Go 語言慣例。  
   * 介面命名以 Provider 或 Service 結尾，如 LoggerProvider, UserService。  
   * 實現命名應包含具體技術棧，如 OtelZapLogger, MySQLUserRepository。  
-* **程式碼註解 (GoDoc)**：所有公共函數、結構體、介面必須有詳細的 GoDoc 註解，包括其職責、參數、返回值、錯誤等。 這對於 AI 理解程式碼並生成相關內容 (包括自動生成 Schema) 至關重要。  
+* **程式碼註解 (GoDoc)**：所有公共函數、結構體、介面必須有詳細的 GoDoc 註解，包括其職責、參數、返回值、錯誤等。 **這對於 AI 理解程式碼並生成相關內容 (包括自動生成 Schema、測試用例和組裝邏輯) 至關重要。**  
 * **API 設計**：  
   * RESTful API 設計原則。  
-  * 清晰的請求/回應結構。
+  * 清晰的請求/回應結構。  
 * **配置驗證最佳實踐**：  
   * **Schema 先行**: 所有配置檔案必須先定義 JSON Schema，後實作程式碼。  
   * **自動驗證**: 平台在啟動時自動驗證所有配置的合法性。  
@@ -151,7 +150,7 @@ detectviz-platform/
 * **選擇**: 採用 **Atlas** (由 Ariga 開發) 作為資料庫 Schema 遷移工具。  
 * **考量**:  
   * **聲明式 Schema 管理**: 允許開發者定義目標 Schema 狀態，由 Atlas 自動計算並生成最小化遷移腳本，降低人為錯誤。  
-  * **數據庫不可知**: 支持多種關係型資料庫 (MySQL, PostgreSQL, SQLite, SQL Server 等)。  
+  * **數據庫不知**: 支持多種關係型資料庫 (MySQL, PostgreSQL, SQLite, SQL Server 等)。  
   * **CI/CD 整合友善**: 提供命令行工具，便於自動化。  
   * **靜態分析能力**: 可以檢查 Schema 變更的潛在風險。  
 * **使用規範**:  
@@ -224,7 +223,7 @@ detectviz-platform/
   * 支持數據持久化和高可用部署。  
 * **使用規範**:  
   * 通過 contracts.CacheProvider 介面進行緩存操作。  
-  * 緩存的鍵命名應清晰，包含模塊名、業務實體類型和唯一識別符（例如：user:id:<userID>, detector:name:<detectorName>）。  
+  * 緩存的鍵命名應清晰，包含模塊名、業務實體類型和唯一識別符（例如：user:id:, detector:name:）。  
   * 設置合理的 TTL (Time-To-Live) 以避免髒數據和內存溢出。  
   * 實施緩存穿透、緩存擊穿和緩存雪崩的防範措施（例如：熱點數據永不過期、使用互斥鎖）。  
 * **引入層次**: 緩存主要在 **Service 層** 引入，用於緩存經常訪問且數據變化不頻繁的讀取操作，以減少對數據庫的壓力。
@@ -387,7 +386,7 @@ Detectviz 平台的核心擴展機制是插件。本節詳細說明不同類型�
 * **Go 程式碼中的 Config 結構體**：  
   * 每個插件實現的 Config 結構體應清晰定義所有可配置的參數。  
   * 必須使用 yaml:"fieldName" 標籤來指定 YAML 欄位名。  
-  * 強烈建議為每個配置欄位提供 GoDoc 註解，詳細說明其目的、類型、預設值、合法範圍等。這些註解是未來 AI 自動生成 Schema 或文檔的基礎。
+  * **強烈建議為每個配置欄位提供 GoDoc 註解，詳細說明其目的、類型、預設值、合法範圍等。這些註解是未來 AI 自動生成 Schema 或文檔的基礎。**
 
 // Example: OtelZapLoggerConfig defines the configuration for the OtelZap logger provider.  
 type OtelZapLoggerConfig struct {  
@@ -420,7 +419,10 @@ type OtelZapLoggerConfig struct {
 
 ### **11.1 插件發現與註冊機制**
 
-* **工廠模式 (Factory Pattern)**: 每個插件類型都應該有一個對應的工廠函數，用於創建插件實例。  
+* **工廠模式 (Factory Pattern)**: 每個插件類型都應該有一個對應的**工廠函數 (NewFactory())**，用於創建插件實例。  
+  * **強制性要求**: 每個插件的實現包（例如 internal/platform/providers/llm/gemini_llm）都**必須**提供一個符合約定簽名的 NewFactory() 函數。這個函數是平台動態組裝插件的標準入口。  
+  * NewFactory() 的職責：接收配置和必要的依賴，並返回一個能夠創建插件實例的函數。  
+  * **詳細規範請參考 docs/ai_scaffold/scaffold_workflow.md 中關於 NewFactory() 的定義。**  
 * **集中註冊**: 在 main.go 或專門的 init 模組中，將所有可用的插件工廠註冊到 PluginRegistry。  
 * **AI 輔助**: AI 可以協助生成新的插件工廠骨架，並自動在 main.go 中添加註冊邏輯。
 
@@ -442,7 +444,7 @@ type OtelZapLoggerConfig struct {
 
 * 針對 Go 函數和方法編寫，覆蓋獨立的邏輯單元。  
 * 遵循 Go 測試慣例 (_test.go 檔案，TestXxx 函數)。  
-* **AI 輔助**: AI 可以根據程式碼和 GoDoc 註解，自動生成單元測試的骨架和初步測試用例。
+* **AI 輔助**: AI 可以根據程式碼和 **GoDoc 註解**，自動生成單元測試的骨架和初步測試用例。
 
 ### **12.2 集成測試 (Integration Tests)**
 
@@ -459,6 +461,7 @@ type OtelZapLoggerConfig struct {
 * **清晰、一致**的文檔是協作和 AI 驅動開發的基石。  
 * **GoDoc**: 所有公共 (大寫開頭) 的 package, type, func, var 必須包含 GoDoc 註解。  
   * 應清晰說明其目的、行為、參數、返回值和任何潛在的副作用或錯誤。  
+  * **對於 AI 而言，GoDoc 註解是理解程式碼意圖、推斷配置 Schema、生成測試和組裝邏輯的關鍵資訊來源。務必保持其完整性和精確性。**  
 * **AI 友好註解**: 積極使用如 AI_SCAFFOLD_HINT, AI_TEMPLATE_PATH 等自定義標籤，為 AI 提供額外的指導信息。  
 * **內部註解**: 對於複雜的邏輯、演算法或非顯而易見的設計決策，應在程式碼內部添加行級或區塊註解。  
 * **Markdown 文件**: 所有的 *.md 文件都應該結構清晰、易於閱讀，並提供足夠的細節。
@@ -475,4 +478,3 @@ type OtelZapLoggerConfig struct {
 ## **15. 總結 - Conclusion**
 
 本工程規範旨在為 Detectviz 平台提供一套全面的開發準則。透過嚴格遵循這些規範，並結合 AI 驅動開發的強大能力，我們將能夠構建一個高品質、可擴展且易於維護的平台，加速產品的迭代與創新。
-
