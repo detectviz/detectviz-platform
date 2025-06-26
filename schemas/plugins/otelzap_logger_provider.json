@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OtelZap Logger Provider Configuration",
+  "description": "Schema for the configuration of the OtelZap logger provider.",
+  "type": "object",
+  "properties": {
+    "level": {
+      "type": "string",
+      "description": "Minimum log level to record for this specific logger instance. Overrides app_config.yaml if set.",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "dpanic",
+        "panic",
+        "fatal"
+      ],
+      "default": "info"
+    },
+    "encoding": {
+      "type": "string",
+      "description": "Log output format for this logger instance.",
+      "enum": [
+        "json",
+        "console"
+      ],
+      "default": "json"
+    },
+    "outputPaths": {
+      "type": "array",
+      "description": "Log output targets (e.g., ['stdout', '/var/log/app.log']).",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "stdout"
+      ]
+    },
+    "errorOutputPaths": {
+      "type": "array",
+      "description": "Targets specifically for error logs.",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "stderr"
+      ]
+    },
+    "initialFields": {
+      "type": "object",
+      "description": "Initial fields to be attached to all log entries from this logger.",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

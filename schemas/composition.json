@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Detectviz Plugin Composition Schema",
+  "description": "Schema for defining the composition of platform providers and plugins in Detectviz (composition.yaml).",
+  "type": "object",
+  "properties": {
+    "platformProviders": {
+      "type": "array",
+      "description": "List of core platform service providers to be initialized.",
+      "items": {
+        "type": "object",
+        "description": "A single platform provider instance.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique name for this provider instance."
+          },
+          "type": {
+            "type": "string",
+            "description": "The registered type of the provider."
+          },
+          "config": {
+            "description": "Specific configuration parameters for this provider. The schema for this object depends on the 'type' field.",
+            "oneOf": [
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "http_server_provider"
+                    }
+                  }
+                },
+                "then": {
+                  "$ref": "plugins/http_server_provider.json"
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "otelzap_logger_provider"
+                    }
+                  }
+                },
+                "then": {
+                  "$ref": "plugins/otelzap_logger_provider.json"
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "gorm_mysql_client_provider"
+                    }
+                  }
+                },
+                "then": {
+                  "$ref": "plugins/gorm_mysql_client_provider.json"
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "keycloak_auth_provider"
+                    }
+                  }
+                },
+                "then": {
+                  "$ref": "plugins/keycloak_auth_provider.json"
+                }
+              },
+              {
+                "description": "If the type does not match any known provider, 'config' can be an arbitrary object.",
+                "type": "object",
+                "additionalProperties": true
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "description": "List of functional plugins to be initialized.",
+      "items": {
+        "type": "object",
+        "description": "A single plugin instance.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique name for this plugin instance."
+          },
+          "type": {
+            "type": "string",
+            "description": "The registered type of the plugin."
+          },
+          "config": {
+            "description": "Specific configuration parameters for this plugin. The schema for this object depends on the 'type' field. (Currently using generic object, will be replaced with specific plugin schemas)",
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "platformProviders"
+  ],
+  "additionalProperties": false
+}

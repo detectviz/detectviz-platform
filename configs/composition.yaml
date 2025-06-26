@@ -1,0 +1,64 @@
+# Detectviz 平台插件組合配置
+# 這個檔案定義了平台啟動時應該載入的所有插件實例
+
+# 平台基礎設定
+platform:
+  name: "detectviz-platform"
+  version: "0.1.0"
+  description: "Detectviz 異常偵測平台"
+
+# 全域設定
+global:
+  debug: true
+  logLevel: info
+
+# 路由配置
+routes:
+  api: "/api/v1"
+  ui: "/ui"
+  health: "/health"
+
+# 插件列表
+plugins:
+  # 日誌服務提供者 (已實現)
+  - type: otelzap_logger_provider
+    name: defaultLogger
+    config:
+      level: info
+      encoding: console
+      outputPaths:
+        - stdout
+      errorOutputPaths:
+        - stderr
+      initialFields:
+        service: detectviz-platform
+        component: main
+
+  # 配置管理提供者 (已實現)
+  - type: viper_config_provider
+    name: mainConfigProvider
+    config:
+      configFile: configs/app_config.yaml
+      configType: yaml
+
+  # 插件註冊表提供者 (新實現)
+  - type: plugin_registry_provider
+    name: coreRegistry
+    config:
+      autoRegister: true
+
+  # HTTP 服務器提供者 (新實現)
+  - type: http_server_provider
+    name: mainHttpServer
+    config:
+      port: 8080
+      readTimeout: 5s
+      writeTimeout: 10s
+
+  # Hello World UI 頁面插件 (新實現)
+  - type: hello_world_ui_page
+    name: helloWorldUI
+    config:
+      route: "/ui/hello"
+      title: "Hello World - Detectviz Platform"
+      message: "歡迎使用 Detectviz 平台！這是一個示例 UI 頁面，展示平台的插件架構和 Clean Architecture 設計原則。"

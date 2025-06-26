@@ -1,0 +1,3 @@
+features:
+  enable_advanced_dashboard: true
+  max_imports_per_day: 1000

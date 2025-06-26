@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HTTP Server Provider Configuration",
+  "description": "Schema for the configuration of a generic HTTP server provider (e.g., Echo-based).",
+  "type": "object",
+  "properties": {
+    "port": {
+      "type": "integer",
+      "description": "The port number the HTTP server should listen on. If defined in app_config.yaml, this will override it.",
+      "minimum": 1024,
+      "maximum": 65535,
+      "default": 8080
+    },
+    "readTimeout": {
+      "type": "string",
+      "description": "Timeout for reading client requests (e.g., '5s', '1m').",
+      "pattern": "^[0-9]+(s|m|h)$"
+    },
+    "writeTimeout": {
+      "type": "string",
+      "description": "Timeout for writing server responses (e.g., '10s', '2m').",
+      "pattern": "^[0-9]+(s|m|h)$"
+    }
+  },
+  "additionalProperties": false
+}

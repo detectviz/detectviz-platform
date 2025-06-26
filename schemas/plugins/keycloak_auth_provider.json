@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Keycloak Auth Provider Configuration",
+  "description": "Schema for the configuration of the Keycloak authentication provider.",
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The base URL for the Keycloak realm (e.g., 'http://localhost:8080/realms/detectviz').",
+      "format": "uri"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "The client ID for your application in Keycloak."
+    },
+    "clientSecretEnvVar": {
+      "type": "string",
+      "description": "The environment variable name holding the Keycloak client secret. (e.g., 'KEYCLOAK_CLIENT_SECRET')."
+    }
+  },
+  "required": [
+    "url",
+    "clientId"
+  ],
+  "additionalProperties": false
+}
