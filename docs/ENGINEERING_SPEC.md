@@ -190,6 +190,8 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
   * Service 層的方法如果需要跨多個 Repository 操作來保證數據一致性，應通過 contracts.TransactionManager 介面開啟、提交或回滾事務。  
   * Repository 層的方法不應直接管理事務，而應接收一個 *sql.Tx 或 GORM *gorm.DB 實例，以便在 Service 層的單一事務中協同操作。  
 * **範例**:  
+
+```go
   // service/user_service.go  
   type UserService struct {  
       userRepo    domain.UserRepository  
@@ -224,6 +226,7 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
       }  
       return nil  
   }
+```
 
 ## **5. API 層與服務間通訊 (API Layer & Inter-Service Communication)**
 
@@ -372,7 +375,7 @@ Detectviz 平台的核心擴展機制是插件。本節詳細說明不同類型�
 
 這類插件負責提供平台的核心能力，通常在平台啟動時被組裝。
 
-| 插件類型 (Type String) | 介面定義 (Go Interface) | 職責簡述 | 建議配置項與 Schema (參考 schemas/plugins/) |
+| 插件類型 | 介面定義 | 職責簡述 | 建議配置項與 Schema |
 | :---- | :---- | :---- | :---- |
 | http_server_provider | pkg/platform/contracts/http_server.go:HttpServerProvider | 提供 HTTP 服務，處理路由和請求。 | port, readTimeout, writeTimeout (http_server_provider.json) |
 | otelzap_logger_provider | pkg/platform/contracts/logger.go:LoggerProvider | 提供統一的日誌記錄功能。 | level, encoding, outputPaths, errorOutputPaths, initialFields (otelzap_logger_provider.json) |
@@ -412,6 +415,7 @@ Detectviz 平台的核心擴展機制是插件。本節詳細說明不同類型�
   * 必須使用 yaml:"fieldName" 標籤來指定 YAML 欄位名。  
   * **強烈建議為每個配置欄位提供 GoDoc 註解，詳細說明其目的、類型、預設值、合法範圍等。這些註解是未來 AI 自動生成 Schema 或文檔的基礎。**
 
+```go
 // Example: OtelZapLoggerConfig defines the configuration for the OtelZap logger provider.  
 type OtelZapLoggerConfig struct {  
     // Level specifies the minimum log level to record (debug, info, warn, error, dpanic, panic, fatal).  
@@ -427,6 +431,7 @@ type OtelZapLoggerConfig struct {
     // InitialFields specifies initial fields to be attached to all log entries.  
     InitialFields map[string]interface{} `yaml:"initialFields"`  
 }
+```
 
 * **JSON Schema (規範性文檔)**：  
   * 每個插件的 Config 結構體應有一個對應的 JSON Schema 檔案放置在 schemas/plugins/ 目錄下。  
