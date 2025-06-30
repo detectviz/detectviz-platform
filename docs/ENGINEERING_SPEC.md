@@ -28,72 +28,96 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
 
 清晰的專案結構對於可維護性和協作至關重要，尤其在 AI 輔助開發中，標準化能提高 AI 理解與操作的準確性。
 
-detectviz-platform/  
-├── .github/ # GitHub Actions CI/CD workflows (或 .gitlab-ci.yml for GitLab)  
-├── cmd/ # 應用程式主入口點  
-│ └── main.go # Detectviz 平台的啟動與核心組裝邏輯  
-├── configs/ # 應用程式運行時讀取的配置檔案  
-│ ├── app_config.yaml # 核心應用程式全局配置  
-│ └── composition.yaml # 平台插件的組合與具體配置  
-├── internal/ # 僅供內部使用，不應被外部專案直接引用  
-│ ├── domain_logic/ # 核心業務邏輯的內部實現  
-│ │ └── plugins/ # 業務插件的具體實現  
-│ │ └── ui_page/  
-│ │ └── hello_world_ui_page.go  
-│ ├── platform/ # 平台層面的內部實現  
-│ │ ├── plugin_registry/ # 插件註冊與組裝的核心邏輯  
-│ │ │ └── registry.go  
-│ │ └── providers/ # 平台核心供應商的具體實現  
-│ │ ├── config/  
-│ │ │ └── viper_config.go  
-│ │ ├── http_server/  
-│ │ │ └── echo_server.go  
-│ │ └── logger/  
-│ │ └── otelzap_logger.go  
-│ └── repositories/ # 資料庫操作的具體實現 (例如 mysql_user_repository.go)  
-│ └── services/ # 應用層業務邏輯的實現 (例如 user_service.go)  
-├── pkg/ # 可供外部專案引用的公共程式碼  
-│ ├── domain/ # 領域層定義，不依賴任何外部框架  
-│ │ ├── entities/ # 領域實體定義 (user.go, detector.go)  
-│ │ ├── interfaces/ # 領域層介面定義 (user_repository.go, analysis_engine.go)  
-│ │ └── plugins/ # 插件領域介面（平台無關）  
-│ │ ├── plugin.go # 所有插件的基礎介面  
-│ │ └── ui_page.go # UI 頁面插件的介面  
-│ ├── platform/ # 平台級契約 (Contracts) 和通用類型  
-│ │ └── contracts/ # 平台核心供應商介面定義  
-│ │ ├── config.go  
-│ │ ├── http_server.go  
-│ │ ├── logger.go  
-│ │ ├── plugin.go  
-│ │ └── plugin_registry.go  
-│ └── plugins/ # 各類插件的公共介面和工廠定義 (如果需要更細化的分類)  
-├── schemas/ # JSON Schema 定義檔案，用於驗證 /configs 目錄下的 YAML 配置。  
-│ ├── app_config.json # app_config.yaml 的 Schema  
-│ ├── composition.json # composition.yaml 的 Schema  
-│ └── plugins/ # 各個插件的獨立配置 Schema  
-│ ├── gorm_mysql_client_provider.json  
-│ ├── http_server_provider.json  
-│ ├── keycloak_auth_provider.json  
-│ ├── otelzap_logger_provider.json  
-│ └── ... (其他插件的 Schema)  
-├── docs/ # 專案所有文檔的集中存放地。這對 AI 理解專案結構和生成文檔至關重要。  
-│ ├── ARCHITECTURE.md # 平台整體架構、核心設計原則、模組劃分  
-│ ├── ENGINEERING_SPEC.md # 技術棧、開發與實作細節、程式碼規範 (即本文件)  
-│ ├── ROADMAP.md # 專案發展路線圖  
-│ ├── CONFIGURATION_REFERENCE.md # 平台配置的詳細說明與指南  
-│ ├── ai_scaffold/ # AI 驅動開發的專屬文檔和指導，供 AI 參考  
-│ │ ├── ai_directives_spec.md # 定義 AI 專用標籤/註解規範 (e.g., AI_SCAFFOLD_HINT)  
-│ │ ├── scaffold_workflow.md # AI Scaffold 總體流程與決策邏輯 (詳見此文件)  
-│ │ └── scaffolding_blueprints/ # 針對不同 Scaffold 類型的高層次藍圖/設計模式  
-│ │ └── new_plugin_blueprint.md  
-│ ├── templates/ # AI 生成程式碼時可能需要參考的代碼範本或結構  
-│ │ └── ai_scaffolding/ # 供 AI Scaffold 使用的程式碼骨架模板  
-│ │ └── main_go_assembly.tmpl  
-│ │ └── plugin_skeleton.go  
-│ └── README.md -> ../README.md # (軟連結或複製) 專案總覽的入口文件  
-├── migrations/ # 資料庫遷移腳本  
-├── test/ # 測試相關檔案，如測試數據、測試工具  
-└── README.md # 專案概述、願景、核心特色、快速上手指南 (專案的總覽入口)  
+```bash
+.
+├── README.md # 專案概述、願景、核心特色、快速上手指南 (專案的總覽入口)
+├── AGENTS.md # 代理程式 (Agents) 的說明文件
+├── assets/ # 資產檔案，包括平台定義的 DrawIO 圖形檔案
+│   └── platforms-def.drawio.xml # 平台定義的 DrawIO 圖形檔案
+├── cmd/
+│   └── api/
+│       └── main.go # 應用程式主入口點
+├── configs/
+│   ├── app_config.yaml # 核心應用程式全局配置
+│   └── composition.yaml # 平台插件的組合與具體配置
+├── docs/ # 文檔目錄
+│   ├── ai_scaffold/
+│   │   ├── main_go_assembly.tmpl # AI 生成程式碼時可能需要參考的代碼範本或結構
+│   │   └── scaffold_workflow.md # AI Scaffold 總體流程與決策邏輯
+│   ├── architecture/
+│   │   └── interface_spec.md # 平台介面規範
+│   ├── ARCHITECTURE.md # 平台整體架構、核心設計原則、模組劃分
+│   ├── CONFIGURATION_REFERENCE.md # 平台配置的詳細說明與指南
+│   ├── CONTRIBUTING.md # 貢獻指南
+│   ├── DEPLOYMENT_GUIDE.md # 部署指南
+│   ├── DEVELOPMENT.md # 開發指南
+│   ├── ENGINEERING_SPEC.md # 技術棧、開發與實作細節、程式碼規範 (即本文件)
+│   ├── GLOSSARY.md # 術語表
+│   └── ROADMAP.md # 專案發展路線圖
+├── internal/
+│   ├── adapters/ # 適配器層，負責將外部服務或技術轉換為平台內部使用的格式
+│   │   ├── auth_middleware/ # 認證與授權中間件
+│   │   ├── http_handlers/ # HTTP 請求處理器
+│   │   └── plugins/ # 插件層，負責實現具體的業務邏輯
+│   │       ├── importers/ # 插件導入器，負責將外部服務或技術轉換為平台內部使用的格式
+│   │       └── web_ui/ # 網頁 UI 層，負責實現網頁 UI 的業務邏輯
+│   │           └── hello_world_ui_page.go # 示例 UI 頁面
+│   ├── app/ # 應用層，負責實現應用層的業務邏輯
+│   │   ├── initializer/ # 初始化器，負責初始化應用層的業務邏輯
+│   │   └── registry/ # 註冊器，負責註冊應用層的業務邏輯
+│   ├── config/ # 配置層，負責實現配置層的業務邏輯
+│   │   └── platform_config.go # 平台配置
+│   ├── infrastructure/ # 基礎設施層，負責實現基礎設施層的業務邏輯
+│   │   └── platform/ # 平台層，負責實現平台層的業務邏輯
+│   │       ├── auth/ # 認證與授權
+│   │       ├── cli_server/ # CLI 伺服器
+│   │       ├── config/ # 配置
+│   │       │   └── viper_config_provider.go # Viper 配置提供者
+│   │       ├── database/ # 資料庫
+│   │       ├── external_services/ # 外部服務
+│   │       ├── http_server/ # HTTP 伺服器
+│   │       │   └── echo_http_server_provider.go # Echo HTTP 伺服器提供者
+│   │       ├── logger/ # 日誌
+│   │       │   └── otelzap_logger.go # OtelZap 日誌提供者
+│   │       └── registry/ # 註冊器，負責註冊基礎設施層的業務邏輯
+│   │           └── plugin_registry_provider.go # 插件註冊器提供者
+│   ├── repositories/ # 倉儲層，負責實現倉儲層的業務邏輯
+│   │   └── mysql/ # MySQL 倉儲
+│   └── services/ # 服務層，負責實現服務層的業務邏輯
+│       └── user/ # 用戶服務
+│           └── dto/ # 用戶 DTO
+├── pkg/ # 公共程式碼庫，可供外部專案引用
+│   ├── domain/ # 領域層定義，不依賴任何外部框架
+│   │   ├── entities/ # 領域實體定義 (user.go, detector.go)
+│   │   │   ├── analysis_result.go # 分析結果實體
+│   │   │   ├── detection_result.go # 檢測結果實體
+│   │   │   ├── detection.go # 檢測實體
+│   │   │   ├── detector.go # 檢測器實體
+│   │   │   └── user.go # 用戶實體
+│   │   ├── errors/ # 錯誤定義
+│   │   │   └── errors.go # 錯誤定義
+│   │   ├── interfaces/ # 介面定義
+│   │   │   ├── analysis_engine.go # 分析引擎介面
+│   │   │   ├── detector_repository.go # 檢測器倉儲介面
+│   │   │   └── user_repository.go # 用戶倉儲介面
+│   │   └── plugins/ # 插件定義
+│   │       ├── importer.go # 插件導入器介面
+│   │       ├── plugin.go # 插件基礎介面
+│   │       └── uipage.go # 插件 UI 頁面介面
+│   └── platform/ # 平台級契約 (Contracts) 和通用類型
+│       └── contracts/ # 平台核心供應商介面定義
+│           ├── contracts.go # 平台核心供應商介面定義
+│           └── logger.go # 日誌提供者介面定義
+└── schemas # JSON Schema 定義檔案，用於驗證 /configs 目錄下的 YAML 配置。
+    ├── app_config.json # app_config.yaml 的 Schema
+    ├── composition.json # composition.yaml 的 Schema
+    └── plugins # 各個插件的獨立配置 Schema
+        ├── gorm_mysql_client_provider.json # GORM MySQL 客戶端提供者
+        ├── http_server_provider.json # HTTP 伺服器提供者
+        ├── keycloak_auth_provider.json # Keycloak 認證提供者
+        └── otelzap_logger_provider.json # OtelZap 日誌提供者
+```
+
 **檔案命名**：
 
 * Go 檔案名使用 snake_case (例如 user_service.go)。  
