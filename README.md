@@ -37,27 +37,27 @@ configs/composition.yaml 作為平台的 **「組裝根」核心配置檔**，�
 
 **配置驗證機制**：平台採用 JSON Schema 對所有配置進行嚴格驗證，確保配置的正確性和一致性。在啟動時會自動驗證 app_config.yaml、composition.yaml 以及各插件的配置，提供明確的錯誤訊息以協助問題排查。AI 在生成或修改配置時，將嚴格遵循這些 JSON Schema，從源頭保證配置的有效性。
 
-欲了解更多詳細的架構設計、層次職責及 AI 在各層次的協作方式，請查閱 [docs/ARCHITECTURE.md](http://docs.google.com/docs/ARCHITECTURE.md)。
+欲了解更多詳細的架構設計、層次職責及 AI 在各層次的協作方式，請查閱 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)。
 
 ## **文檔導航：AI 的知識庫與指令集**
 
 為了方便您快速找到所需的資訊，同時作為 AI 學習和操作的知識庫，Detectviz 平台的所有重要文檔都集中存放在 docs/ 目錄下：
 
-* [ARCHITECTURE.md](http://docs.google.com/docs/ARCHITECTURE.md)：平台整體架構、核心設計原則、模組劃分。**AI 藉此構建對系統的宏觀理解。**  
-* [ENGINEERING_SPEC.md](http://docs.google.com/docs/ENGINEERING_SPEC.md)：技術棧、程式碼實作規範、目錄與檔案命名慣例、程式碼風格、測試原則及插件開發規範。**AI 依此生成符合工程標準的程式碼。**  
-* [ROADMAP.md](http://docs.google.com/docs/ROADMAP.md)：平台未來發展藍圖、階段性目標和 AI 賦能路線圖。**AI 參考此文件理解專案進程和優先級。**  
-* [CONFIGURATION_REFERENCE.md](http://docs.google.com/docs/CONFIGURATION_REFERENCE.md)：平台所有可配置項的完整列表與詳細說明，包括 composition.yaml 的 Schema。**AI 依據 Schema 自動生成和驗證配置。**  
-* [docs/architecture/interface_spec.md](http://docs.google.com/docs/architecture/interface_spec.md)：**所有核心 Go 介面定義的規範性參考，對 AI 理解平台契約至關重要。AI 嚴格遵循這些介面定義來生成功能代碼和組裝邏輯。**  
-* [docs/ai_scaffold/scaffold_workflow.md](http://docs.google.com/docs/ai_scaffold/scaffold_workflow.md)：AI 輔助程式碼生成的核心工作流程，指導 AI 如何自動化任務。**這是 AI 執行程式碼生成任務的直接指令集。**  
-* [CONTRIBUTING.md](http://docs.google.com/CONTRIBUTING.md)：貢獻者指南，包含如何提交 Issue、Pull Request、程式碼規範等。  
-* [DEVELOPMENT.md](http://docs.google.com/docs/DEVELOPMENT.md)：開發環境設置、常用開發工具、本地運行、測試編寫、除錯技巧。  
-* [DEPLOYMENT_GUIDE.md](http://docs.google.com/docs/DEPLOYMENT_GUIDE.md)：如何將 Detectviz 平台部署到不同環境的詳細步驟和考量。  
-* [PLUGIN_GUIDE.md(待補)](http://docs.google.com/docs/PLUGIN_GUIDE.md)：如何為 Detectviz 平台開發新插件的指南。  
-* [API_REFERENCE.md(待補)](http://docs.google.com/docs/reference/API_REFERENCE.md)：平台所有公開 API 的詳細規範。  
-* [GLOSSARY.md](http://docs.google.com/docs/GLOSSARY.md)：平台相關術語、概念和縮寫的定義。  
-* [TROUBLESHOOTING.md(待補)](http://docs.google.com/docs/TROUBLESHOOTING.md)：常見問題及解決方案。  
-* [CHANGELOG.md(待補)](http://docs.google.com/CHANGELOG.md)：平台所有發布版本的變更日誌。  
-* [SECURITY.md(待補)](http://docs.google.com/SECURITY.md)：專案的安全策略與漏洞報告流程。
+* [ARCHITECTURE.md](./docs/ARCHITECTURE.md)：平台整體架構、核心設計原則、模組劃分。**AI 藉此構建對系統的宏觀理解。**  
+* [ENGINEERING_SPEC.md](./docs/ENGINEERING_SPEC.md)：技術棧、程式碼實作規範、目錄與檔案命名慣例、程式碼風格、測試原則及插件開發規範。**AI 依此生成符合工程標準的程式碼。**  
+* [ROADMAP.md](./docs/ROADMAP.md)：平台未來發展藍圖、階段性目標和 AI 賦能路線圖。**AI 參考此文件理解專案進程和優先級。**  
+* [CONFIGURATION_REFERENCE.md](./docs/CONFIGURATION_REFERENCE.md)：平台所有可配置項的完整列表與詳細說明，包括 composition.yaml 的 Schema。**AI 依據 Schema 自動生成和驗證配置。**  
+* [docs/architecture/interface_spec.md](./docs/architecture/interface_spec.md)：**所有核心 Go 介面定義的規範性參考，對 AI 理解平台契約至關重要。AI 嚴格遵循這些介面定義來生成功能代碼和組裝邏輯。**  
+* [docs/ai_scaffold/scaffold_workflow.md](./docs/ai_scaffold/scaffold_workflow.md)：AI 輔助程式碼生成的核心工作流程，指導 AI 如何自動化任務。**這是 AI 執行程式碼生成任務的直接指令集。**  
+* [CONTRIBUTING.md](./CONTRIBUTING.md)：貢獻者指南，包含如何提交 Issue、Pull Request、程式碼規範等。  
+* [DEVELOPMENT.md](./docs/DEVELOPMENT.md)：開發環境設置、常用開發工具、本地運行、測試編寫、除錯技巧。  
+* [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md)：如何將 Detectviz 平台部署到不同環境的詳細步驟和考量。  
+* [PLUGIN_GUIDE.md(待補)](./docs/PLUGIN_GUIDE.md)：如何為 Detectviz 平台開發新插件的指南。  
+* [API_REFERENCE.md(待補)](./docs/reference/API_REFERENCE.md)：平台所有公開 API 的詳細規範。  
+* [GLOSSARY.md](./docs/GLOSSARY.md)：平台相關術語、概念和縮寫的定義。  
+* [TROUBLESHOOTING.md(待補)](./docs/TROUBLESHOOTING.md)：常見問題及解決方案。  
+* [CHANGELOG.md(待補)](./CHANGELOG.md)：平台所有發布版本的變更日誌。  
+* [SECURITY.md(待補)](./SECURITY.md)：專案的安全策略與漏洞報告流程。
 
 ## **AI 交互指南**
 
@@ -66,17 +66,17 @@ Detectviz 平台設計之初就考慮了 AI 輔助開發，您可以利用 AI �
 ### **如何利用 AI 進行 Scaffold (鷹架生成)？**
 
 1. **理解需求：** 首先明確您希望 AI 完成什麼任務（例如：新增一個日誌提供者、一個新的數據導入插件、生成特定功能的測試用例）。  
-2. **參考規範：** 確保您已熟悉 [ARCHITECTURE.md](http://docs.google.com/docs/ARCHITECTURE.md) 和 [ENGINEERING_SPEC.md](http://docs.google.com/docs/ENGINEERING_SPEC.md)，這些是 AI 生成程式碼的基礎藍圖和規範。AI 將嚴格遵循這些文件。  
-3. **準備配置：** 如果任務涉及插件組裝或配置，請確保 configs/composition.yaml 或其他相關配置檔已準備好，它將作為 AI 的核心輸入。AI 會利用 [CONFIGURATION_REFERENCE.md](http://docs.google.com/docs/CONFIGURATION_REFERENCE.md) 中的 JSON Schema 進行驗證。  
+2. **參考規範：** 確保您已熟悉 [ARCHITECTURE.md](./docs/ARCHITECTURE.md) 和 [ENGINEERING_SPEC.md](./docs/ENGINEERING_SPEC.md)，這些是 AI 生成程式碼的基礎藍圖和規範。AI 將嚴格遵循這些文件。  
+3. **準備配置：** 如果任務涉及插件組裝或配置，請確保 configs/composition.yaml 或其他相關配置檔已準備好，它將作為 AI 的核心輸入。AI 會利用 [CONFIGURATION_REFERENCE.md](./docs/CONFIGURATION_REFERENCE.md) 中的 JSON Schema 進行驗證。  
 4. **發出指令：** 根據您要生成的內容類型，向 AI 發出具體的指令。  
    * 核心功能入口：對於自動化 main.go 中的插件工廠註冊和組裝邏輯，以及其他 AI 輔助腳手架功能，請參考：  
      AI Scaffold 工作流程詳情：docs/ai_scaffold/scaffold_workflow.md  
-   * **介面驅動生成**：當需要實現特定介面時，請明確指出 [interface_spec.md](http://docs.google.com/docs/architecture/interface_spec.md) 中對應的介面名稱。  
-5. **集成與驗證：** 將 AI 生成的程式碼集成到您的專案中，並進行必要的測試和調整。請務必結合 [ENGINEERING_SPEC.md](http://docs.google.com/docs/ENGINEERING_SPEC.md) 中的測試規範進行驗證。
+   * **介面驅動生成**：當需要實現特定介面時，請明確指出 [interface_spec.md](./docs/architecture/interface_spec.md) 中對應的介面名稱。  
+5. **集成與驗證：** 將 AI 生成的程式碼集成到您的專案中，並進行必要的測試和調整。請務必結合 [ENGINEERING_SPEC.md](./docs/ENGINEERING_SPEC.md) 中的測試規範進行驗證。
 
 ### **AI 指令標籤**
 
-為了提高 AI 理解的精確性，我們在部分核心 Go 介面定義 ([docs/architecture/interface_spec.md](http://docs.google.com/docs/architecture/interface_spec.md)) 中加入了 AI 專用標籤，例如 AI_PLUGIN_TYPE、AI_IMPL_PACKAGE 等。這些標籤直接告訴 AI 介面的預期用途和實現細節，以確保生成程式碼的準確性。AI 在生成代碼時將優先解析並遵循這些標籤。
+為了提高 AI 理解的精確性，我們在部分核心 Go 介面定義 ([docs/architecture/interface_spec.md](./docs/architecture/interface_spec.md)) 中加入了 AI 專用標籤，例如 AI_PLUGIN_TYPE、AI_IMPL_PACKAGE 等。這些標籤直接告訴 AI 介面的預期用途和實現細節，以確保生成程式碼的準確性。AI 在生成代碼時將優先解析並遵循這些標籤。
 
 ## **快速上手 (開發環境)**
 
@@ -113,7 +113,7 @@ Detectviz 平台設計之初就考慮了 AI 輔助開發，您可以利用 AI �
 
 ## **貢獻指南**
 
-我們歡迎任何形式的貢獻！請參考 [CONTRIBUTING.md](http://docs.google.com/CONTRIBUTING.md) 文件了解如何提交 Bug、功能請求或貢獻程式碼的詳細步驟。
+我們歡迎任何形式的貢獻！請參考 [CONTRIBUTING.md](./CONTRIBUTING.md) 文件了解如何提交 Bug、功能請求或貢獻程式碼的詳細步驟。
 
 ## **授權條款**
 
