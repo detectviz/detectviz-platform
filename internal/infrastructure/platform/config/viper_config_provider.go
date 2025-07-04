@@ -32,7 +32,11 @@ func NewViperConfigProvider(configFilePath string, logger contracts.Logger) (con
 		}
 		return nil, fmt.Errorf("ConfigProvider: 讀取配置檔失敗 %s: %w", configFilePath, err)
 	}
-	logger.Info("[INFRA][ViperConfigProvider] 從 %s 初始化完成。\n", configFilePath)
+
+	// 只有在 logger 不為 nil 時才記錄日誌
+	if logger != nil {
+		logger.Info("[INFRA][ViperConfigProvider] 從 %s 初始化完成。\n", configFilePath)
+	}
 	return &ViperConfigProvider{viper: v}, nil
 }
 

@@ -40,7 +40,7 @@
 - [x] 7.UIPagePlugin
 - [ ] 8.CLIPlugin
 
-### contracts (27)
+### contracts (28)
 
 #### 🎛 Platform I/O Providers
 - [x] 1.ConfigProvider
@@ -52,6 +52,7 @@
 - [x] 5.KeycloakClientContract
 - [ ] 6.SessionStore
 - [ ] 7.CSRFTokenProvider
+- [x] 8.PasswordHasher
 
 #### 📊 Observability & Stability
 - [x] 8.Logger
@@ -743,6 +744,22 @@ type CSRFTokenProvider interface {
 }
 ```
 
+8. PasswordHasher 定義了密碼散列和驗證的介面
+```go
+// internal/auth/hasher/hasher.go
+// PasswordHasher 定義了密碼散列和驗證的抽象介面。
+// 職責: 提供安全的密碼散列和驗證功能，隔離具體的散列演算法實現。
+// AI_PLUGIN_TYPE: "password_hasher"
+// AI_IMPL_PACKAGE: "detectviz-platform/internal/auth/hasher/bcrypt_hasher"
+// AI_IMPL_CONSTRUCTOR: "NewBcryptPasswordHasher"
+// @See: internal/auth/hasher/hasher_bcrypt.go
+type PasswordHasher interface {
+	HashPassword(ctx context.Context, plainPassword string) (string, error)
+	VerifyPassword(ctx context.Context, plainPassword, hashedPassword string) (bool, error)
+	GetName() string
+}
+```
+
 ### 🔌 Plugin / Registry / Metadata
 
 13. PluginRegistryProvider 定義了插件註冊與查詢的介面
@@ -916,9 +933,9 @@ type ServiceInstance struct {
 
 ## 進度統計
 
-**總計完成進度：12/47 項目 (26%)**
+**總計完成進度：13/48 項目 (27%)**
 
 - **entities**: 5/5 完成 (100%)
 - **interfaces**: 4/7 完成 (57%)  
 - **plugins**: 4/8 完成 (50%)
-- **contracts**: 11/27 完成 (41%)
+- **contracts**: 12/28 完成 (43%)

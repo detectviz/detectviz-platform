@@ -379,3 +379,34 @@ AI 應協助維護：
 ---
 
 此文件將隨著平台發展持續更新，以反映最新的架構設計和開發實踐。
+
+---
+
+## AI Agent 對 Checklist 與 Scaffold 任務的處理規範
+
+### 來源與對應行為
+
+| 來源文件 | 責任行為 |
+|----------|-----------|
+| `/todo.md` | 判斷 scaffold 任務順序與類型（依 `- [ ]` 清單與 `<!-- SCAFFOLD_TYPE -->` 標籤） |
+| `/docs/audit/checklist.md` | 每完成一項任務，應同步檢查是否已標記 `[x]`，或補上必要說明（例如：對應檔案路徑） |
+| `/docs/ai_scaffold/scaffold_prerequisites.md` | 所有 scaffold 任務與 code review 必須遵循該文件定義之流程與更新規則 |
+| `/docs/ROADMAP.md` | 若完成項目為特定里程碑內任務，則應同步勾選對應里程碑進度 |
+
+### 當觸發下列任務時，AI Agent 應依此執行：
+
+- **"請檢查 scaffold 是否已完成"**
+  - 檢查 `/todo.md` 中對應項目是否勾選
+  - 檢查 `/docs/audit/checklist.md` 是否補上對應欄位與 `[x]`
+  - 驗證對應實作檔案是否存在（程式碼、測試、schema、plugin doc）
+  - 若為 plugin 任務，應包含 factory、plugin、plugin_test.go、plugin doc、plugin schema
+
+- **"請驗證是否完成 RAG 整合"**
+  - 檢查 interface 是否有標記 `AI_PLUGIN_TYPE`
+  - plugin doc 是否已收錄至 `/docs/ai_scaffold/rag_ingest_plan.md`
+
+- **"請同步 checklist"**
+  - 每新增 `- [ ]` 任務至 `/todo.md`，應於 `/docs/audit/checklist.md` 補上對應檢查欄位
+  - 每完成 `[x]` 項目，應同步更新 checklist 完成狀態與完成證據（路徑或函式名稱）
+
+---

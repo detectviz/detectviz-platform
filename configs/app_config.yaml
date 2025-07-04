@@ -1,3 +1,38 @@
+# Detectviz Platform Application Configuration
+
+# Server Configuration
+server:
+  port: 8080
+  readTimeout: "5s"
+  writeTimeout: "10s"
+  shutdownTimeout: "30s"
+
+# Logger Configuration
+logger:
+  level: "info"
+  encoding: "console"
+  outputPaths:
+    - "stdout"
+  errorOutputPaths:
+    - "stderr"
+  initialFields:
+    service: "detectviz-platform"
+    component: "main"
+
+# UI Plugin Configuration
+ui:
+  helloWorld:
+    route: "/ui/hello"
+    title: "Hello World - Detectviz Platform"
+    message: "歡迎使用 Detectviz 平台！這是一個示例 UI 頁面，展示平台的插件架構和 Clean Architecture 設計原則。"
+
+# Feature Flags
 features:
   enable_advanced_dashboard: true
   max_imports_per_day: 1000
+
+# Application Metadata
+app:
+  name: "detectviz-platform"
+  version: "1.0.0"
+  environment: "development"
