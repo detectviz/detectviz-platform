@@ -1,0 +1,135 @@
+# Detectviz 平台插件配置示例
+# 此文件展示了如何配置各種插件
+
+# 數據導入插件配置
+importers:
+  csv_importer:
+    name: "csv_importer_plugin"
+    enabled: true
+    config:
+      delimiter: ","
+      has_header: true
+      skip_rows: 0
+      batch_size: 1000
+      max_rows: 0 # 0 表示無限制
+      validate_data: true
+      datetime_format: "2006-01-02 15:04:05"
+      # 運行時會根據具體導入任務設置 table_name 和 column_mapping
+
+# 偵測器插件配置
+detectors:
+  threshold_detector:
+    name: "threshold_detector_plugin"
+    enabled: true
+    config:
+      # 基礎配置，運行時可以覆蓋
+      severity: "medium"
+      enable_upper: true
+      enable_lower: true
+      tolerant_count: 1
+      description: "基於閾值的異常偵測器"
+
+# 具體偵測器實例配置
+detector_instances:
+  - name: "cpu_usage_detector"
+    type: "threshold_detector"
+    config:
+      field_name: "cpu_usage"
+      upper_threshold: 90.0
+      lower_threshold: 5.0
+      severity: "high"
+      description: "CPU 使用率異常偵測"
+      enable_upper: true
+      enable_lower: true
+      tolerant_count: 3
+
+  - name: "memory_usage_detector"
+    type: "threshold_detector"
+    config:
+      field_name: "memory_usage"
+      upper_threshold: 85.0
+      lower_threshold: 10.0
+      severity: "medium"
+      description: "記憶體使用率異常偵測"
+      enable_upper: true
+      enable_lower: false
+      tolerant_count: 2
+
+  - name: "disk_space_detector"
+    type: "threshold_detector"
+    config:
+      field_name: "disk_usage_percent"
+      upper_threshold: 95.0
+      severity: "critical"
+      description: "磁碟空間不足偵測"
+      enable_upper: true
+      enable_lower: false
+      tolerant_count: 1
+
+  - name: "response_time_detector"
+    type: "threshold_detector"
+    config:
+      field_name: "response_time_ms"
+      upper_threshold: 5000.0
+      severity: "high"
+      description: "API 響應時間異常偵測"
+      enable_upper: true
+      enable_lower: false
+      tolerant_count: 2
+
+# 導入任務配置示例
+import_tasks:
+  - name: "system_metrics_import"
+    importer: "csv_importer"
+    config:
+      table_name: "system_metrics"
+      column_mapping:
+        "timestamp": "created_at"
+        "cpu": "cpu_usage"
+        "memory": "memory_usage"
+        "disk": "disk_usage_percent"
+    schedule: "*/5 * * * *" # 每 5 分鐘執行一次
+
+  - name: "api_logs_import"
+    importer: "csv_importer"
+    config:
+      table_name: "api_logs"
+      column_mapping:
+        "time": "created_at"
+        "endpoint": "api_endpoint"
+        "response_time": "response_time_ms"
+        "status_code": "http_status"
+    schedule: "*/1 * * * *" # 每分鐘執行一次
+
+# 偵測流程配置
+detection_workflows:
+  - name: "system_monitoring"
+    description: "系統監控偵測流程"
+    data_source: "system_metrics"
+    detectors:
+      - "cpu_usage_detector"
+      - "memory_usage_detector"
+      - "disk_space_detector"
+    schedule: "*/2 * * * *" # 每 2 分鐘執行一次
+
+  - name: "api_performance_monitoring"
+    description: "API 性能監控偵測流程"
+    data_source: "api_logs"
+    detectors:
+      - "response_time_detector"
+    schedule: "*/1 * * * *" # 每分鐘執行一次
+
+# 全域插件設定
+global_plugin_settings:
+  # 插件載入超時時間（秒）
+  load_timeout: 30
+  # 插件執行超時時間（秒）
+  execution_timeout: 60
+  # 是否啟用插件性能監控
+  enable_metrics: true
+  # 插件日誌級別
+  log_level: "info"
+  # 插件錯誤重試次數
+  max_retries: 3
+  # 插件並發執行數量限制
+  max_concurrent_executions: 10

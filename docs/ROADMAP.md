@@ -48,13 +48,13 @@ Phase 0: 平台核心骨架與 AI 基礎建設
   * [x] 實現一個簡單的「Hello World」型 UIPagePlugin，並透過 composition.yaml 註冊和載入。  
   * **AI 協同點**：AI 將依據 composition.yaml 的配置，結合 interface_spec.md 中定義的插件介面，並參考 main_go_assembly.tmpl 模板，自動生成 main.go 中組裝程式碼的骨架與填充邏輯，實現平台組件的自動化組合。此過程將嚴格遵循 scaffold_workflow.md 中定義的 AI 腳手架工作流程，確保生成的組裝代碼符合 ARCHITECTURE.md 的組裝根原則。  
 * **里程碑 0.4：CI/CD 與可觀察性基礎**  
-  * [ ] 設定基本的 Git Workflow 和 CI/CD Pipeline (例如，自動化測試、Go Build)，並將其設計原則納入 ENGINEERING_SPEC.md。  
-  * [ ] 整合 Prometheus/Grafana 進行基礎指標監控（CPU, Memory, Request Rate），並定義關鍵指標在 ENGINEERING_SPEC.md 中。  
-  * [ ] 整合 Jaeger/Zipkin 進行分散式追蹤，確保其與 OpenTelemetry 規範（來自 ARCHITECTURE.md）一致。  
+  * [x] 設定基本的 Git Workflow 和 CI/CD Pipeline (例如，自動化測試、Go Build)，並將其設計原則納入 ENGINEERING_SPEC.md。  
+  * [x] 整合 Prometheus/Grafana 進行基礎指標監控（CPU, Memory, Request Rate），並定義關鍵指標在 ENGINEERING_SPEC.md 中。  
+  * [x] 整合 Jaeger/Zipkin 進行分散式追蹤，確保其與 OpenTelemetry 規範（來自 ARCHITECTURE.md）一致。  
   * **AI 協同點**：AI 將協助撰寫 CI/CD 腳本片段，並根據 ENGINEERING_SPEC.md 中定義的可觀察性規範，建議監控指標和追蹤配置。  
 * **里程碑 0.5：資料導入與偵測基礎插件**  
-  * [ ] 實現 ImporterPlugin 的 CSV 導入器，可將 CSV 數據解析並儲存至資料庫。此實現將遵循 ENGINEERING_SPEC.md 的數據層細節規範。  
-  * [ ] 實現一個基於規則或簡單統計模型的 DetectorPlugin (例如，閾值告警)。此插件的開發將遵循 ENGINEERING_SPEC.md 的插件開發規範。  
+  * [x] 實現 ImporterPlugin 的 CSV 導入器，可將 CSV 數據解析並儲存至資料庫。此實現將遵循 ENGINEERING_SPEC.md 的數據層細節規範。  
+  * [x] 實現一個基於規則或簡單統計模型的 DetectorPlugin (例如，閾值告警)。此插件的開發將遵循 ENGINEERING_SPEC.md 的插件開發規範。  
   * **AI 協同點**：AI 將依據 ImporterPlugin 和 DetectorPlugin 介面（來自 interface_spec.md）和 CSV 數據格式定義，自動生成 CSV 解析邏輯、偵測邏輯和對應的資料庫儲存邏輯，並遵循 ENGINEERING_SPEC.md 的程式碼規範。
 
 Phase 1: 核心偵測能力與用戶體驗 (MVP 功能)  
@@ -117,6 +117,24 @@ Phase 3: 穩定性、效能與操作化
 
 * [ ]：待完成  
 * [x]：已完成
+
+**最新更新記錄**：
+* **2025/01/04**：完成里程碑 0.4 CI/CD 與可觀察性基礎
+  - ✅ 建立 GitHub Actions CI/CD Pipeline (測試、構建、安全掃描、Docker 構建)
+  - ✅ 創建 golangci-lint 代碼質量檢查配置
+  - ✅ 實現完整的可觀察性堆棧 (Prometheus + Grafana + Jaeger + OTEL Collector)
+  - ✅ 實現 PrometheusMetricsProvider 指標收集服務
+  - ✅ 實現 JaegerTracingProvider 分散式追蹤服務 (使用 OTLP)
+  - ✅ 修復並更新 contracts.go 中的 MetricsProvider 和 TracingProvider 介面
+
+* **2025/01/04**：完成里程碑 0.5 資料導入與偵測基礎插件
+  - ✅ 實現 CSVImporterPlugin 完整功能 (支持自定義分隔符、批量插入、數據驗證)
+  - ✅ 實現 ThresholdDetectorPlugin 閾值偵測器 (支持上下限檢測、可配置嚴重程度)
+  - ✅ 創建完整的單元測試和集成測試
+  - ✅ 創建插件配置示例和測試數據
+  - ✅ 修復插件介面契約問題，確保實現正確性
+
+**當前階段總結**：Phase 0 已全部完成 (5/5 里程碑)，平台核心骨架與 AI 基礎建設已建立完成。
 
 **定期審查**：建議團隊成員至少每雙週審查一次路線圖，並根據實際完成情況更新任務標記。
 

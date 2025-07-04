@@ -33,7 +33,7 @@
 
 - [x] 1.Plugin
 - [x] 2.Importer
-- [ ] 3.DetectorPlugin
+- [x] 3.DetectorPlugin
 - [ ] 4.AnalysisEnginePlugin
 - [ ] 5.NotificationPlugin
 - [ ] 6.AlertPlugin
@@ -55,8 +55,8 @@
 
 #### 📊 Observability & Stability
 - [x] 8.Logger
-- [ ] 9.MetricsProvider
-- [ ] 10.TracingProvider
+- [x] 9.MetricsProvider
+- [x] 10.TracingProvider
 - [ ] 11.RateLimiterProvider
 - [ ] 12.CircuitBreakerProvider
 
@@ -610,34 +610,40 @@ type SecretsProvider interface {
 
 16. MetricsProvider 定義了指標收集與導出的介面
 ```go
-// pkg/platform/contracts/metrics_provider.go
-// MetricsProvider 定義了指標收集與導出的介面。
-// 職責: 提供應用程式運行時指標的記錄功能。
-// AI_PLUGIN_TYPE: "metrics_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/metrics/otel_metrics"
-// AI_IMPL_CONSTRUCTOR: "NewOtelMetricsProvider"
-// @See: internal/platform/providers/metrics/otel_metrics.go
+// pkg/platform/contracts/contracts.go
+// MetricsProvider 定義了指標收集和導出的通用介面。
+// 職責: 收集應用程式運行時指標（計數器、直方圖、儀表盤）並導出給監控系統。
+// AI_PLUGIN_TYPE: "prometheus_metrics_provider"
+// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/metrics/prometheus_metrics_provider"
+// AI_IMPL_CONSTRUCTOR: "NewPrometheusMetricsProvider"
+// @See: internal/infrastructure/platform/metrics/prometheus_metrics_provider.go
 type MetricsProvider interface {
-	IncCounter(name string, tags map[string]string)
-	ObserveHistogram(name string, value float64, tags map[string]string)
-	SetGauge(name string, value float64, tags map[string]string)
+	IncCounter(name string, tags map[string]string)                 // 增加計數器指標
+	ObserveHistogram(name string, value float64, tags map[string]string) // 記錄直方圖指標
+	SetGauge(name string, value float64, tags map[string]string)    // 設置儀表盤指標
 	GetName() string
 }
 ```
 
 17. TracingProvider 定義了分佈式追蹤的介面
 ```go
-// pkg/platform/contracts/tracing_provider.go
-// TracingProvider 定義了分佈式追蹤的介面。
-// 職責: 提供 Span 的創建、管理和上下文傳播功能。
-// AI_PLUGIN_TYPE: "tracing_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/tracing/otel_tracing"
-// AI_IMPL_CONSTRUCTOR: "NewOtelTracingProvider"
-// @See: internal/platform/providers/tracing/otel_tracing.go
+// pkg/platform/contracts/contracts.go
+// TracingProvider 定義了分散式追蹤的通用介面。
+// 職責: 創建和管理分散式追蹤 spans，記錄應用程式的執行路徑和性能數據。
+// AI_PLUGIN_TYPE: "jaeger_tracing_provider"
+// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/tracing/jaeger_tracing_provider"
+// AI_IMPL_CONSTRUCTOR: "NewJaegerTracingProvider"
+// @See: internal/infrastructure/platform/tracing/jaeger_tracing_provider.go
 type TracingProvider interface {
-	StartSpan(ctx context.Context, name string, opts ...interface{}) (context.Context, interface{}) // 返回新的上下文和 Span
-	EndSpan(span interface{})
+	StartSpan(ctx context.Context, operationName string) (context.Context, Span)
 	GetName() string
+}
+
+// Span 定義了追蹤 span 的通用介面
+type Span interface {
+	SetTag(key string, value interface{})
+	SetError(err error)
+	Finish()
 }
 ```
 
@@ -910,9 +916,9 @@ type ServiceInstance struct {
 
 ## 進度統計
 
-**總計完成進度：9/47 項目 (19%)**
+**總計完成進度：12/47 項目 (26%)**
 
 - **entities**: 5/5 完成 (100%)
 - **interfaces**: 4/7 完成 (57%)  
-- **plugins**: 3/8 完成 (38%)
-- **contracts**: 9/27 完成 (33%)
+- **plugins**: 4/8 完成 (50%)
+- **contracts**: 11/27 完成 (41%)

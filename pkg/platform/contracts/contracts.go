@@ -81,3 +81,28 @@ type KeycloakClientContract interface {
 	VerifyToken(ctx context.Context, token string) (string, error)
 	CheckPermissions(ctx context.Context, userID, resource, action string) (bool, error)
 }
+
+// MetricsProvider 定義了指標收集和導出的通用介面。
+// 職責: 收集應用程式運行時指標（計數器、直方圖、儀表盤）並導出給監控系統。
+// AI 擴展點: AI 可生成 `PrometheusMetricsProvider` 或 `DatadogMetricsProvider`。
+type MetricsProvider interface {
+	IncCounter(name string, tags map[string]string)                      // 增加計數器指標
+	ObserveHistogram(name string, value float64, tags map[string]string) // 記錄直方圖指標
+	SetGauge(name string, value float64, tags map[string]string)         // 設置儀表盤指標
+	GetName() string
+}
+
+// TracingProvider 定義了分散式追蹤的通用介面。
+// 職責: 創建和管理分散式追蹤 spans，記錄應用程式的執行路徑和性能數據。
+// AI 擴展點: AI 可生成 `JaegerTracingProvider` 或 `ZipkinTracingProvider`。
+type TracingProvider interface {
+	StartSpan(ctx context.Context, operationName string) (context.Context, Span)
+	GetName() string
+}
+
+// Span 定義了追蹤 span 的通用介面
+type Span interface {
+	SetTag(key string, value interface{})
+	SetError(err error)
+	Finish()
+}
