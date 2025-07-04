@@ -64,20 +64,20 @@ Phase 1: 核心偵測能力與用戶體驗 (MVP 功能)
   * [x] 定義 Detector 實體和 DetectorRepository 介面，並在 pkg/domain/entities 和 pkg/domain/interfaces 中定義，同時更新 interface_spec.md。  
   * **AI 協同點**：AI 將依據 DetectorPlugin 介面（來自 interface_spec.md）自動生成偵測邏輯的程式碼骨架和初步測試用例，並參考 ARCHITECTURE.md 中的事件驅動架構原則。  
 * **里程碑 1.2：基礎偵測服務**  
-  * [ ] 實現 AnalysisEngine 介面，作為偵測結果處理的抽象，並更新 interface_spec.md。  
+  * [x] 實現 AnalysisEngine 介面，作為偵測結果處理的抽象，並更新 interface_spec.md。  
   * **AI 協同點**：AI 將依據 AnalysisEngine 介面（來自 interface_spec.md），自動生成偵測結果處理邏輯的程式碼骨架和初步測試用例。  
 * **里程碑 1.3：基礎 Web UI**  
-  * [ ] 實現基礎的用戶登錄和註冊頁面 (依賴 keycloak_auth_provider)。前端與後端交互將遵循 ARCHITECTURE.md 中定義的 API Gateway / BFF 策略。  
-  * [ ] 實現一個展示偵測結果列表的 UI 頁面 (依賴 ui_page_plugin)。  
+  * [x] 實現基礎的用戶登錄和註冊頁面 (依賴 keycloak_auth_provider)。前端與後端交互將遵循 ARCHITECTURE.md 中定義的 API Gateway / BFF 策略。  
+  * [x] 實現一個展示偵測結果列表的 UI 頁面 (依賴 ui_page_plugin)。  
   * **AI 協同點**：AI 將依據 UI 頁面需求和後端 API 定義，自動生成前端頁面的 HTML/JS 骨架和樣式，並建議符合 ENGINEERING_SPEC.md 的前端開發規範。  
 * **里程碑 1.4：RAG 引擎初步整合**  
-  * [ ] 實現 LLMProvider 介面，集成一個外部 LLM 服務（例如，Gemini API）。此實現將位於 internal/infrastructure/platform，並遵循 ENGINEERING_SPEC.md 的外部服務整合規範。  
-  * [ ] 實現 EmbeddingStoreProvider 介面，集成向量資料庫。  
-  * [ ] 升級 AnalysisEngine，使其能利用 LLM 對偵測結果進行自然語言解釋或歸因。  
+  * [x] 實現 LLMProvider 介面，集成一個外部 LLM 服務（例如，Gemini API）。此實現將位於 internal/infrastructure/platform，並遵循 ENGINEERING_SPEC.md 的外部服務整合規範。  
+  * [x] 實現 EmbeddingStoreProvider 介面，集成向量資料庫。  
+  * [x] 升級 AnalysisEngine，使其能利用 LLM 對偵測結果進行自然語言解釋或歸因。  
   * **AI 協同點**：AI 將依據 LLMProvider 和 EmbeddingStoreProvider 介面（來自 interface_spec.md），自動生成 LLM 互動程式碼、嵌入向量生成邏輯，並確保其符合 ENGINEERING_SPEC.md 的安全和性能規範。  
 * **里程碑 1.5：AI 指令規範與應用**  
-  * [ ] 制定並發布 docs/ai_scaffold/ai_directives_spec.md，明確定義 AI 在程式碼生成、配置、文檔撰寫中應遵循的專用指令標籤和語義。  
-  * [ ] 將這些 AI 指令應用於核心介面定義 [INTERFACE_SPEC.md](http://docs.google.com/architecture/interface_spec.md) 和工程規範 [ENGINEERING_SPEC.md](http://docs.google.com/ENGINEERING_SPEC.md) 中，並在相關的 AI 輔助開發流程中強制執行。  
+  * [x] 制定並發布 docs/ai_scaffold/ai_directives_spec.md，明確定義 AI 在程式碼生成、配置、文檔撰寫中應遵循的專用指令標籤和語義。  
+  * [x] 將這些 AI 指令應用於核心介面定義 interface_spec.md 和工程規範 ENGINEERING_SPEC.md 中，並在相關的 AI 輔助開發流程中強制執行。  
   * **AI 協同點**：AI 將協助歸納和撰寫 ai_directives_spec 的內容，並在其後續生成行為中嚴格遵循這些指令，這將是 AI 自我優化和規範化的關鍵一步。
 
 Phase 2: AI 增強與生態系統擴展  

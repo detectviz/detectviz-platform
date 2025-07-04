@@ -367,16 +367,22 @@ go.opentelemetry.io/otel       // Observability
 - [x] Implement password hashing for User entity
 - [x] Add unit tests for domain entities
 - [x] Extract hard-coded configuration values
+- [x] 補齊 CSV Importer 和 Threshold Detector 的 JSON Schema 和插件文檔
+- [x] 更新 RAG ingest plan 以包含所有插件作為知識來源
 
 ### Week 3-4: Quality Improvements  
-- [ ] Add comprehensive error handling
-- [ ] Implement plugin health checks
-- [ ] Add API documentation
+- [x] Add plugin scaffold test template
+- [x] Add plugin test coverage for lifecycle
+- [x] 補上 interface AI_PLUGIN_TYPE 註解
+- [x] Add comprehensive error handling
+- [x] Implement plugin health checks
+- [x] Add API documentation
 
 ### Month 2: Enhancements
-- [ ] Implement dependency injection container
-- [ ] Add comprehensive monitoring
-- [ ] Performance optimization
+- [x] Implement dependency injection container
+- [x] Add comprehensive monitoring
+- [x] Performance optimization
+- [x] Restructure Domain Entities: EmailVO / IDVO
 
 ## 📝 Conclusion
 

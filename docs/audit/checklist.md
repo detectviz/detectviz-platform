@@ -13,9 +13,15 @@
 - [x] 是否已補上 plugin 對應的 JSON Schema 至 `/schemas/plugins/`？ (password_hasher.json)
 - [x] 是否已撰寫 `/docs/plugins/plugin-xxx.md` 說明文件，包含用途與範例？ (plugin-password-hasher.md)
 - [x] 是否於 plugin 或 interface 補上 AI_PLUGIN_TYPE、AI_IMPL_PACKAGE 等 scaffold 標註？
-- [x] 是否已在 `/docs/architecture/interface_spec.md` 補上新增 interface？ (PasswordHasher)
+- [x] 是否已在 `/docs/architecture/interface_spec.md` 補上新增 interface？ (PasswordHasher, HealthChecker)
 - [x] 是否補上至少一組 `plugin_test.go`，測試 `Init`, `Start`, 錯誤流程？ (hasher_bcrypt_test.go)
 - [x] 是否已修復運行時錯誤，確保應用程式可正常啟動？ (修復 nil pointer 問題)
+- [x] 是否已實現綜合錯誤處理系統？ (pkg/domain/errors/errors.go)
+- [x] 是否已實現插件健康檢查機制？ (pkg/domain/plugins/health_check.go)
+- [x] 是否已添加完整的 API 文檔？ (docs/api/openapi.yaml)
+- [x] 是否已實現依賴注入容器？ (internal/infrastructure/platform/di/)
+- [x] 是否已添加綜合監控系統？ (internal/infrastructure/platform/monitoring/)
+- [x] 是否已實現性能優化機制？ (internal/infrastructure/platform/performance/)
 
 ---
 
@@ -49,7 +55,7 @@
 
 - [x] `User.Password` 是否已重構為 `PasswordHash`？ (pkg/domain/entities/user.go)
 - [x] 是否導入 `PasswordHasher` interface 並實作 bcrypt？ (internal/auth/hasher/)
-- [ ] 是否使用 EmailVO / IDVO 等 Value Object 封裝基本欄位？
+- [x] 是否使用 EmailVO / IDVO 等 Value Object 封裝基本欄位？ (pkg/domain/valueobjects/)
 - [x] 是否已將明文 log/output 濾除？ (PasswordHash 有 json:"-" 標籤)
 - [ ] 是否已補上 AuthProvider/SessionStore interface 定義與 mock？
 

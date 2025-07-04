@@ -29,7 +29,7 @@
 - [ ] 6.DetectorService
 - [ ] 7.AnalysisService
 
-### plugins (8)
+### plugins (9)
 
 - [x] 1.Plugin
 - [x] 2.Importer
@@ -39,6 +39,7 @@
 - [ ] 6.AlertPlugin
 - [x] 7.UIPagePlugin
 - [ ] 8.CLIPlugin
+- [x] 9.HealthChecker
 
 ### contracts (28)
 
@@ -393,6 +394,27 @@ type CLIPlugin interface {
 	GetCommandName() string
 	GetDescription() string
 	Execute(ctx context.Context, args []string) (string, error)
+}
+```
+
+9. HealthChecker 定義了插件健康檢查的介面
+```go
+// pkg/domain/plugins/health_check.go
+// HealthChecker 定義了插件健康檢查的介面。
+// 職責: 提供插件健康狀態的檢查和報告功能。
+// AI_PLUGIN_TYPE: "health_checker"
+// AI_IMPL_PACKAGE: "detectviz-platform/internal/adapters/plugins/health"
+// AI_IMPL_CONSTRUCTOR: "NewHealthChecker"
+type HealthChecker interface {
+	HealthCheck(ctx context.Context) HealthCheckResult
+	GetHealthCheckInterval() time.Duration
+	IsHealthy(ctx context.Context) bool
+}
+
+// HealthCheckablePlugin 表示支援健康檢查的插件
+type HealthCheckablePlugin interface {
+	Plugin
+	HealthChecker
 }
 ```
 
@@ -933,9 +955,9 @@ type ServiceInstance struct {
 
 ## 進度統計
 
-**總計完成進度：13/48 項目 (27%)**
+**總計完成進度：14/49 項目 (29%)**
 
 - **entities**: 5/5 完成 (100%)
 - **interfaces**: 4/7 完成 (57%)  
-- **plugins**: 4/8 完成 (50%)
+- **plugins**: 5/9 完成 (56%)
 - **contracts**: 12/28 完成 (43%)
