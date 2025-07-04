@@ -1,0 +1,1022 @@
+openapi: 3.1.0
+info:
+  title: Detectviz Platform API
+  description: |
+    Detectviz Platform 是一個基於插件架構的異常偵測與分析平台。
+
+    ## 功能特色
+    - 插件化架構，支援多種數據導入和偵測方式
+    - 實時健康檢查和監控
+    - 分散式追蹤和指標收集
+    - AI 驅動的異常分析
+
+    ## 認證
+    目前平台使用 Keycloak 進行身份驗證。請在請求頭中包含有效的 Bearer token。
+
+    ## 錯誤處理
+    API 使用標準的 HTTP 狀態碼，並返回結構化的錯誤響應。
+
+  version: 1.0.0
+  contact:
+    name: Detectviz Platform Team
+    url: https://github.com/detectviz/platform
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: 本地開發環境
+  - url: https://api.detectviz.com
+    description: 生產環境
+
+paths:
+  # 健康檢查端點
+  /health:
+    get:
+      summary: 獲取系統健康狀態
+      description: 返回系統整體健康狀態的摘要信息
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: 系統健康
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: 系統不健康
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /health/detailed:
+    get:
+      summary: 獲取詳細健康狀態
+      description: 返回系統和所有插件的詳細健康狀態信息
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: 詳細健康狀態
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedHealthResponse"
+        "503":
+          description: 系統不健康
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedHealthResponse"
+
+  /health/plugin/{plugin}:
+    get:
+      summary: 獲取特定插件健康狀態
+      description: 返回指定插件的健康狀態信息
+      tags:
+        - Health Check
+      parameters:
+        - name: plugin
+          in: path
+          required: true
+          description: 插件名稱
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 插件健康狀態
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "404":
+          description: 插件未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: 插件不健康
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  # 用戶管理端點
+  /api/v1/users:
+    get:
+      summary: 獲取用戶列表
+      description: 返回系統中所有用戶的列表
+      tags:
+        - User Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 頁碼
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 每頁數量
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 用戶列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: 創建新用戶
+      description: 創建一個新的用戶帳戶
+      tags:
+        - User Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: 用戶創建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: 請求參數無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 用戶已存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/users/{id}:
+    get:
+      summary: 獲取用戶詳情
+      description: 根據用戶 ID 獲取用戶詳細信息
+      tags:
+        - User Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用戶 ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 用戶詳情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 用戶未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: 更新用戶信息
+      description: 更新指定用戶的信息
+      tags:
+        - User Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用戶 ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: 用戶更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: 請求參數無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 用戶未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: 刪除用戶
+      description: 刪除指定的用戶帳戶
+      tags:
+        - User Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用戶 ID
+          schema:
+            type: string
+      responses:
+        "204":
+          description: 用戶刪除成功
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 用戶未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # 偵測器管理端點
+  /api/v1/detectors:
+    get:
+      summary: 獲取偵測器列表
+      description: 返回系統中所有偵測器的列表
+      tags:
+        - Detector Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 頁碼
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 每頁數量
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: type
+          in: query
+          description: 偵測器類型過濾
+          schema:
+            type: string
+          example: "threshold_detector"
+        - name: enabled
+          in: query
+          description: 是否啟用過濾
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: 偵測器列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectorListResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: 創建新偵測器
+      description: 創建一個新的偵測器配置
+      tags:
+        - Detector Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDetectorRequest"
+      responses:
+        "201":
+          description: 偵測器創建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Detector"
+        "400":
+          description: 請求參數無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/detectors/{id}:
+    get:
+      summary: 獲取偵測器詳情
+      description: 根據偵測器 ID 獲取偵測器詳細信息
+      tags:
+        - Detector Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 偵測器 ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 偵測器詳情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Detector"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 偵測器未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: 更新偵測器配置
+      description: 更新指定偵測器的配置
+      tags:
+        - Detector Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 偵測器 ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDetectorRequest"
+      responses:
+        "200":
+          description: 偵測器更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Detector"
+        "400":
+          description: 請求參數無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 偵測器未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: 刪除偵測器
+      description: 刪除指定的偵測器配置
+      tags:
+        - Detector Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 偵測器 ID
+          schema:
+            type: string
+      responses:
+        "204":
+          description: 偵測器刪除成功
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 偵測器未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/detectors/{id}/execute:
+    post:
+      summary: 執行偵測器
+      description: 手動執行指定的偵測器
+      tags:
+        - Detector Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 偵測器 ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecuteDetectorRequest"
+      responses:
+        "200":
+          description: 偵測器執行成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionResult"
+        "400":
+          description: 請求參數無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 偵測器未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # 數據導入端點
+  /api/v1/import/csv:
+    post:
+      summary: 導入 CSV 數據
+      description: 通過 CSV 文件導入數據到系統
+      tags:
+        - Data Import
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV 文件
+                config:
+                  type: string
+                  description: 導入配置（JSON 格式）
+              required:
+                - file
+      responses:
+        "200":
+          description: 數據導入成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+        "400":
+          description: 請求參數無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: 未授權
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # 指標端點
+  /metrics:
+    get:
+      summary: 獲取 Prometheus 指標
+      description: 返回 Prometheus 格式的系統指標
+      tags:
+        - Monitoring
+      responses:
+        "200":
+          description: Prometheus 指標
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |
+                # HELP detectviz_plugin_requests_total Total number of plugin requests
+                # TYPE detectviz_plugin_requests_total counter
+                detectviz_plugin_requests_total{plugin="csv_importer",status="success"} 42
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 使用 Keycloak 提供的 JWT token
+
+  schemas:
+    # 基本錯誤響應
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 錯誤信息
+        code:
+          type: string
+          description: 錯誤代碼
+        timestamp:
+          type: string
+          format: date-time
+          description: 錯誤發生時間
+      required:
+        - error
+        - timestamp
+
+    # 驗證錯誤響應
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 錯誤信息
+        code:
+          type: string
+          description: 錯誤代碼
+        timestamp:
+          type: string
+          format: date-time
+          description: 錯誤發生時間
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: 錯誤字段
+              message:
+                type: string
+                description: 字段錯誤信息
+      required:
+        - error
+        - timestamp
+
+    # 健康檢查響應
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy, degraded, unknown]
+          description: 健康狀態
+        timestamp:
+          type: string
+          format: date-time
+          description: 檢查時間
+        message:
+          type: string
+          description: 狀態描述
+        details:
+          type: object
+          additionalProperties: true
+          description: 詳細信息
+      required:
+        - status
+        - timestamp
+
+    # 詳細健康檢查響應
+    DetailedHealthResponse:
+      allOf:
+        - $ref: "#/components/schemas/HealthResponse"
+        - type: object
+          properties:
+            plugins:
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/PluginHealthStatus"
+              description: 各插件健康狀態
+
+    # 插件健康狀態
+    PluginHealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy, degraded, unknown]
+          description: 插件健康狀態
+        message:
+          type: string
+          description: 狀態描述
+        details:
+          type: object
+          additionalProperties: true
+          description: 詳細信息
+        last_checked:
+          type: string
+          format: date-time
+          description: 最後檢查時間
+        duration:
+          type: integer
+          description: 檢查耗時（毫秒）
+      required:
+        - status
+        - last_checked
+
+    # 用戶相關模型
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用戶 ID
+        name:
+          type: string
+          description: 用戶名稱
+        email:
+          type: string
+          format: email
+          description: 用戶郵箱
+        created_at:
+          type: string
+          format: date-time
+          description: 創建時間
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新時間
+      required:
+        - id
+        - name
+        - email
+        - created_at
+        - updated_at
+
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: 用戶名稱
+        email:
+          type: string
+          format: email
+          description: 用戶郵箱
+        password:
+          type: string
+          minLength: 8
+          description: 用戶密碼
+      required:
+        - name
+        - email
+        - password
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: 用戶名稱
+        email:
+          type: string
+          format: email
+          description: 用戶郵箱
+      anyOf:
+        - required: [name]
+        - required: [email]
+
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - users
+        - pagination
+
+    # 偵測器相關模型
+    Detector:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 偵測器 ID
+        name:
+          type: string
+          description: 偵測器名稱
+        type:
+          type: string
+          description: 偵測器類型
+        config:
+          type: object
+          additionalProperties: true
+          description: 偵測器配置
+        is_enabled:
+          type: boolean
+          description: 是否啟用
+        created_at:
+          type: string
+          format: date-time
+          description: 創建時間
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新時間
+        created_by:
+          type: string
+          description: 創建者 ID
+        last_updated_by:
+          type: string
+          description: 最後更新者 ID
+      required:
+        - id
+        - name
+        - type
+        - config
+        - is_enabled
+        - created_at
+        - updated_at
+
+    CreateDetectorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: 偵測器名稱
+        type:
+          type: string
+          enum: [threshold_detector, anomaly_detector, pattern_detector]
+          description: 偵測器類型
+        config:
+          type: object
+          additionalProperties: true
+          description: 偵測器配置
+        is_enabled:
+          type: boolean
+          default: true
+          description: 是否啟用
+      required:
+        - name
+        - type
+        - config
+
+    UpdateDetectorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: 偵測器名稱
+        config:
+          type: object
+          additionalProperties: true
+          description: 偵測器配置
+        is_enabled:
+          type: boolean
+          description: 是否啟用
+      anyOf:
+        - required: [name]
+        - required: [config]
+        - required: [is_enabled]
+
+    DetectorListResponse:
+      type: object
+      properties:
+        detectors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Detector"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - detectors
+        - pagination
+
+    ExecuteDetectorRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+          description: 要分析的數據
+      required:
+        - data
+
+    DetectionResult:
+      type: object
+      properties:
+        detector_id:
+          type: string
+          description: 偵測器 ID
+        status:
+          type: string
+          enum: [normal, anomaly, warning, error]
+          description: 偵測結果狀態
+        message:
+          type: string
+          description: 結果描述
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: 置信度
+        details:
+          type: object
+          additionalProperties: true
+          description: 詳細結果
+        timestamp:
+          type: string
+          format: date-time
+          description: 偵測時間
+      required:
+        - detector_id
+        - status
+        - confidence
+        - timestamp
+
+    # 數據導入相關模型
+    ImportResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, partial_success, failed]
+          description: 導入狀態
+        message:
+          type: string
+          description: 導入結果描述
+        records_processed:
+          type: integer
+          description: 處理的記錄數
+        records_successful:
+          type: integer
+          description: 成功的記錄數
+        records_failed:
+          type: integer
+          description: 失敗的記錄數
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              line:
+                type: integer
+                description: 錯誤行號
+              error:
+                type: string
+                description: 錯誤信息
+          description: 錯誤列表
+        timestamp:
+          type: string
+          format: date-time
+          description: 導入時間
+      required:
+        - status
+        - records_processed
+        - records_successful
+        - records_failed
+        - timestamp
+
+    # 分頁信息
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: 當前頁碼
+        limit:
+          type: integer
+          minimum: 1
+          description: 每頁數量
+        total:
+          type: integer
+          minimum: 0
+          description: 總記錄數
+        total_pages:
+          type: integer
+          minimum: 0
+          description: 總頁數
+        has_next:
+          type: boolean
+          description: 是否有下一頁
+        has_prev:
+          type: boolean
+          description: 是否有上一頁
+      required:
+        - page
+        - limit
+        - total
+        - total_pages
+        - has_next
+        - has_prev
+
+tags:
+  - name: Health Check
+    description: 系統和插件健康檢查相關端點
+  - name: User Management
+    description: 用戶管理相關端點
+  - name: Detector Management
+    description: 偵測器管理相關端點
+  - name: Data Import
+    description: 數據導入相關端點
+  - name: Monitoring
+    description: 監控和指標相關端點
