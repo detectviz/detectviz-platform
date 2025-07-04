@@ -29,8 +29,10 @@ rag_index/
 │   ├── plugin_ui_page.md
 │   ├── config_provider.md
 ├── plugins/
-│   ├── mysql_importer.md
-│   ├── llm_analysis_engine.md
+│   ├── csv_importer.md
+│   ├── threshold_detector.md
+│   ├── password_hasher.md
+│   ├── hello_world_ui.md
 ├── examples/
 │   ├── plugin_factory_example.go
 │   ├── plugin_schema_example.json

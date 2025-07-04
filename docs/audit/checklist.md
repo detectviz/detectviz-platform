@@ -22,16 +22,16 @@
 ## Plugin Scaffold 類型檢查
 
 ### ImporterPlugin
-- [ ] 是否實作 `ImportData()`，並支援 config 傳入來源欄位？
-- [ ] 是否含資料批次處理流程？
-- [ ] 是否對應 plugin schema 中所有欄位正確解析？
-- [ ] 是否處理錯誤列、空值等特殊輸入情境？
+- [x] 是否實作 `ImportData()`，並支援 config 傳入來源欄位？ (CSV Importer)
+- [x] 是否含資料批次處理流程？ (批量插入機制)
+- [x] 是否對應 plugin schema 中所有欄位正確解析？ (csv_importer.json)
+- [x] 是否處理錯誤列、空值等特殊輸入情境？ (數據驗證功能)
 
 ### DetectorPlugin
-- [ ] 是否實作 `RunDetection()` 並回傳 `AnalysisResult`？
-- [ ] 是否處理輸入資料解析、條件比對、觸發紀錄？
-- [ ] 是否支援由 config 傳入門檻與欄位 mapping？
-- [ ] 是否紀錄觸發次數 / 分數 / 類型？
+- [x] 是否實作 `Execute()` 並回傳 `AnalysisResult`？ (Threshold Detector)
+- [x] 是否處理輸入資料解析、條件比對、觸發紀錄？ (閾值比較邏輯)
+- [x] 是否支援由 config 傳入門檻與欄位 mapping？ (threshold_detector.json)
+- [x] 是否紀錄觸發次數 / 分數 / 類型？ (指標統計功能)
 
 ### UIPagePlugin
 - [ ] 是否實作 `RegisterRoutes()` 並綁定 `/ui/xxx` endpoint？
@@ -57,10 +57,10 @@
 
 ## RAG 與知識庫可用性檢查
 
-- [x] 是否於 plugin/interface 補上 AI scaffold 標籤？ (PasswordHasher interface)
-- [x] 是否對應 plugin 建立了 JSON schema（含範例）？ (schemas/plugins/password_hasher.json)
-- [x] 是否建立 plugin 對應的 scaffold doc（可讀性良好）？ (docs/plugins/plugin-password-hasher.md)
-- [ ] 是否於 `/docs/ai_scaffold/rag_ingest_plan.md` 登記此 plugin 為知識來源？
+- [x] 是否於 plugin/interface 補上 AI scaffold 標籤？ (PasswordHasher, CSV Importer, Threshold Detector)
+- [x] 是否對應 plugin 建立了 JSON schema（含範例）？ (password_hasher.json, csv_importer.json, threshold_detector.json)
+- [x] 是否建立 plugin 對應的 scaffold doc（可讀性良好）？ (plugin-password-hasher.md, plugin-csv-importer.md, plugin-threshold-detector.md)
+- [x] 是否於 `/docs/ai_scaffold/rag_ingest_plan.md` 登記此 plugin 為知識來源？ (已更新所有插件)
 
 ---
 

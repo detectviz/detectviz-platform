@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Threshold Detector Plugin Configuration",
+  "description": "Configuration schema for threshold-based anomaly detection plugins in the Detectviz platform",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique name identifier for the threshold detector plugin",
+      "example": "threshold_detector_plugin"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of detector plugin",
+      "enum": [
+        "threshold_detector"
+      ],
+      "default": "threshold_detector"
+    },
+    "config": {
+      "type": "object",
+      "description": "Configuration specific to the threshold detector",
+      "properties": {
+        "field_name": {
+          "type": "string",
+          "description": "Name of the field to monitor for threshold violations",
+          "minLength": 1
+        },
+        "upper_threshold": {
+          "type": "number",
+          "description": "Upper threshold value for anomaly detection"
+        },
+        "lower_threshold": {
+          "type": "number",
+          "description": "Lower threshold value for anomaly detection"
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level of the alert when threshold is violated",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "default": "medium"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what this detector monitors"
+        },
+        "enable_upper": {
+          "type": "boolean",
+          "description": "Whether to enable upper threshold checking",
+          "default": true
+        },
+        "enable_lower": {
+          "type": "boolean",
+          "description": "Whether to enable lower threshold checking",
+          "default": true
+        },
+        "tolerant_count": {
+          "type": "integer",
+          "description": "Number of consecutive violations before triggering an alert",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "required": [
+        "field_name"
+      ],
+      "anyOf": [
+        {
+          "properties": {
+            "enable_upper": {
+              "const": true
+            }
+          },
+          "required": [
+            "upper_threshold"
+          ]
+        },
+        {
+          "properties": {
+            "enable_lower": {
+              "const": true
+            }
+          },
+          "required": [
+            "lower_threshold"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Whether the threshold detector is enabled",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "config"
+  ],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "name": "cpu_usage_detector",
+      "type": "threshold_detector",
+      "config": {
+        "field_name": "cpu_usage",
+        "upper_threshold": 85.0,
+        "lower_threshold": 5.0,
+        "severity": "high",
+        "description": "Monitors CPU usage for abnormal values",
+        "enable_upper": true,
+        "enable_lower": true,
+        "tolerant_count": 3
+      },
+      "enabled": true
+    },
+    {
+      "name": "memory_usage_detector",
+      "type": "threshold_detector",
+      "config": {
+        "field_name": "memory_usage_percent",
+        "upper_threshold": 90.0,
+        "severity": "critical",
+        "description": "Monitors memory usage for high utilization",
+        "enable_upper": true,
+        "enable_lower": false,
+        "tolerant_count": 2
+      },
+      "enabled": true
+    },
+    {
+      "name": "temperature_detector",
+      "type": "threshold_detector",
+      "config": {
+        "field_name": "temperature",
+        "upper_threshold": 75.0,
+        "lower_threshold": -10.0,
+        "severity": "medium",
+        "description": "Monitors temperature for extreme values",
+        "enable_upper": true,
+        "enable_lower": true,
+        "tolerant_count": 1
+      },
+      "enabled": true
+    }
+  ]
+}

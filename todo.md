@@ -165,6 +165,8 @@ type UserRepository interface {
 - [x] 提供 bcrypt 實作於 `hasher_bcrypt.go`
 - [x] 將密碼邏輯從 entity 中移除，改由 service 注入處理
 - [x] 修復 main.go 中的 nil pointer 錯誤，確保應用程式正常啟動
+- [x] 補齊 CSV Importer 和 Threshold Detector 的 JSON Schema 和插件文檔
+- [x] 更新 RAG ingest plan 以包含所有插件作為知識來源
 
 ---
 
