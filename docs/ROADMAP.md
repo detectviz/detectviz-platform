@@ -51,46 +51,44 @@ Phase 0: 平台核心骨架與 AI 基礎建設
   * [ ] 設定基本的 Git Workflow 和 CI/CD Pipeline (例如，自動化測試、Go Build)，並將其設計原則納入 ENGINEERING_SPEC.md。  
   * [ ] 整合 Prometheus/Grafana 進行基礎指標監控（CPU, Memory, Request Rate），並定義關鍵指標在 ENGINEERING_SPEC.md 中。  
   * [ ] 整合 Jaeger/Zipkin 進行分散式追蹤，確保其與 OpenTelemetry 規範（來自 ARCHITECTURE.md）一致。  
-  * **AI 協同點**：AI 將協助撰寫 CI/CD 腳本片段，並根據 ENGINEERING_SPEC.md 中定義的可觀察性規範，建議監控指標和追蹤配置。
+  * **AI 協同點**：AI 將協助撰寫 CI/CD 腳本片段，並根據 ENGINEERING_SPEC.md 中定義的可觀察性規範，建議監控指標和追蹤配置。  
+* **里程碑 0.5：資料導入與偵測基礎插件**  
+  * [ ] 實現 ImporterPlugin 的 CSV 導入器，可將 CSV 數據解析並儲存至資料庫。此實現將遵循 ENGINEERING_SPEC.md 的數據層細節規範。  
+  * [ ] 實現一個基於規則或簡單統計模型的 DetectorPlugin (例如，閾值告警)。此插件的開發將遵循 ENGINEERING_SPEC.md 的插件開發規範。  
+  * **AI 協同點**：AI 將依據 ImporterPlugin 和 DetectorPlugin 介面（來自 interface_spec.md）和 CSV 數據格式定義，自動生成 CSV 解析邏輯、偵測邏輯和對應的資料庫儲存邏輯，並遵循 ENGINEERING_SPEC.md 的程式碼規範。
 
 Phase 1: 核心偵測能力與用戶體驗 (MVP 功能)  
 核心目標：實現 Detectviz 平台的核心數據導入、異常偵測與基礎數據展示能力，提供第一個可用的 MVP 版本。
 
-* **里程碑 1.1：數據導入引擎**  
-  * [ ] 實現 ImporterPlugin 的 CSV 導入器，可將 CSV 數據解析並儲存至資料庫。此實現將遵循 ENGINEERING_SPEC.md 的數據層細節規範。  
+* **里程碑 1.1：定義偵測實體與介面**  
   * [x] 定義 Detector 實體和 DetectorRepository 介面，並在 pkg/domain/entities 和 pkg/domain/interfaces 中定義，同時更新 interface_spec.md。  
-  * **AI 協同點**：AI 將依據 ImporterPlugin 介面（來自 interface_spec.md）和 CSV 數據格式定義，自動生成 CSV 解析邏輯和對應的資料庫儲存邏輯，並遵循 ENGINEERING_SPEC.md 的程式碼規範。  
+  * **AI 協同點**：AI 將依據 DetectorPlugin 介面（來自 interface_spec.md）自動生成偵測邏輯的程式碼骨架和初步測試用例，並參考 ARCHITECTURE.md 中的事件驅動架構原則。  
 * **里程碑 1.2：基礎偵測服務**  
-  * [ ] 實現一個基於規則或簡單統計模型的 DetectorPlugin (例如，閾值告警)。此插件的開發將遵循 ENGINEERING_SPEC.md 的插件開發規範。  
   * [ ] 實現 AnalysisEngine 介面，作為偵測結果處理的抽象，並更新 interface_spec.md。  
-  * **AI 協同點**：AI 將依據 DetectorPlugin 和 AnalysisEngine 介面（來自 interface_spec.md），自動生成偵測邏輯的程式碼骨架和初步測試用例，並參考 ARCHITECTURE.md 中的事件驅動架構原則。  
+  * **AI 協同點**：AI 將依據 AnalysisEngine 介面（來自 interface_spec.md），自動生成偵測結果處理邏輯的程式碼骨架和初步測試用例。  
 * **里程碑 1.3：基礎 Web UI**  
   * [ ] 實現基礎的用戶登錄和註冊頁面 (依賴 keycloak_auth_provider)。前端與後端交互將遵循 ARCHITECTURE.md 中定義的 API Gateway / BFF 策略。  
   * [ ] 實現一個展示偵測結果列表的 UI 頁面 (依賴 ui_page_plugin)。  
-  * **AI 協同點**：AI 將依據 UI 頁面需求和後端 API 定義，自動生成前端頁面的 HTML/JS 骨架和樣式，並建議符合 ENGINEERING_SPEC.md 的前端開發規範。
-
-Phase 2: AI 增強與生態系統擴展  
-核心目標：利用 LLM 和向量資料庫增強偵測與分析能力，並拓展平台的插件生態系統，同時深化 AI 輔助開發的自動化程度。
-
-* **里程碑 2.1：LLM 整合**  
+  * **AI 協同點**：AI 將依據 UI 頁面需求和後端 API 定義，自動生成前端頁面的 HTML/JS 骨架和樣式，並建議符合 ENGINEERING_SPEC.md 的前端開發規範。  
+* **里程碑 1.4：RAG 引擎初步整合**  
   * [ ] 實現 LLMProvider 介面，集成一個外部 LLM 服務（例如，Gemini API）。此實現將位於 internal/infrastructure/platform，並遵循 ENGINEERING_SPEC.md 的外部服務整合規範。  
   * [ ] 實現 EmbeddingStoreProvider 介面，集成向量資料庫。  
   * [ ] 升級 AnalysisEngine，使其能利用 LLM 對偵測結果進行自然語言解釋或歸因。  
   * **AI 協同點**：AI 將依據 LLMProvider 和 EmbeddingStoreProvider 介面（來自 interface_spec.md），自動生成 LLM 互動程式碼、嵌入向量生成邏輯，並確保其符合 ENGINEERING_SPEC.md 的安全和性能規範。  
-* **里程碑 2.2：高級偵測與分析插件**  
-  * [ ] 實現一個基於機器學習模型（例如，Isolation Forest）的 DetectorPlugin。  
-  * [ ] 開發一個結合 LLM 和數據庫查詢的「智慧問答」插件，允許用戶自然語言查詢數據。此插件的設計將參考 ARCHITECTURE.md 中的數據流和控制流。  
-  * **AI 協同點**：AI 將協助生成複雜的分析演算法和業務邏輯的程式碼，並建議如何將這些邏輯封裝為符合 interface_spec.md 的插件。  
-* **里程碑 2.3：AI 指令規範與實踐 (ai_directives_spec)**  
+* **里程碑 1.5：AI 指令規範與應用**  
   * [ ] 制定並發布 docs/ai_scaffold/ai_directives_spec.md，明確定義 AI 在程式碼生成、配置、文檔撰寫中應遵循的專用指令標籤和語義。  
   * [ ] 將這些 AI 指令應用於核心介面定義 [INTERFACE_SPEC.md](http://docs.google.com/architecture/interface_spec.md) 和工程規範 [ENGINEERING_SPEC.md](http://docs.google.com/ENGINEERING_SPEC.md) 中，並在相關的 AI 輔助開發流程中強制執行。  
-  * **AI 協同點**：AI 將協助歸納和撰寫 ai_directives_spec 的內容，並在其後續生成行為中嚴格遵循這些指令，這將是 AI 自我優化和規範化的關鍵一步。  
-* **里程碑 2.4：AI Scaffold 藍圖與模板庫擴充**  
+  * **AI 協同點**：AI 將協助歸納和撰寫 ai_directives_spec 的內容，並在其後續生成行為中嚴格遵循這些指令，這將是 AI 自我優化和規範化的關鍵一步。
+
+Phase 2: AI 增強與生態系統擴展  
+核心目標：利用 LLM 和向量資料庫增強偵測與分析能力，並拓展平台的插件生態系統，同時深化 AI 輔助開發的自動化程度。
+
+* **里程碑 2.1：AI Scaffold 藍圖與模板庫擴充**  
   * [ ] 擴充 docs/ai_scaffold/scaffolding_blueprints/ 目錄，為不同類型的插件、服務、或模組提供標準化的、高層次的 AI Scaffold 藍圖，這些藍圖將基於 ARCHITECTURE.md 的層次分解。  
   * [ ] 擴充 docs/templates/ai_scaffolding/ 目錄，納入 AI 生成程式碼時可參考的詳細代碼模板和結構，例如新插件的通用文件結構、Makefile 範本、README 骨架等，這些模板將遵循 ENGINEERING_SPEC.md 的程式碼風格。  
   * [ ] 實作 AI Scaffold 工具鏈，使其能夠基於選定的藍圖和模板，結合 AI 指令（來自 ai_directives_spec.md），自動生成具體的程式碼文件。  
   * **AI 協同點**：AI 將協助設計和組織藍圖與模板的內容，並利用這些資源進行更複雜、更規範的程式碼生成，極大提升開發效率。  
-* **里程碑 2.5：第三方插件接入**  
+* **里程碑 2.2：第三方插件接入**  
   * [ ] 開發 SDK 或範例，展示如何開發和接入第三方插件。這將涉及更新 ENGINEERING_SPEC.md 中的插件開發指南。  
   * [ ] 建立插件市集或貢獻指南。  
   * **AI 協同點**：AI 將協助生成 SDK 範例程式碼，並根據現有插件介面（來自 interface_spec.md）自動生成新插件的骨架，加速第三方開發者的接入。
@@ -132,4 +130,3 @@ AI 互動指南：
 * **迭代與反饋**：將 AI 生成的內容視為初稿，進行審閱並提供具體反饋，幫助 AI 學習和改進。
 
 **溝通**：任何重大的路線圖變更都應在團隊內進行討論和確認。
-
