@@ -72,7 +72,7 @@ Detectviz AI 腳手架將遵循以下步驟來輔助開發者：
      * **程式碼提交前**：通過預提交鉤子 (pre-commit hook) 或 CI/CD 流程中的靜態分析工具自動執行。  
      * **應用啟動時**：ConfigProvider 在載入應用程式配置和插件配置時，必須使用 JSON Schema 進行嚴格驗證，不符合 Schema 的配置應導致啟動失敗並提供清晰的錯誤訊息。  
 5. **組裝邏輯的自動生成與更新 (AI 協同點)**：  
-   * 基於 composition.yaml（定義了哪些插件被啟用及其配置）和所有插件的 NewFactory() 函數，AI 將能夠**自動生成或更新** cmd/api/main.go 或 internal/app/initializer/platform_initializer.go 中的組裝邏輯。  
+   * 基於 composition.yaml（定義了哪些插件被啟用及其配置）和所有插件的 NewFactory() 函數，AI 將能夠**自動生成或更新** cmd/api/main.go 或 internal/bootstrap/platform_initializer.go 中的組裝邏輯。  
    * 這包括處理插件之間的依賴關係（例如，DetectorService 可能依賴 LLMProvider），AI 應能進行基本的**拓撲排序**來確保依賴被正確注入。
 
 ## **3. 開發者與 AI 的協同準則**

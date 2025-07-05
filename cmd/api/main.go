@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"detectviz-platform/internal/adapters/plugins/web_ui"
+	"detectviz-platform/internal/adapters/web"
 	"detectviz-platform/internal/infrastructure/platform/config"
 	"detectviz-platform/internal/infrastructure/platform/http_server"
-	"detectviz-platform/internal/infrastructure/platform/logger"
 	"detectviz-platform/internal/infrastructure/platform/registry"
+	"detectviz-platform/internal/infrastructure/platform/telemetry"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 		},
 	}
 
-	otelZapLogger := logger.NewOtelZapLogger(loggerConfig)
+	otelZapLogger := telemetry.NewOtelZapLogger(loggerConfig)
 
 	// 步驟 3: 創建主配置提供者
 	configProvider, err := config.NewViperConfigProvider("configs/composition.yaml", otelZapLogger)
@@ -97,7 +97,7 @@ func main() {
 		"message": bootstrapConfigProvider.GetString("ui.helloWorld.message"),
 	}
 
-	helloWorldUI, err := web_ui.NewHelloWorldUIPagePlugin(helloUIConfig, otelZapLogger)
+	helloWorldUI, err := web.NewHelloWorldUIPagePlugin(helloUIConfig, otelZapLogger)
 	if err != nil {
 		otelZapLogger.Error("創建 Hello World UI 插件失敗: %v", err)
 		os.Exit(1)

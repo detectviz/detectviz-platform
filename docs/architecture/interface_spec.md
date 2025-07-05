@@ -1,6 +1,15 @@
 # 介面定義
 
-這是一個彙整 Detectviz 平台所有核心介面定義的程式碼區塊。實際專案中，這些介面會分佈在 'pkg/domain/interfaces' 和 'pkg/platform/contracts'下各自的 Go 檔案中，並使用各自的 package 聲明。
+這是一個彙整 Detectviz 平台所有核心介面定義的程式碼區塊。
+
+本文件的內容來源涵蓋整個 `/pkg` 目錄中所有與平台功能擴充、資料存取、業務邏輯、基礎設施介接相關的公開介面定義，包含但不限於：
+- `pkg/domain/interfaces`（領域層與應用層）
+- `pkg/domain/entities`, `pkg/domain/errors`, `pkg/domain/valueobjects`（實體與核心定義）
+- `pkg/domain/interfaces/plugins`（可插拔插件介面）
+- `pkg/platform/contracts`（平台契約與基礎設施抽象）
+- 其他未來在 `/pkg` 目錄下新增的功能模組
+
+介面來源目錄並無強制限制，重點在於其是否為平台核心功能或 AI 自動化腳手架所需的 API 定義。
 
 > AI 標籤重要性:
 > 為了實現 AI 驅動的自動化腳手架和程式碼生成，本文件中的介面定義將包含特定的 AI 標籤（例如 AI_PLUGIN_TYPE, AI_IMPL_PACKAGE, AI_IMPL_CONSTRUCTOR）。
@@ -9,955 +18,183 @@
 > 開發者在新增或修改介面時，必須同時維護這些 AI 標籤，以確保 AI 輔助開發流程的順暢與正確性。
 > 詳細的 AI 標籤規範和腳手架工作流程，請參考 docs/ai_scaffold/scaffold_workflow.md。
 
-## 進度清單
-
-### entities (5)
-
-- [x] 1.User
-- [x] 2.Detector
-- [x] 3.AnalysisResult
-- [x] 4.Detection
-- [x] 5.DetectionResult
-
-### interfaces (7)
-
-- [x] 1.UserRepository
-- [x] 2.DetectorRepository
-- [ ] 3.AnalysisResultRepository
-- [x] 4.AnalysisEngine
-- [ ] 5.UserService
-- [ ] 6.DetectorService
-- [ ] 7.AnalysisService
-
-### plugins (9)
-
-- [x] 1.Plugin
-- [x] 2.Importer
-- [x] 3.DetectorPlugin
-- [ ] 4.AnalysisEnginePlugin
-- [ ] 5.NotificationPlugin
-- [ ] 6.AlertPlugin
-- [x] 7.UIPagePlugin
-- [ ] 8.CLIPlugin
-- [x] 9.HealthChecker
-
-### contracts (28)
-
-#### 🎛 Platform I/O Providers
-- [x] 1.ConfigProvider
-- [x] 2.HttpServerProvider
-- [x] 3.CliServerProvider
-
-#### 🔐 Security & Identity
-- [x] 4.AuthProvider
-- [x] 5.KeycloakClientContract
-- [ ] 6.SessionStore
-- [ ] 7.CSRFTokenProvider
-- [x] 8.PasswordHasher
-
-#### 📊 Observability & Stability
-- [x] 8.Logger
-- [x] 9.MetricsProvider
-- [x] 10.TracingProvider
-- [ ] 11.RateLimiterProvider
-- [ ] 12.CircuitBreakerProvider
-
-#### 🔌 Plugin / Registry / Metadata
-- [x] 13.PluginRegistryProvider
-- [ ] 14.PluginMetadataProvider
-
-#### 💾 Storage & State
-- [x] 15.DBClientProvider
-- [x] 16.MigrationRunner
-- [ ] 17.TransactionManager
-- [ ] 18.CacheProvider
-- [ ] 19.SecretsProvider
-
-#### 📡 Event & Comms
-- [ ] 20.EventBusProvider
-- [ ] 21.AuditLogProvider
-
-#### 🤖 AI / ML
-- [ ] 22.LLMProvider
-- [ ] 23.EmbeddingStoreProvider
-
-#### 🔧 Platform Utility
-- [ ] 24.MiddlewarePlugin
-- [ ] 25.ErrorFactory
-- [ ] 26.ServiceDiscoveryProvider
-- [ ] 27.ServiceInstance
-
-
-## --- 領域實體 (pkg/domain/entities) ---
-> 定義領域內具有唯一標識和生命週期的核心業務物件。
-> 對應目錄：`pkg/domain/entities/`
-
-1. User 是 Detectviz 平台的核心用戶實體。
-```go
-// 定義領域內具有唯一標識和生命週期的核心業務物件。
-// 檔案位置: pkg/domain/entities/user.go
-// User 是 Detectviz 平台的核心用戶實體。
-// 職責: 封裝用戶的基本資訊及與用戶身份相關的業務行為 (例如修改密碼的邏輯)。
-type User struct {
-	ID string
-	Name string
-	Email string
-	Password string // 在領域層，Password 通常指業務層的密碼概念，具體存儲形式(散列)由持久化層處理。
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-```
-
-2. Detector 是 Detectviz 平台的核心偵測器實體。
-```go
-// pkg/domain/entities/detector.go
-// Detector 是 Detectviz 平台的核心偵測器實體。
-// 職責: 封裝偵測器的配置、狀態及與偵測器相關的業務行為 (例如啟用/禁用偵測)。
-type Detector struct {
-	ID string
-	Name string
-	Type string // 例如 "anomaly_detection", "pattern_recognition"
-	Config map[string]interface{} // 偵測器特有的配置，由具體插件定義其 Schema
-	IsEnabled bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	CreatedBy string // 創建者用戶ID
-	LastUpdatedBy string // 最後更新者用戶ID
-}
-```
-
-3. AnalysisResult 封裝了偵測器執行後的分析結果。
-```go
-// pkg/domain/entities/analysis_result.go
-// AnalysisResult 是一個表示數據分析結果的領域值物件。
-// 職責: 捕獲並封裝分析過程產生的不可變結果數據。
-type AnalysisResult struct{} // 佔位符類型，實際會包含詳細的分析數據結構
-```
-
-4. Detection 是表示一個特定偵測事件的領域實體。
-```go
-// pkg/domain/entities/detection.go
-// Detection 是表示一個特定偵測事件的領域實體。
-// 職責: 封裝偵測事件的上下文，例如觸發時間、來源數據等。
-type Detection struct{} // 佔位符類型，實際會包含詳細的偵測事件數據結構
-```
-
-5. DetectionResult 是表示一個偵測事件處理後的最終結果的領域值物件。
-```go
-// pkg/domain/entities/detection_result.go
-// DetectionResult 是表示一個偵測事件處理後的最終結果的領域值物件。
-// 職責: 封裝偵測事件被處理後的輸出。
-type DetectionResult struct{} // 佔位符類型，實際會包含詳細的偵測結果數據結構
-```
-
-## --- 抽象介面 (pkg/domain/interfaces) ---
-> 定義領域業務邏輯的抽象操作介面，不依賴具體實現技術。
-> 對應目錄：`pkg/domain/interfaces/`
-
-1. UserRepository 定義了用戶數據的持久化操作介面。
-```go
-// pkg/domain/interfaces/user_repository.go
-// UserRepository 定義了用戶數據的持久化操作介面。
-// 職責: 提供用戶實體的 CRUD (創建、讀取、更新、刪除) 操作抽象。
-// AI_PLUGIN_TYPE: "user_repository"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/repositories/mysql_user_repository"
-// AI_IMPL_CONSTRUCTOR: "NewMySQLUserRepository"
-type UserRepository interface {
-	Save(ctx context.Context, user *User) error
-	FindByID(ctx context.Context, id string) (*User, error)
-	FindByEmail(ctx context.Context, email string) (*User, error)
-	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, id string) error
-	GetName() string
-}
-```
-
-2. DetectorRepository 定義了偵測器數據的持久化操作介面。
-```go
-// pkg/domain/interfaces/detector_repository.go
-// DetectorRepository 定義了偵測器數據的持久化操作介面。
-// 職責: 提供偵測器實體的 CRUD 操作抽象。
-// AI_PLUGIN_TYPE: "detector_repository"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/repositories/mysql_detector_repository"
-// AI_IMPL_CONSTRUCTOR: "NewMySQLDetectorRepository"
-type DetectorRepository interface {
-	Save(ctx context.Context, detector *Detector) error
-	FindByID(ctx context.Context, id string) (*Detector, error)
-	FindAll(ctx context.Context) ([]*Detector, error)
-	Update(ctx context.Context, detector *Detector) error
-	Delete(ctx context.Context, id string) error
-	GetName() string
-}
-```
-
-3. AnalysisResultRepository 定義了分析結果數據的持久化操作介面。
-```go
-// pkg/domain/interfaces/analysis_result_repository.go
-// AnalysisResultRepository 定義了分析結果數據的持久化操作介面。
-// 職責: 提供分析結果實體的 CRUD 操作抽象。
-// AI_PLUGIN_TYPE: "analysis_result_repository"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/repositories/mysql_analysis_result_repository"
-// AI_IMPL_CONSTRUCTOR: "NewMySQLAnalysisResultRepository"
-type AnalysisResultRepository interface {
-	Save(ctx context.Context, result *AnalysisResult) error
-	FindByID(ctx context.Context, id string) (*AnalysisResult, error)
-	FindByDetectorID(ctx context.Context, detectorID string) ([]*AnalysisResult, error)
-	Update(ctx context.Context, result *AnalysisResult) error
-	Delete(ctx context.Context, id string) error
-	GetName() string
-}
-```
-
-4. AnalysisEngine 定義了核心數據分析功能的介面。
-```go
-// pkg/domain/interfaces/analysis_engine.go
-// AnalysisEngine 定義了核心數據分析功能的介面 (領域服務介面)。
-// 職責: 執行複雜的數據分析演算法，不關心數據的來源或輸出格式。
-// AI_PLUGIN_TYPE: "analysis_engine"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/services/analysis_engine"
-// AI_IMPL_CONSTRUCTOR: "NewAnalysisEngine"
-type AnalysisEngine interface {
-	AnalyzeData(ctx context.Context, data []byte) (entities.AnalysisResult, error)                         // 分析原始數據
-	ProcessDetection(ctx context.Context, detection *entities.Detection) (entities.DetectionResult, error) // 處理偵測事件
-}
-```
-
-5. UserService 定義了用戶相關的業務邏輯介面。
-```go
-// pkg/domain/interfaces/user_service.go
-// UserService 定義了用戶相關的業務邏輯介面。
-// 職責: 協調 UserRepository 和其他領域服務，處理用戶註冊、登入、資料更新等業務流程。
-// AI_PLUGIN_TYPE: "user_service"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/services/user_service"
-// AI_IMPL_CONSTRUCTOR: "NewUserService"
-// @See: internal/domain_logic/services/user_service/user_service.go
-type UserService interface {
-	RegisterUser(ctx context.Context, name, email, password string) (*User, error)
-	AuthenticateUser(ctx context.Context, email, password string) (*User, error)
-	GetUserByID(ctx context.Context, id string) (*User, error)
-	UpdateUserProfile(ctx context.Context, id string, updates map[string]interface{}) (*User, error)
-	DeleteUser(ctx context.Context, id string) error
-	GetName() string
-}
-```
-
-6. DetectorService 定義了偵測器相關的業務邏輯介面。
-```go
-// pkg/domain/interfaces/detector_service.go
-// DetectorService 定義了偵測器相關的業務邏輯介面。
-// 職責: 協調 DetectorRepository 和 DetectorPlugin，管理偵測器的生命週期和執行。
-// AI_PLUGIN_TYPE: "detector_service"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/services/detector_service"
-// AI_IMPL_CONSTRUCTOR: "NewDetectorService"
-// @See: internal/domain_logic/services/detector_service/detector_service.go
-type DetectorService interface {
-	CreateDetector(ctx context.Context, name, detectorType string, config map[string]interface{}) (*Detector, error)
-	GetDetector(ctx context.Context, id string) (*Detector, error)
-	ListDetectors(ctx context.Context) ([]*Detector, error)
-	UpdateDetector(ctx context.Context, id string, updates map[string]interface{}) (*Detector, error)
-	DeleteDetector(ctx context.Context, id string) error
-	ExecuteDetector(ctx context.Context, id string, data map[string]interface{}) (*AnalysisResult, error) // 執行偵測器
-	GetName() string
-}
-```
-
-7. AnalysisService 定義了分析結果相關的業務邏輯介面。
-```go
-// pkg/domain/interfaces/analysis_service.go
-// AnalysisService 定義了分析結果相關的業務邏輯介面。
-// 職責: 協調 AnalysisResultRepository 和 AnalysisEnginePlugin，處理分析結果的查詢、確認和歸檔。
-// AI_PLUGIN_TYPE: "analysis_service"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/services/analysis_service"
-// AI_IMPL_CONSTRUCTOR: "NewAnalysisService"
-type AnalysisService interface {
-	GetAnalysisResult(ctx context.Context, id string) (*AnalysisResult, error)
-	ListAnalysisResultsByDetector(ctx context.Context, detectorID string) ([]*AnalysisResult, error)
-	AcknowledgeResult(ctx context.Context, id, userID string) (*AnalysisResult, error)
-	GetName() string
-}
-```
-
-## --- 具體實現插件 (pkg/domain/plugins) ---
-> 定義可插拔的領域功能介面，支援平台的擴展性和模組化。
-> 對應目錄：`pkg/domain/plugins/`
-
-1. Plugin 是所有 Detectviz 平台插件的基礎介面
-```go
-// 檔案位置: pkg/domain/plugins/
-// pkg/domain/plugins/plugin.go
-// Plugin 是所有 Detectviz 平台插件的基礎介面。
-// 職責: 提供插件的通用方法，如獲取插件名稱。
-type Plugin interface {
-	GetName() string                                            // 返回插件的唯一名稱
-	Init(ctx context.Context, cfg map[string]interface{}) error // 插件初始化，接收配置
-	Start(ctx context.Context) error                            // 插件啟動，例如啟動背景任務
-	Stop(ctx context.Context) error                             // 插件停止，清理資源
-}
-```
-
-2. Importer 定義了數據導入插件的介面
-```go
-// pkg/domain/plugins/importer.go
-// Importer 定義了數據導入功能的通用介面。
-// 職責: 從不同來源（文件、API、數據庫）導入數據到平台。
-// AI_PLUGIN_TYPE: "importer_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/importer/csv_importer"
-// AI_IMPL_CONSTRUCTOR: "NewCSVImporterPlugin"
-type Importer interface {
-	Plugin                                               // 繼承通用 Plugin 介面
-	ImportData(ctx context.Context, source string) error // 根據來源導入數據
-}
-```
-
-3. DetectorPlugin 定義了具體偵測器實現的介面
-```go
-// pkg/domain/plugins/detector.go
-// DetectorPlugin 定義了具體偵測器實現的介面。
-// 職責: 執行特定類型的數據偵測邏輯。
-// AI_PLUGIN_TYPE: "detector_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/detector/anomaly_detector"
-// AI_IMPL_CONSTRUCTOR: "NewAnomalyDetectorPlugin"
-type DetectorPlugin interface {
-  Plugin
-	Execute(ctx context.Context, data map[string]interface{}, detectorConfig map[string]interface{}) (*AnalysisResult, error)
-}
-```
-
-4. AnalysisEnginePlugin 定義了數據分析引擎插件的介面
-```go
-// pkg/domain/plugins/analysis_engine.go
-// AnalysisEnginePlugin 定義了數據分析引擎插件的介面。
-// 職責: 對偵測結果進行深度分析和歸因。
-// AI_PLUGIN_TYPE: "analysis_engine_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/analysis_engine/llm_analysis_engine"
-// AI_IMPL_CONSTRUCTOR: "NewLLMAnalysisEnginePlugin"
-type AnalysisEnginePlugin interface {
-  Plugin
-	Analyze(ctx context.Context, result *AnalysisResult, analysisConfig map[string]interface{}) (map[string]interface{}, error)
-}
-```
-
-5. NotificationPlugin 定義了通知發送插件的介面
-```go
-// pkg/domain/plugins/notification.go
-// NotificationPlugin 定義了通知發送插件的介面。
-// 職責: 負責通過不同渠道（如郵件、簡訊）發送通知。
-// AI_PLUGIN_TYPE: "notification_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/notification/email_notifier"
-// AI_IMPL_CONSTRUCTOR: "NewEmailNotifierPlugin"
-type NotificationPlugin interface {
-  Plugin
-	SendNotification(ctx context.Context, recipient, subject, body string, metadata map[string]interface{}) error
-}
-```
-
-6. AlertPlugin 定義了告警觸發插件的介面
-```go
-// pkg/domain/plugins/alert.go
-// AlertPlugin 定義了告警觸發插件的介面。
-// 職責: 將偵測到的異常轉換為告警，並集成到告警系統。
-// AI_PLUGIN_TYPE: "alert_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/alert/slack_alerter"
-// AI_IMPL_CONSTRUCTOR: "NewSlackAlerterPlugin"
-type AlertPlugin interface {
-  Plugin
-	TriggerAlert(ctx context.Context, result *AnalysisResult, alertConfig map[string]interface{}) error
-}
-```
-
-7. UIPagePlugin 定義了動態 UI 頁面插件的介面
-```go
-// pkg/domain/plugins/ui_page.go
-// UIPagePlugin 定義了動態 UI 頁面插件的介面。
-// 職責: 允許插件註冊新的前端頁面或組件，擴展平台 UI。
-// AI_PLUGIN_TYPE: "ui_page_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/ui_page/dashboard_page"
-// AI_IMPL_CONSTRUCTOR: "NewDashboardPagePlugin"
-type UIPagePlugin interface {
-	Plugin
-	GetRoutePath() string
-	GetTemplateName() string
-	GetData(ctx context.Context, params map[string]string) (map[string]interface{}, error)
-}
-```
-
-8. CLIPlugin 定義了命令行界面擴展插件的介面
-```go
-// pkg/domain/plugins/cli.go
-// CLIPlugin 定義了命令行界面擴展插件的介面。
-// 職責: 允許插件向平台的 CLI 工具註冊新的命令。
-// AI_PLUGIN_TYPE: "cli_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/domain_logic/plugins/cli/detector_cli"
-// AI_IMPL_CONSTRUCTOR: "NewDetectorCLIPlugin"
-type CLIPlugin interface {
-	Plugin
-	GetCommandName() string
-	GetDescription() string
-	Execute(ctx context.Context, args []string) (string, error)
-}
-```
-
-9. HealthChecker 定義了插件健康檢查的介面
-```go
-// pkg/domain/plugins/health_check.go
-// HealthChecker 定義了插件健康檢查的介面。
-// 職責: 提供插件健康狀態的檢查和報告功能。
-// AI_PLUGIN_TYPE: "health_checker"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/adapters/plugins/health"
-// AI_IMPL_CONSTRUCTOR: "NewHealthChecker"
-type HealthChecker interface {
-	HealthCheck(ctx context.Context) HealthCheckResult
-	GetHealthCheckInterval() time.Duration
-	IsHealthy(ctx context.Context) bool
-}
-
-// HealthCheckablePlugin 表示支援健康檢查的插件
-type HealthCheckablePlugin interface {
-	Plugin
-	HealthChecker
-}
-```
-
-## --- 平台契約層 (pkg/platform/contracts) ---
-> 定義 Detectviz 平台級基礎設施服務的抽象介面，這些介面是平台核心功能與其具體實現之間的契約。
-> 對應目錄：`pkg/platform/contracts/`
-
-### 🎛 Platform I/O Providers
-
-1. ConfigProvider 定義了配置管理服務的介面
-```go
-// pkg/platform/contracts/contracts.go
-// ConfigProvider 定義了平台統一的設定載入和存取介面。
-// 職責: 支援讀取不同類型的配置值，並可將配置反序列化到結構體。
-// AI_PLUGIN_TYPE: "config_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/config/viper_config_provider"
-// AI_IMPL_CONSTRUCTOR: "NewViperConfigProvider"
-// @See: internal/infrastructure/platform/config/viper_config_provider.go
-type ConfigProvider interface {
-	GetString(key string) string
-	GetInt(key string) int
-	GetBool(key string) bool
-	Unmarshal(rawVal interface{}) error // 將整個配置結構反序列化到 Go struct
-	GetName() string
-}
-```
-
-2. HttpServerProvider 定義了 HTTP 服務的介面
-```go
-// pkg/platform/contracts/contracts.go
-// HttpServerProvider 定義了 HTTP 伺服器啟動和路由註冊的能力。
-// 職責: 作為平台 Web 入口，處理 HTTP 請求並分發到 Handler。
-// AI_PLUGIN_TYPE: "http_server_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/http_server/echo_http_server_provider"
-// AI_IMPL_CONSTRUCTOR: "NewEchoHttpServerProvider"
-// @See: internal/infrastructure/platform/http_server/echo_http_server_provider.go
-type HttpServerProvider interface {
-	Start(port string) error        // 啟動 HTTP 服務
-	Stop(ctx context.Context) error // 停止 HTTP 服務
-	GetRouter() *echo.Echo          // 獲取底層路由實例，用於註冊路由和中介層 (這裡耦合 Echo，可考慮使用更通用的介面)
-	GetName() string
-}
-```
-
-3. CliServerProvider 定義了 CLI 服務的介面
-```go
-// pkg/platform/contracts/contracts.go
-// CliServerProvider 定義了 CLI 服務啟動和命令註冊的能力。
-// 職責: 作為平台命令行入口，處理命令解析和執行。
-// AI_PLUGIN_TYPE: "cli_server_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/cli_server/cobra_cli_server_provider"
-// AI_IMPL_CONSTRUCTOR: "NewCobraCliServerProvider"
-// @See: internal/infrastructure/platform/cli_server/cobra_cli_server_provider.go
-type CliServerProvider interface {
-	Execute() error
-	AddCommand(cmd *cobra.Command) // 添加命令到 CLI 應用
-	GetName() string
-}
-```
-
-### 🔐 Security & Identity
-
-4. AuthProvider 定義了身份驗證服務的介面
-```go
-// pkg/platform/contracts/contracts.go
-// AuthProvider 定義了身份驗證與授權服務的通用介面。
-// 職責: 負責驗證用戶身份並提供基礎授權判斷。
-// AI_PLUGIN_TYPE: "keycloak_auth_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/auth/keycloak_auth_provider"
-// AI_IMPL_CONSTRUCTOR: "NewKeycloakAuthProvider"
-// @See: internal/infrastructure/platform/auth/keycloak_auth_provider.go
-type AuthProvider interface {
-	Authenticate(ctx context.Context, credentials string) (userID string, err error)
-	Authorize(ctx context.Context, userID string, resource string, action string) (bool, error)
-	GetName() string
-}
-```
-
-5. KeycloakClientContract 定義了與 Keycloak 外部服務互動的介面
-```go
-// pkg/platform/contracts/contracts.go
-// KeycloakClientContract 定義了與 Keycloak 外部服務互動的抽象介面。
-// 職責: 封裝與 Keycloak 服務進行底層 HTTP/gRPC 通訊的細節。
-// AI_PLUGIN_TYPE: "keycloak_client_contract"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/external_services/keycloak_client"
-// AI_IMPL_CONSTRUCTOR: "NewKeycloakClient"
-// @See: internal/infrastructure/platform/external_services/keycloak_client.go
-type KeycloakClientContract interface {
-	VerifyToken(ctx context.Context, token string) (string, error)
-	CheckPermissions(ctx context.Context, userID, resource, action string) (bool, error)
-}
-```
-
-### 📊 Observability & Stability
-
-6. Logger 定義了日誌記錄服務的介面
-```go
-// pkg/platform/contracts/logger.go
-// Logger 定義了日誌服務的通用介面。
-// 職責: 提供統一的日誌記錄功能，便於調試、監控和問題追蹤。
-// AI_PLUGIN_TYPE: "logger_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/logger/otelzap_logger"
-// AI_IMPL_CONSTRUCTOR: "NewOtelZapLogger"
-// @See: internal/infrastructure/platform/logger/otelzap_logger.go
-type Logger interface {
-	Debug(msg string, fields ...interface{})
-	Info(msg string, fields ...interface{})
-	Warn(msg string, fields ...interface{})
-	Error(msg string, fields ...interface{})
-	Fatal(msg string, fields ...interface{}) // Fatal 會導致程式終止
-	WithFields(fields ...interface{}) Logger // 返回一個帶有附加字段的新 Logger 實例。
-	WithContext(ctx interface{}) Logger      // 返回一個帶有上下文的新 Logger 實例。
-	GetName() string
-}
-```
-
-10. PluginMetadataProvider 定義了插件元資訊的查詢與註冊介面
-```go
-// pkg/platform/contracts/plugin_metadata.go
-// PluginMetadataProvider 定義了插件元資訊的查詢與註冊介面。
-// 職責: 提供插件名稱、版本、依賴等資訊，利於平台治理。
-// AI_PLUGIN_TYPE: "plugin_metadata_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/plugin_metadata/in_memory_plugin_metadata"
-// AI_IMPL_CONSTRUCTOR: "NewInMemoryPluginMetadataProvider"
-// @See: internal/platform/providers/plugin_metadata/in_memory_plugin_metadata.go
-type PluginMetadataProvider interface {
-	GetMetadata(ctx context.Context, pluginName string) (map[string]any, error)
-	RegisterMetadata(ctx context.Context, pluginName string, metadata map[string]any) error
-	GetName() string
-}
-```
-
-### 💾 Storage & State
-
-11. DBClientProvider 定義了資料庫客戶端連接的介面
-```go
-// pkg/platform/contracts/contracts.go
-// DBClientProvider 定義了資料庫連線能力的通用介面。
-// 職責: 負責提供與特定資料庫類型（如 MySQL, PostgreSQL）的連線。
-// AI_PLUGIN_TYPE: "gorm_mysql_client_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/database/gorm_mysql_client"
-// AI_IMPL_CONSTRUCTOR: "NewGORMMySQLClientProvider"
-// @See: internal/infrastructure/database/gorm_mysql_client.go
-type DBClientProvider interface {
-	GetDB(ctx context.Context) (*sql.DB, error) // 獲取底層 *sql.DB 連線實例
-	GetName() string
-}
-```
-
-12. MigrationRunner 定義了資料庫 Schema 遷移的通用介面
-```go
-// pkg/platform/contracts/contracts.go
-// MigrationRunner 定義了資料庫 Schema 遷移的通用介面。
-// 職責: 管理資料庫結構的版本化控制，確保應用程式與數據庫兼容。
-// AI 擴展點: AI 可生成 `AtlasMigrationRunner` 或 `GoMigrateRunner`。
-// AI_PLUGIN_TYPE: "migration_runner_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/database/atlas_migration_runner"
-// AI_IMPL_CONSTRUCTOR: "NewAtlasMigrationRunner"
-// @See: internal/infrastructure/database/atlas_migration_runner.go
-type MigrationRunner interface {
-	RunMigrations(ctx context.Context, db *sql.DB) error // 執行 Schema 遷移
-	GetName() string
-}
-```
-
-13. TransactionManager 定義了事務管理服務的介面
-```go
-// pkg/platform/contracts/transaction_manager.go
-// TransactionManager 定義了事務管理服務的介面。
-// 職責: 提供數據庫事務的開始、提交和回滾功能。
-// AI_PLUGIN_TYPE: "transaction_manager_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/database/gorm_transaction_manager"
-// AI_IMPL_CONSTRUCTOR: "NewGORMTransactionManager"
-// @See: internal/infrastructure/database/gorm_transaction_manager.go
-type TransactionManager interface {
-	BeginTx(ctx context.Context, opts *interface{}) (interface{}, error) // 返回一個事務上下文，例如 *gorm.DB 或 *sql.Tx
-	CommitTx(tx interface{}) error
-	RollbackTx(tx interface{}) error
-	GetName() string
-}
-```
-
-14. CacheProvider 定義了緩存服務的介面
-```go
-// pkg/platform/contracts/cache.go
-// CacheProvider 定義了緩存服務的介面。
-// 職責: 提供鍵值對緩存操作，支持設置過期時間。
-// AI_PLUGIN_TYPE: "cache_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/cache/redis_cache"
-// AI_IMPL_CONSTRUCTOR: "NewRedisCacheProvider"
-// @See: internal/platform/providers/cache/redis_cache.go
-type CacheProvider interface {
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
-	Get(ctx context.Context, key string) (interface{}, error)
-	Delete(ctx context.Context, key string) error
-	GetName() string
-}
-```
-
-15. SecretsProvider 定義了秘密管理服務的介面
-```go
-// pkg/platform/contracts/secrets.go
-// SecretsProvider 定義了秘密管理服務的介面。
-// 職責: 安全地讀取和管理敏感資訊 (如 API 金鑰、數據庫憑證)。
-// AI_PLUGIN_TYPE: "secrets_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/secrets/env_secrets"
-// AI_IMPL_CONSTRUCTOR: "NewEnvSecretsProvider"
-// @See: internal/platform/providers/secrets/env_secrets.go
-type SecretsProvider interface {
-	GetSecret(ctx context.Context, key string) (string, error)
-	GetName() string
-}
-```
-
-### 📊 Observability & Stability
-
-16. MetricsProvider 定義了指標收集與導出的介面
-```go
-// pkg/platform/contracts/contracts.go
-// MetricsProvider 定義了指標收集和導出的通用介面。
-// 職責: 收集應用程式運行時指標（計數器、直方圖、儀表盤）並導出給監控系統。
-// AI_PLUGIN_TYPE: "prometheus_metrics_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/metrics/prometheus_metrics_provider"
-// AI_IMPL_CONSTRUCTOR: "NewPrometheusMetricsProvider"
-// @See: internal/infrastructure/platform/metrics/prometheus_metrics_provider.go
-type MetricsProvider interface {
-	IncCounter(name string, tags map[string]string)                 // 增加計數器指標
-	ObserveHistogram(name string, value float64, tags map[string]string) // 記錄直方圖指標
-	SetGauge(name string, value float64, tags map[string]string)    // 設置儀表盤指標
-	GetName() string
-}
-```
-
-17. TracingProvider 定義了分佈式追蹤的介面
-```go
-// pkg/platform/contracts/contracts.go
-// TracingProvider 定義了分散式追蹤的通用介面。
-// 職責: 創建和管理分散式追蹤 spans，記錄應用程式的執行路徑和性能數據。
-// AI_PLUGIN_TYPE: "jaeger_tracing_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/tracing/jaeger_tracing_provider"
-// AI_IMPL_CONSTRUCTOR: "NewJaegerTracingProvider"
-// @See: internal/infrastructure/platform/tracing/jaeger_tracing_provider.go
-type TracingProvider interface {
-	StartSpan(ctx context.Context, operationName string) (context.Context, Span)
-	GetName() string
-}
-
-// Span 定義了追蹤 span 的通用介面
-type Span interface {
-	SetTag(key string, value interface{})
-	SetError(err error)
-	Finish()
-}
-```
-
-18. RateLimiterProvider 定義了速率限制服務的介面
-```go
-// pkg/platform/contracts/rate_limiter.go
-// RateLimiterProvider 定義了速率限制服務的介面。
-// 職責: 控制請求流量，防止服務過載。
-// AI_PLUGIN_TYPE: "rate_limiter_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/rate_limiter/uber_rate_limiter"
-// AI_IMPL_CONSTRUCTOR: "NewUberRateLimiterProvider"
-// @See: internal/platform/providers/rate_limiter/uber_rate_limiter.go
-type RateLimiterProvider interface {
-	Allow(ctx context.Context, key string) bool
-	GetName() string
-}
-```
-
-19. CircuitBreakerProvider 定義了熔斷器服務的介面
-```go
-// pkg/platform/contracts/circuit_breaker.go
-// CircuitBreakerProvider 定義了熔斷器服務的介面。
-// 職責: 在外部服務失敗時，快速失敗並提供降級處理，防止級聯故障。
-// AI_PLUGIN_TYPE: "circuit_breaker_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/circuit_breaker/hystrix_breaker"
-// AI_IMPL_CONSTRUCTOR: "NewHystrixCircuitBreakerProvider"
-// @See: internal/platform/providers/circuit_breaker/hystrix_breaker.go
-type CircuitBreakerProvider interface {
-	Execute(ctx context.Context, name string, run func() error, fallback func(error) error) error
-	GetName() string
-}
-```
-
-### 🔐 Security & Identity
-
-4. AuthProvider 定義了身份驗證服務的介面
-```go
-// pkg/platform/contracts/contracts.go
-// AuthProvider 定義了身份驗證與授權服務的通用介面。
-// 職責: 負責驗證用戶身份並提供基礎授權判斷。
-// AI_PLUGIN_TYPE: "keycloak_auth_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/auth/keycloak_auth_provider"
-// AI_IMPL_CONSTRUCTOR: "NewKeycloakAuthProvider"
-// @See: internal/infrastructure/platform/auth/keycloak_auth_provider.go
-type AuthProvider interface {
-	Authenticate(ctx context.Context, credentials string) (userID string, err error)
-	Authorize(ctx context.Context, userID string, resource string, action string) (bool, error)
-	GetName() string
-}
-```
-
-5. KeycloakClientContract 定義了與 Keycloak 外部服務互動的介面
-```go
-// pkg/platform/contracts/contracts.go
-// KeycloakClientContract 定義了與 Keycloak 外部服務互動的抽象介面。
-// 職責: 封裝與 Keycloak 服務進行底層 HTTP/gRPC 通訊的細節。
-// AI_PLUGIN_TYPE: "keycloak_client_contract"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/external_services/keycloak_client"
-// AI_IMPL_CONSTRUCTOR: "NewKeycloakClient"
-// @See: internal/infrastructure/platform/external_services/keycloak_client.go
-type KeycloakClientContract interface {
-	VerifyToken(ctx context.Context, token string) (string, error)
-	CheckPermissions(ctx context.Context, userID, resource, action string) (bool, error)
-}
-```
-
-6. SessionStore 定義了使用者登入狀態與會話的儲存抽象
-```go
-// pkg/platform/contracts/session_store.go
-// SessionStore 定義了使用者登入狀態與會話的儲存抽象。
-// 職責: 管理登入 Session 的生命週期與屬性。
-// AI_PLUGIN_TYPE: "session_store_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/session_store/redis_session_store"
-// AI_IMPL_CONSTRUCTOR: "NewRedisSessionStoreProvider"
-// @See: internal/platform/providers/session_store/redis_session_store.go
-type SessionStore interface {
-	Set(ctx context.Context, sessionID string, data map[string]any) error
-	Get(ctx context.Context, sessionID string) (map[string]any, error)
-	Delete(ctx context.Context, sessionID string) error
-	GetName() string
-}
-```
-
-7. CSRFTokenProvider 定義了 CSRF Token 管理的介面
-```go
-// pkg/platform/contracts/csrf_token_provider.go
-// CSRFTokenProvider 定義了 CSRF Token 管理的介面。
-// 職責: 生成、驗證和管理用於防範 CSRF 攻擊的 Token。
-// AI_PLUGIN_TYPE: "csrf_token_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/csrf_token/default_csrf_token"
-// AI_IMPL_CONSTRUCTOR: "NewDefaultCSRFTokenProvider"
-// @See: internal/platform/providers/csrf_token/default_csrf_token.go
-type CSRFTokenProvider interface {
-	GenerateToken(ctx context.Context) (string, error)
-	ValidateToken(ctx context.Context, token string) error
-	GetName() string
-}
-```
-
-8. PasswordHasher 定義了密碼散列和驗證的介面
-```go
-// internal/auth/hasher/hasher.go
-// PasswordHasher 定義了密碼散列和驗證的抽象介面。
-// 職責: 提供安全的密碼散列和驗證功能，隔離具體的散列演算法實現。
-// AI_PLUGIN_TYPE: "password_hasher"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/auth/hasher/bcrypt_hasher"
-// AI_IMPL_CONSTRUCTOR: "NewBcryptPasswordHasher"
-// @See: internal/auth/hasher/hasher_bcrypt.go
-type PasswordHasher interface {
-	HashPassword(ctx context.Context, plainPassword string) (string, error)
-	VerifyPassword(ctx context.Context, plainPassword, hashedPassword string) (bool, error)
-	GetName() string
-}
-```
-
-### 🔌 Plugin / Registry / Metadata
-
-13. PluginRegistryProvider 定義了插件註冊與查詢的介面
-```go
-// pkg/platform/contracts/contracts.go
-// PluginRegistryProvider 定義了平台 plugin 的註冊與 metadata 查詢能力。
-// 職責: 管理已載入和可用的插件，提供插件查詢和元數據獲取功能。
-// AI_PLUGIN_TYPE: "plugin_registry_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/registry/plugin_registry_provider"
-// AI_IMPL_CONSTRUCTOR: "NewPluginRegistryProvider"
-// @See: internal/infrastructure/platform/registry/plugin_registry_provider.go
-type PluginRegistryProvider interface {
-	Register(name string, provider any) error        // 註冊一個具名的插件實例
-	Get(name string) (any, error)                    // 獲取指定名稱的插件實例
-	List() []string                                  // 列出所有已註冊插件的名稱
-	GetMetadata(name string) (map[string]any, error) // 回傳特定插件的描述資訊（版本、作者、狀態等）
-	GetName() string                                 // 例如 "core_registry"
-}
-```
-
-14. PluginMetadataProvider 定義了插件元資訊的查詢與註冊介面
-```go
-// pkg/platform/contracts/plugin_metadata.go
-// PluginMetadataProvider 定義了插件元資訊的查詢與註冊介面。
-// 職責: 提供插件名稱、版本、依賴等資訊，利於平台治理。
-// AI_PLUGIN_TYPE: "plugin_metadata_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/plugin_metadata/in_memory_plugin_metadata"
-// AI_IMPL_CONSTRUCTOR: "NewInMemoryPluginMetadataProvider"
-// @See: internal/platform/providers/plugin_metadata/in_memory_plugin_metadata.go
-type PluginMetadataProvider interface {
-	GetMetadata(ctx context.Context, pluginName string) (map[string]any, error)
-	RegisterMetadata(ctx context.Context, pluginName string, metadata map[string]any) error
-	GetName() string
-}
-```
-
-### 📡 Event & Comms
-
-20. EventBusProvider 定義了事件總線服務的介面
-```go
-// pkg/platform/contracts/event_bus.go
-// EventBusProvider 定義了事件總線服務的介面。
-// 職責: 提供異步事件的發布和訂閱機制。
-// AI_PLUGIN_TYPE: "event_bus_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/event_bus/nats_event_bus"
-// AI_IMPL_CONSTRUCTOR: "NewNATSEventBusProvider"
-// @See: internal/platform/providers/event_bus/nats_event_bus.go
-type EventBusProvider interface {
-	Publish(ctx context.Context, topic string, event interface{}) error
-	Subscribe(ctx context.Context, topic string, handler func(event interface{})) error
-	GetName() string
-}
-```
-
-21. AuditLogProvider 定義了審計記錄的儲存與查詢功能
-```go
-// pkg/platform/contracts/audit_log.go
-// AuditLogProvider 定義了審計記錄的儲存與查詢功能。
-// 職責: 記錄關鍵操作、身份與時間資訊，支援合規需求。
-// AI_PLUGIN_TYPE: "audit_log_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/audit_log/db_audit_log"
-// AI_IMPL_CONSTRUCTOR: "NewDBAuditLogProvider"
-// @See: internal/platform/providers/audit_log/db_audit_log.go
-type AuditLogProvider interface {
-	LogAction(ctx context.Context, userID, action, resource string, metadata map[string]any) error
-	GetName() string
-}
-```
-
-### 🤖 AI / ML
-
-22. LLMProvider 定義了大型語言模型推論功能的通用介面
-```go
-// pkg/platform/contracts/llm_provider.go
-// LLMProvider 定義了大型語言模型推論功能的通用介面。
-// 職責: 將 prompt 傳入 LLM 並取得模型輸出。
-// AI_PLUGIN_TYPE: "llm_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/llm/gemini_llm"
-// AI_IMPL_CONSTRUCTOR: "NewGeminiLLMProvider"
-// @See: internal/platform/providers/llm/gemini_llm.go
-type LLMProvider interface {
-	GenerateText(ctx context.Context, prompt string, options map[string]any) (string, error)
-	GetName() string
-}
-```
-
-23. EmbeddingStoreProvider 定義了向量嵌入儲存與查詢功能的介面
-```go
-// pkg/platform/contracts/embedding_store.go
-// EmbeddingStoreProvider 定義了向量嵌入儲存與查詢功能的介面。
-// 職責: 儲存和檢索高維向量，支持相似性搜索。
-// AI_PLUGIN_TYPE: "embedding_store_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/embedding_store/chroma_embedding_store"
-// AI_IMPL_CONSTRUCTOR: "NewChromaEmbeddingStoreProvider"
-// @See: internal/platform/providers/embedding_store/chroma_embedding_store.go
-type EmbeddingStoreProvider interface {
-	StoreEmbedding(ctx context.Context, id string, vector []float32, metadata map[string]any) error
-	QueryNearest(ctx context.Context, queryVector []float32, topK int, filter map[string]any) ([]string, error) // 返回最相似的 ID
-	GetName() string
-}
-```
-
-### 🔧 Platform Utility
-
-24. MiddlewarePlugin 定義了 HTTP 中介層插件的介面
-```go
-// pkg/platform/contracts/middleware.go
-// MiddlewarePlugin 定義了 HTTP 中介層插件的介面。
-// 職責: 在 HTTP 請求處理鏈中插入通用邏輯 (如日誌、認證、CORS)。
-// AI_PLUGIN_TYPE: "middleware_plugin"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/middleware/auth_middleware"
-// AI_IMPL_CONSTRUCTOR: "NewAuthMiddlewarePlugin"
-// @See: internal/platform/middleware/auth_middleware.go
-type MiddlewarePlugin interface {
-	Handle(next http.Handler) http.Handler
-	GetName() string
-}
-```
-
-25. ErrorFactory 定義了錯誤創建和標準化的介面
-```go
-// pkg/platform/contracts/error_factory.go
-// ErrorFactory 定義了錯誤創建和標準化的介面。
-// 職責: 提供統一的錯誤創建機制，包含錯誤碼和可讀訊息。
-// AI_PLUGIN_TYPE: "error_factory_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/error_factory/standard_error_factory"
-// AI_IMPL_CONSTRUCTOR: "NewStandardErrorFactory"
-// @See: internal/platform/providers/error_factory/standard_error_factory.go
-type ErrorFactory interface {
-	NewBadRequestError(message string, details ...map[string]any) error
-	NewNotFoundError(message string, details ...map[string]any) error
-	NewUnauthorizedError(message string, details ...map[string]any) error
-	NewInternalServerError(message string, details ...map[string]any) error
-	NewErrorf(format string, args ...any) error // 類似 fmt.Errorf 但返回標準錯誤類型
-	GetName() string
-}
-```
-
-26. ServiceDiscoveryProvider 定義了服務發現的介面
-```go
-// pkg/platform/contracts/service_discovery.go
-// ServiceDiscoveryProvider 定義了服務發現的介面。
-// 職責: 註冊、註銷服務實例，並查詢可用服務實例的地址。
-// AI_PLUGIN_TYPE: "service_discovery_provider"
-// AI_IMPL_PACKAGE: "detectviz-platform/internal/platform/providers/service_discovery/k8s_discovery"
-// AI_IMPL_CONSTRUCTOR: "NewK8sServiceDiscoveryProvider"
-// @See: internal/platform/providers/service_discovery/k8s_discovery.go
-type ServiceDiscoveryProvider interface {
-	RegisterService(ctx context.Context, serviceName string, instanceID string, address string, port int, metadata map[string]string) error
-	DeregisterService(ctx context.Context, serviceName string, instanceID string) error
-	GetInstances(ctx context.Context, serviceName string) ([]ServiceInstance, error)
-	GetName() string
-}
-```
-
-27. ServiceInstance 定義了服務實例的結構
-```go
-// pkg/platform/contracts/types.go
-// ServiceInstance 定義了服務實例的結構。
-// 職責: 封裝服務的基本資訊 (名稱、地址、端口、健康狀態等)。
-// @See: pkg/platform/contracts/types.go
-type ServiceInstance struct {
-	ID       string            `json:"id"`
-	Name     string            `json:"name"`
-	Address  string            `json:"address"`
-	Port     int               `json:"port"`
-	Metadata map[string]string `json:"metadata"`
-	Healthy  bool              `json:"healthy"`
-}
-```
-
-## 進度統計
-
-**總計完成進度：14/49 項目 (29%)**
-
-- **entities**: 5/5 完成 (100%)
-- **interfaces**: 4/7 完成 (57%)  
-- **plugins**: 5/9 完成 (56%)
-- **contracts**: 12/28 完成 (43%)
+## 清單
+
+### 1. 領域實體 (entities)
+1. [User](../../pkg/domain/entities/user.go)
+2. [Detector](../../pkg/domain/entities/detector.go)
+3. [AnalysisResult](../../pkg/domain/entities/analysis_result.go)
+4. [Detection](../../pkg/domain/entities/detection.go)
+5. [DetectionResult](../../pkg/domain/entities/detection_result.go) 
+
+### 2. 領域值對象 (value objects)
+1. [IDVO](../../pkg/domain/valueobjects/id.go)
+2. [EmailVO](../../pkg/domain/valueobjects/email.go)
+
+### 3. 領域錯誤 (domain errors)
+1. [DomainError](../../pkg/domain/errors/errors.go)
+2. [InfrastructureError](../../pkg/domain/errors/errors.go)
+
+### 4. 領域介面 (interfaces)
+
+**倉儲介面 (repositories)**
+1. [UserRepository](../../pkg/domain/interfaces/repositories/user_repository.go)
+2. [DetectorRepository](../../pkg/domain/interfaces/repositories/detector_repository.go)
+3. [AnalysisResultRepository](../../pkg/domain/interfaces/repositories/analysis_result_repository.go)
+
+**服務介面 (services)**
+4. [UserService](../../pkg/domain/interfaces/services/user_service.go)
+5. [DetectionService](../../pkg/domain/interfaces/services/detection_service.go)
+
+**核心介面**
+6. [AnalysisEngine](../../pkg/domain/interfaces/analysis_engine.go)
+
+### 5. 插件介面 (plugins)
+1. [Plugin](../../pkg/domain/interfaces/plugins/plugin.go)
+2. [ImporterPlugin](../../pkg/domain/interfaces/plugins/importer.go)
+3. [DetectorPlugin](../../pkg/domain/interfaces/plugins/detector.go)
+4. [AnalysisPostProcessorPlugin](../../pkg/domain/interfaces/plugins/analysis_engine.go)
+5. [NotificationPlugin](../../pkg/domain/interfaces/plugins/notification.go)
+6. [AlertPlugin](../../pkg/domain/interfaces/plugins/alert.go)
+7. [UIPagePlugin](../../pkg/domain/interfaces/plugins/uipage.go)
+8. [CLIPlugin](../../pkg/domain/interfaces/plugins/cli.go)
+9. [HealthCheckPlugin](../../pkg/domain/interfaces/plugins/health_check.go)
+10. [HealthCheckCapablePlugin](../../pkg/domain/interfaces/plugins/health_check.go)
+11. [MiddlewarePlugin](../../pkg/domain/interfaces/plugins/middleware.go)
+
+**插件相關類型**
+12. [HealthCheckResult](../../pkg/domain/interfaces/plugins/health_check.go)
+13. [HealthStatus](../../pkg/domain/interfaces/plugins/health_check.go)
+
+### 6. 平台契約 (contracts)
+
+**核心基礎設施 (`config.go`, `logger.go`, `utility.go`)**
+1. [ConfigProvider](../../pkg/platform/contracts/config.go)
+2. [Logger](../../pkg/platform/contracts/logger.go)
+3. [ErrorFactory](../../pkg/platform/contracts/utility.go)
+4. [ServiceDiscoveryProvider](../../pkg/platform/contracts/utility.go)
+
+**認證與授權 (`auth.go`)**
+5. [AuthProvider](../../pkg/platform/contracts/auth.go) (整合後)
+6. [AuthStorageProvider](../../pkg/platform/contracts/auth.go) (整合後)
+
+**數據與存儲 (`database.go`, `storage.go`)**
+7. [DBClientProvider](../../pkg/platform/contracts/database.go)
+8. [MigrationRunner](../../pkg/platform/contracts/database.go)
+9. [TransactionManager](../../pkg/platform/contracts/storage.go)
+10. [CacheProvider](../../pkg/platform/contracts/storage.go)
+11. [SecretsProvider](../../pkg/platform/contracts/storage.go)
+
+**網絡與服務器 (`server.go`)**
+12. [HttpServerProvider](../../pkg/platform/contracts/server.go)
+13. [CliServerProvider](../../pkg/platform/contracts/server.go)
+
+**可觀測性 (`metrics.go`, `observability.go`)**
+14. [MetricsProvider](../../pkg/platform/contracts/metrics.go)
+15. [TracingProvider](../../pkg/platform/contracts/metrics.go)
+16. [Span](../../pkg/platform/contracts/metrics.go)
+17. [RateLimiterProvider](../../pkg/platform/contracts/observability.go)
+18. [CircuitBreakerProvider](../../pkg/platform/contracts/observability.go)
+
+**插件與事件 (`plugin.go`, `events.go`)**
+19. [PluginRegistryProvider](../../pkg/platform/contracts/plugin.go)
+20. [PluginMetadataProvider](../../pkg/platform/contracts/plugin.go)
+21. [EventBusProvider](../../pkg/platform/contracts/events.go)
+22. [AuditLogProvider](../../pkg/platform/contracts/events.go)
+
+**AI/ML (`llm_provider.go`, `embedding_store.go`)**
+23. [LLMProvider](../../pkg/platform/contracts/llm_provider.go)
+24. [EmbeddingStoreProvider](../../pkg/platform/contracts/embedding_store.go)
+
+**類型定義 (`types.go`)**
+25. [ServiceInstance](../../pkg/platform/contracts/types.go)
+
+## 統計
+
+- **領域實體**: 5 個
+- **領域值對象**: 2 個
+- **領域錯誤**: 2 個 (簡化後)
+- **領域介面**: 6 個 (3 個倉儲 + 2 個服務 + 1 個核心)
+- **插件介面**: 13 個 (11 個介面 + 2 個相關類型)
+- **平台契約**: 25 個 (重新分類後)
+- **總計**: 53 個定義 (減少 6 個)
+
+## Clean Architecture 分層說明
+
+### 領域層 (Domain Layer)
+- **實體 (Entities)**: 核心業務邏輯和規則
+- **值對象 (Value Objects)**: 不可變的值類型
+- **領域介面**: 定義業務操作的抽象
+
+### 應用層 (Application Layer)
+- **服務介面**: 協調多個實體的業務流程
+- **倉儲介面**: 數據持久化的抽象
+
+### 介面層 (Interface Layer)
+- **插件介面**: 可擴展功能的抽象定義
+
+### 基礎設施層 (Infrastructure Layer)
+- **平台契約**: 外部依賴和技術實現的抽象
+
+這種分層結構確保了：
+1. **依賴反轉**: 高層模組不依賴低層模組
+2. **關注點分離**: 每個介面都有明確的職責
+3. **可測試性**: 所有依賴都可以被模擬
+4. **可擴展性**: 通過插件系統支持功能擴展
+5. **AI 友好**: 完整的 AI 標籤支持自動化腳手架生成
+
+## 完整性驗證
+
+以下是 `/pkg` 目錄下所有定義的完整清單，確保沒有遺漏：
+
+### pkg/domain/entities/ (5 個實體)
+✅ User, Detector, AnalysisResult, Detection, DetectionResult
+
+### pkg/domain/valueobjects/ (2 個值對象)
+✅ IDVO, EmailVO
+
+### pkg/domain/errors/ (2 個錯誤類型)
+✅ DomainError, InfrastructureError
+
+### pkg/domain/interfaces/ (6 個核心介面)
+✅ 3 個倉儲介面 + 2 個服務介面 + 1 個分析引擎介面
+
+### pkg/domain/interfaces/plugins/ (13 個插件定義)
+✅ 11 個插件介面 + 2 個相關類型 (HealthCheckResult, HealthStatus)
+
+### pkg/platform/contracts/ (25 個平台契約)
+✅ 所有基礎設施層的抽象介面和類型定義
+
+**總計**: 53 個定義，涵蓋 `/pkg` 目錄下的所有公開 API 定義。
+
+---
+
+## Interface 規劃審查用途與檢查方式
+
+本文件作為 Detectviz 平台唯一可信的 interface 清單，具備以下目標：
+
+- 作為 Clean Architecture 合理性與結構設計的審查依據（例如是否過度擴展或分類模糊）
+- 驗證 interface 是否出現重複定義、語意衝突或命名模糊
+- 作為 AI scaffold 系統與 Cursor 編輯輔助的唯一參考來源
+- 確保每個介面皆有對應實作與測試，並對應 plugin doc、schema、AI metadata
+
+### 快速檢查提示語（Prompt）
+
+> 請依照 `interface_spec.md` 中「Interface 規劃審查用途與檢查方式」段落，逐項檢查目前介面定義是否合理，並回報所有可優化項目，產出 interface_review_report.md。完成檢查後，請立即根據報告內容，逐條執行優化項目並產生對應 patch。
+
+AI Agent 將自動依據以下 4 點進行檢查，並在 `/docs/audit/interface_review_report.md` 中輸出檢查報告，同時依據回報逐條執行修正：
+
+1. **是否有重複定義**：
+   - 職責重疊或命名過於相似的 interface
+
+2. **是否過度設計**：
+   - interface 過度切割、分類不清，導致管理困難
+
+3. **plugin 命名與分類是否一致**：
+   - 所有 plugin 是否皆以 Plugin 結尾？
+   - 是否與 AI_PLUGIN_TYPE 對應一致？
+
+4. **平台契約是否合理分層**：
+   - 是否有 contracts interface 應移入 domain 層的情況？
+
+建議將每次分析結果存放於 `docs/audit/interface_review_report.md`，並作為後續 Cursor Scaffold 的依據與自動 patch 執行觸發點。

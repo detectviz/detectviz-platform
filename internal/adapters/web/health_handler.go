@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"detectviz-platform/internal/infrastructure/platform/health"
-	"detectviz-platform/pkg/domain/plugins"
+	"detectviz-platform/pkg/domain/interfaces/plugins"
 
 	"github.com/labstack/echo/v4"
 )

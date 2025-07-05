@@ -30,92 +30,85 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
 
 ```bash
 .
-├── README.md # 專案概述、願景、核心特色、快速上手指南 (專案的總覽入口)
-├── AGENTS.md # 代理程式 (Agents) 的說明文件
-├── assets/ # 資產檔案，包括平台定義的 DrawIO 圖形檔案
-│   └── platforms-def.drawio.xml # 平台定義的 DrawIO 圖形檔案
-├── cmd/
+├── README.md # 專案總覽、願景、核心特色、快速上手指南
+├── AGENTS.md # AI 代理程式的詳細說明文件
+├── Dockerfile # 用於構建應用程式容器的 Dockerfile
+├── LICENSE # 專案的開源許可證
+├── go.mod # Go 模組依賴文件
+├── go.sum # Go 模組依賴的校驗和
+├── todo.md # 開發待辦事項列表
+├── assets/ # 存放靜態資產，如架構圖
+│   └── platforms-def.drawio.xml # 平台架構的 DrawIO 圖形文件
+├── cmd/ # 應用程式的入口點
 │   └── api/
-│       └── main.go # 應用程式主入口點
-├── configs/
-│   ├── app_config.yaml # 核心應用程式全局配置
-│   └── composition.yaml # 平台插件的組合與具體配置
-├── docs/ # 文檔目錄
-│   ├── ai_scaffold/
-│   │   ├── main_go_assembly.tmpl # AI 生成程式碼時可能需要參考的代碼範本或結構
-│   │   └── scaffold_workflow.md # AI Scaffold 總體流程與決策邏輯
-│   ├── architecture/
-│   │   └── interface_spec.md # 平台介面規範
+│       └── main.go # API 服務的主入口點
+├── configs/ # 配置文件目錄
+│   ├── app_config.yaml # 核心應用程式的全局配置
+│   ├── composition.yaml # 平台插件的組合與具體配置
+│   └── plugins_config.yaml # 各個插件的獨立配置文件
+├── docs/ # 專案文檔目錄
 │   ├── ARCHITECTURE.md # 平台整體架構、核心設計原則、模組劃分
-│   ├── CONFIGURATION_REFERENCE.md # 平台配置的詳細說明與指南
-│   ├── CONTRIBUTING.md # 貢獻指南
+│   ├── CONFIGURATION_REFERENCE.md # 平台所有可配置項的完整參考
+│   ├── CONTRIBUTING.md # 貢獻者指南
 │   ├── DEPLOYMENT_GUIDE.md # 部署指南
-│   ├── DEVELOPMENT.md # 開發指南
-│   ├── ENGINEERING_SPEC.md # 技術棧、開發與實作細節、程式碼規範 (即本文件)
-│   ├── GLOSSARY.md # 術語表
-│   └── ROADMAP.md # 專案發展路線圖
-├── internal/
-│   ├── adapters/ # 適配器層，負責將外部服務或技術轉換為平台內部使用的格式
-│   │   ├── auth_middleware/ # 認證與授權中間件
+│   ├── DEVELOPMENT.md # 開發環境設置與指南
+│   ├── ENGINEERING_SPEC.md # 工程實作規範 (本文件)
+│   ├── GLOSSARY.md # 專案術語表
+│   ├── PLUGIN_GUIDE.md # 插件開發指南
+│   ├── ROADMAP.md # 專案發展路線圖
+│   ├── ai_scaffold/ # AI 代碼生成腳手架相關文檔
+│   ├── api/ # API 相關文檔 (如 OpenAPI/Swagger)
+│   ├── architecture/ # 架構決策記錄與介面規範
+│   ├── audit/ # 審計與合規性檢查列表
+│   ├── plugins/ # 各插件的詳細說明文檔
+│   └── reference/ # API 參考文檔
+├── examples/ # 範例文件目錄
+│   ├── README.md # 範例說明
+│   └── sample_data.csv # 範例數據
+├── internal/ # 專案內部代碼，不作為公共 API
+│   ├── adapters/ # 適配器層，連接外部技術與內部應用
 │   │   ├── http_handlers/ # HTTP 請求處理器
-│   │   └── plugins/ # 插件層，負責實現具體的業務邏輯
-│   │       ├── importers/ # 插件導入器，負責將外部服務或技術轉換為平台內部使用的格式
-│   │       └── web_ui/ # 網頁 UI 層，負責實現網頁 UI 的業務邏輯
-│   │           └── hello_world_ui_page.go # 示例 UI 頁面
-│   ├── app/ # 應用層，負責實現應用層的業務邏輯
-│   │   ├── initializer/ # 初始化器，負責初始化應用層的業務邏輯
-│   │   └── registry/ # 註冊器，負責註冊應用層的業務邏輯
-│   ├── config/ # 配置層，負責實現配置層的業務邏輯
-│   │   └── platform_config.go # 平台配置
-│   ├── infrastructure/ # 基礎設施層，負責實現基礎設施層的業務邏輯
-│   │   └── platform/ # 平台層，負責實現平台層的業務邏輯
-│   │       ├── auth/ # 認證與授權
-│   │       ├── cli_server/ # CLI 伺服器
-│   │       ├── config/ # 配置
-│   │       │   └── viper_config_provider.go # Viper 配置提供者
-│   │       ├── database/ # 資料庫
-│   │       ├── external_services/ # 外部服務
-│   │       ├── http_server/ # HTTP 伺服器
-│   │       │   └── echo_http_server_provider.go # Echo HTTP 伺服器提供者
-│   │       ├── logger/ # 日誌
-│   │       │   └── otelzap_logger.go # OtelZap 日誌提供者
-│   │       └── registry/ # 註冊器，負責註冊基礎設施層的業務邏輯
-│   │           └── plugin_registry_provider.go # 插件註冊器提供者
-│   ├── repositories/ # 倉儲層，負責實現倉儲層的業務邏輯
-│   │   └── mysql/ # MySQL 倉儲
-│   └── services/ # 服務層，負責實現服務層的業務邏輯
-│       └── user/ # 用戶服務
-│           └── dto/ # 用戶 DTO
-├── pkg/ # 公共程式碼庫，可供外部專案引用
-│   ├── domain/ # 領域層定義，不依賴任何外部框架
-│   │   ├── entities/ # 領域實體定義 (user.go, detector.go)
-│   │   │   ├── analysis_result.go # 分析結果實體
-│   │   │   ├── detection_result.go # 檢測結果實體
-│   │   │   ├── detection.go # 檢測實體
-│   │   │   ├── detector.go # 檢測器實體
-│   │   │   └── user.go # 用戶實體
-│   │   ├── errors/ # 錯誤定義
-│   │   │   └── errors.go # 錯誤定義
-│   │   ├── interfaces/ # 介面定義
-│   │   │   ├── analysis_engine.go # 分析引擎介面
-│   │   │   ├── detector_repository.go # 檢測器倉儲介面
-│   │   │   └── user_repository.go # 用戶倉儲介面
-│   │   └── plugins/ # 插件定義
-│   │       ├── importer.go # 插件導入器介面
-│   │       ├── plugin.go # 插件基礎介面
-│   │       └── uipage.go # 插件 UI 頁面介面
+│   │   └── web/ # Web 相關的適配器
+│   ├── application/ # 應用層，協調業務邏輯
+│   │   └── user/ # 用戶相關的應用服務
+│   ├── bootstrap/ # 應用程式啟動與配置管理
+│   │   ├── platform_initializer.go # 平台初始化器
+│   │   └── platform_config.go # 平台配置結構
+│   ├── infrastructure/ # 基礎設施層，提供平台核心服務
+│   │   └── platform/ # 平台核心服務的具體實現
+│   ├── plugins/ # 插件的具體實現（集中管理）
+│   │   ├── detectors/ # 檢測器插件實現
+│   │   ├── importers/ # 導入器插件實現
+│   │   └── web_ui/ # Web UI 插件實現
+│   ├── repositories/ # 倉儲層，數據持久化操作
+│   └── testdata/ # 集中的測試數據
+├── observability/ # 可觀測性相關配置
+│   ├── grafana/ # Grafana 儀表板與數據源配置
+│   ├── otel/ # OpenTelemetry Collector 配置
+│   └── prometheus/ # Prometheus 監控配置
+├── pkg/ # 公共代碼庫，可供外部專案引用
+│   ├── application/ # 應用層公共組件
+│   │   ├── dto/ # 數據傳輸對象
+│   │   └── mapper/ # DTO 與實體轉換器
+│   │   └── user/ # 用戶相關的應用服務
+│   ├── common/ # 通用工具組件
+│   │   └── utils/ # 工具函數集合
+│   ├── domain/ # 領域層，定義核心業務實體、介面和規則
+│   │   ├── entities/ # 領域實體
+│   │   ├── errors/ # 自定義錯誤類型
+│   │   ├── interfaces/ # 領域服務和倉儲的介面
+│   │   │   ├── plugins/ # 插件介面
+│   │   │   ├── repositories/ # 倉儲介面
+│   │   │   └── services/ # 服務介面
+│   │   └── valueobjects/ # 值對象
 │   └── platform/ # 平台級契約 (Contracts) 和通用類型
-│       └── contracts/ # 平台核心供應商介面定義
-│           ├── contracts.go # 平台核心供應商介面定義
-│           └── logger.go # 日誌提供者介面定義
-└── schemas # JSON Schema 定義檔案，用於驗證 /configs 目錄下的 YAML 配置。
-    ├── app_config.json # app_config.yaml 的 Schema
-    ├── composition.json # composition.yaml 的 Schema
-    └── plugins # 各個插件的獨立配置 Schema
-        ├── gorm_mysql_client_provider.json # GORM MySQL 客戶端提供者
-        ├── http_server_provider.json # HTTP 伺服器提供者
-        ├── keycloak_auth_provider.json # Keycloak 認證提供者
-        └── otelzap_logger_provider.json # OtelZap 日誌提供者
+│       └── contracts/ # 平台核心服務的介面
+├── schemas/ # JSON Schema 定義文件
+│   ├── app_config.json # app_config.yaml 的 Schema
+│   ├── composition.json # composition.yaml 的 Schema
+│   └── plugins/ # 各插件配置的 Schema
+└── test/ # 測試文件目錄
+    └── integration_test.go # 集成測試
 ```
 
 **檔案命名**：
@@ -126,6 +119,56 @@ Detectviz 平台的核心技術棧基於 Go 語言構建，旨在提供一個高
 * Schema 檔案名：使用 snake_case 或 kebab-case 命名，並使用 .json 擴展名。
 
 ## **3. 程式碼實作與風格規範 - Code Implementation & Style Guidelines**
+
+## **3.1 值物件（Value Object）與資料傳輸物件（DTO）規範**
+
+本節定義 Detectviz 平台在實作 Value Object（VO）與 Data Transfer Object（DTO）時的設計準則，以強化資料驗證、一致性與 AI scaffold 的自動推理能力。
+
+### Value Object（值物件）規範
+
+**用途**：封裝具有語意與驗證需求的不可變型別，例如 Email、Threshold、TimeRange。
+
+**實作原則**：
+- 定義於 `pkg/domain/valueobjects/` 目錄。
+- 命名以 `XXXVO` 結尾（如 `EmailVO`, `ThresholdVO`）。
+- 必須提供建構函式：`NewXXXVO(input string) (XXXVO, error)`
+- 所有欄位應為私有（例如 `value string`），外部不可直接修改。
+- 可提供 `.String()`、`.Equals()` 等方法，強化可比對與列印。
+
+**驗證邏輯**：
+- 所有格式檢查、正規化處理應封裝於 `NewXXXVO()` 中。
+- 一旦建構成功，即代表該值合法。
+- 不可在 Usecase 或 Service 層重複驗證。
+
+### DTO（資料傳輸物件）規範
+
+**用途**：定義 API 輸入與輸出的資料結構，用於跨層傳遞資料（如 HTTP handler → Service）。
+
+**實作原則**：
+- 定義於 `pkg/interfaces/dto/` 或 `pkg/application/dto/`。
+- 為純資料結構，命名建議與用途一致（如 `CreateUserRequest`, `UserResponse`）。
+- 所有欄位為公開（Public），使用 struct tag (`json`, `yaml`) 控制序列化行為。
+- 不應包含任何邏輯或驗證。
+
+**範例**：
+
+```go
+type CreateUserRequest struct {
+  Email string `json:"email"`
+  Name  string `json:"name"`
+}
+```
+
+### VO / DTO 搭配與轉換
+
+- DTO 不應直接使用原始資料傳入 Entity，必須轉換為 VO。
+- 建議於 `pkg/usecase/mapper/` 建立轉換器（Mapper）：`func MapDTOToVO(dto CreateUserRequest) (User, error)`
+- AI Scaffold 將根據 VO 自動生成：
+  - 欄位驗證邏輯
+  - 資料清洗與轉換邏輯
+  - 表單與 API 輸入映射程式
+
+此規範為 AI Scaffold 建構資料驗證與結構映射的基礎規格，須嚴格遵循。
 
 * **Go Modules**: 統一使用 Go Modules 進行依賴管理。  
 * **Clean Architecture 實踐**:  

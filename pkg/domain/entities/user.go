@@ -1,8 +1,11 @@
 package entities
 
 import (
+	"context"
 	"errors"
 	"time"
+
+	"detectviz-platform/internal/infrastructure/platform/auth/hasher"
 )
 
 var ErrInvalidUserFields = errors.New("invalid user fields")
@@ -34,4 +37,25 @@ func NewUser(id, name, email, passwordHash string) (*User, error) {
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}, nil
+}
+
+// SetPassword 設置用戶密碼（加密存儲）
+func (u *User) SetPassword(password string) error {
+	passwordHasher := hasher.NewDefaultBcryptPasswordHasher()
+	hash, err := passwordHasher.HashPassword(context.Background(), password)
+	if err != nil {
+		return err
+	}
+	u.PasswordHash = hash
+	return nil
+}
+
+// CheckPassword 驗證用戶密碼
+func (u *User) CheckPassword(password string) bool {
+	passwordHasher := hasher.NewDefaultBcryptPasswordHasher()
+	isValid, err := passwordHasher.VerifyPassword(context.Background(), password, u.PasswordHash)
+	if err != nil {
+		return false
+	}
+	return isValid
 }

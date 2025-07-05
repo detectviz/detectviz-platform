@@ -17,7 +17,7 @@
 * **Clean Architecture**：**整潔架構**。一種軟體設計原則，強調將業務邏輯與實現細節（如資料庫、UI、框架）分離，通過依賴反轉原則實現高內聚、低耦合、易於測試和維護的系統。Detectviz 平台的核心架構遵循此原則。  
 * **CLI**：**Command Line Interface**。命令列介面。Detectviz 平台提供 CLI 工具用於管理和交互。  
 * **CNCF**：**Cloud Native Computing Foundation**。雲原生計算基金會。一個開源軟體基金會，推動雲原生技術的發展和採用。Detectviz 平台深度內化了 CNCF 的理念和專案。  
-* **Composition Root**：**組裝根**。應用程式啟動時，所有依賴關係被解決和注入的地方。在 Detectviz 中，主要體現在 cmd/api/main.go 和 internal/app/initializer/platform_initializer.go。  
+* **Composition Root**：**組裝根**。應用程式啟動時，所有依賴關係被解決和注入的地方。在 Detectviz 中，主要體現在 cmd/api/main.go 和 internal/bootstrap/platform_initializer.go。  
 * **ConfigProvider**：**配置提供者**。一個平台合約介面，定義了配置管理的能力，支持從多來源載入和管理配置。  
 * **Conventional Commits**：**常規提交**。一種提交訊息規範，透過標準化的前綴（如 feat:, fix:, docs:）來分類提交的類型，有助於自動化版本發布和生成變更日誌。  
 * **Contracts**：**合約**。在 Detectviz 平台中，通常指 pkg/platform/contracts 目錄下的 Go 介面，它們定義了平台級服務的抽象功能。

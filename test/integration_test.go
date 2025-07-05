@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"detectviz-platform/internal/adapters/plugins/detectors"
-	"detectviz-platform/internal/adapters/plugins/importers"
+	"detectviz-platform/internal/plugins/detectors"
+	"detectviz-platform/internal/plugins/importers"
 	"detectviz-platform/pkg/platform/contracts"
 )
 

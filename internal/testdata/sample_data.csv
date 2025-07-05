@@ -1,0 +1,11 @@
+timestamp,value,category,status
+2024-01-01T10:00:00Z,100.5,temperature,normal
+2024-01-01T10:01:00Z,101.2,temperature,normal
+2024-01-01T10:02:00Z,105.8,temperature,warning
+2024-01-01T10:03:00Z,110.3,temperature,critical
+2024-01-01T10:04:00Z,98.7,temperature,normal
+2024-01-01T10:05:00Z,102.1,temperature,normal
+2024-01-01T10:06:00Z,99.4,temperature,normal
+2024-01-01T10:07:00Z,106.7,temperature,warning
+2024-01-01T10:08:00Z,103.2,temperature,normal
+2024-01-01T10:09:00Z,112.5,temperature,critical 

@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"detectviz-platform/internal/infrastructure/platform/logger"
+	"detectviz-platform/internal/infrastructure/platform/telemetry"
 )
 
 func TestNewPerformanceOptimizer(t *testing.T) {
-	mockLogger := logger.NewOtelZapLogger(map[string]interface{}{
+	mockLogger := telemetry.NewOtelZapLogger(map[string]interface{}{
 		"level":    "info",
 		"encoding": "json",
 	})
@@ -25,7 +25,7 @@ func TestNewPerformanceOptimizer(t *testing.T) {
 }
 
 func TestPerformanceOptimizer_OptimizeSystem(t *testing.T) {
-	mockLogger := logger.NewOtelZapLogger(map[string]interface{}{
+	mockLogger := telemetry.NewOtelZapLogger(map[string]interface{}{
 		"level":    "info",
 		"encoding": "json",
 	})

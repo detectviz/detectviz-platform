@@ -1,0 +1,63 @@
+# 測試用插件配置數據
+plugins:
+  # CSV 導入器測試配置
+  csv_importer_test:
+    type: "importer_csv"
+    config:
+      source_path: "internal/testdata/sample_data.csv"
+      delimiter: ","
+      has_header: true
+      batch_size: 100
+      skip_invalid_rows: true
+
+  # 閾值檢測器測試配置
+  threshold_detector_test:
+    type: "detector_threshold"
+    config:
+      field_name: "value"
+      operator: ">"
+      threshold: 105.0
+      alert_level: "warning"
+
+  # 高級閾值檢測器測試配置
+  critical_threshold_detector_test:
+    type: "detector_threshold"
+    config:
+      field_name: "value"
+      operator: ">="
+      threshold: 110.0
+      alert_level: "critical"
+
+  # 密碼哈希器測試配置
+  password_hasher_test:
+    type: "hasher_password"
+    config:
+      algorithm: "bcrypt"
+      cost: 10
+
+# 測試場景配置
+test_scenarios:
+  # 正常數據處理流程
+  normal_flow:
+    description: "測試正常的數據導入和檢測流程"
+    steps:
+      - import_csv_data
+      - run_threshold_detection
+      - verify_results
+
+  # 異常數據處理流程
+  error_handling:
+    description: "測試錯誤數據的處理流程"
+    steps:
+      - import_invalid_csv
+      - handle_import_errors
+      - verify_error_logs
+
+  # 性能測試流程
+  performance_test:
+    description: "測試大量數據的處理性能"
+    steps:
+      - generate_large_dataset
+      - measure_import_time
+      - measure_detection_time
+      - verify_memory_usage

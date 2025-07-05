@@ -1,12 +1,12 @@
 package di
 
 import (
-	"detectviz-platform/internal/adapters/plugins/web_ui"
+	"detectviz-platform/internal/adapters/web"
 	"detectviz-platform/internal/infrastructure/platform/config"
 	"detectviz-platform/internal/infrastructure/platform/health"
 	"detectviz-platform/internal/infrastructure/platform/http_server"
-	"detectviz-platform/internal/infrastructure/platform/logger"
 	"detectviz-platform/internal/infrastructure/platform/registry"
+	"detectviz-platform/internal/infrastructure/platform/telemetry"
 	"detectviz-platform/pkg/platform/contracts"
 	"time"
 )
@@ -46,7 +46,7 @@ func (sc *ServiceConfigurator) ConfigureServices() error {
 				"component": configProvider.GetString("logger.initialFields.component"),
 			},
 		}
-		return logger.NewOtelZapLogger(loggerConfig), nil
+		return telemetry.NewOtelZapLogger(loggerConfig), nil
 	})
 	if err != nil {
 		return err
@@ -90,17 +90,17 @@ func (sc *ServiceConfigurator) ConfigureServices() error {
 	}
 
 	// 註冊 Hello World UI 插件工廠
-	err = sc.container.RegisterSingleton((*web_ui.HelloWorldUIPagePlugin)(nil), func(configProvider contracts.ConfigProvider, logger contracts.Logger) (*web_ui.HelloWorldUIPagePlugin, error) {
+	err = sc.container.RegisterSingleton((*web.HelloWorldUIPagePlugin)(nil), func(configProvider contracts.ConfigProvider, logger contracts.Logger) (*web.HelloWorldUIPagePlugin, error) {
 		helloUIConfig := map[string]interface{}{
 			"route":   configProvider.GetString("ui.helloWorld.route"),
 			"title":   configProvider.GetString("ui.helloWorld.title"),
 			"message": configProvider.GetString("ui.helloWorld.message"),
 		}
-		plugin, err := web_ui.NewHelloWorldUIPagePlugin(helloUIConfig, logger)
+		plugin, err := web.NewHelloWorldUIPagePlugin(helloUIConfig, logger)
 		if err != nil {
 			return nil, err
 		}
-		return plugin.(*web_ui.HelloWorldUIPagePlugin), nil
+		return plugin.(*web.HelloWorldUIPagePlugin), nil
 	})
 	if err != nil {
 		return err

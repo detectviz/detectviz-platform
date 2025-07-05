@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"detectviz-platform/pkg/domain/plugins"
+	"detectviz-platform/pkg/domain/interfaces/plugins"
 	"detectviz-platform/pkg/platform/contracts"
 )
 
@@ -15,7 +15,7 @@ import (
 // AI_IMPL_PACKAGE: "detectviz-platform/internal/infrastructure/platform/health"
 // AI_IMPL_CONSTRUCTOR: "NewHealthCheckManager"
 type HealthCheckManager struct {
-	plugins       map[string]plugins.HealthCheckablePlugin
+	plugins       map[string]plugins.HealthCheckCapablePlugin
 	results       map[string]plugins.HealthCheckResult
 	logger        contracts.Logger
 	mu            sync.RWMutex
@@ -31,7 +31,7 @@ func NewHealthCheckManager(logger contracts.Logger, checkInterval time.Duration)
 	}
 
 	return &HealthCheckManager{
-		plugins:       make(map[string]plugins.HealthCheckablePlugin),
+		plugins:       make(map[string]plugins.HealthCheckCapablePlugin),
 		results:       make(map[string]plugins.HealthCheckResult),
 		logger:        logger,
 		checkInterval: checkInterval,
@@ -40,7 +40,7 @@ func NewHealthCheckManager(logger contracts.Logger, checkInterval time.Duration)
 }
 
 // RegisterPlugin 註冊一個支援健康檢查的插件
-func (hm *HealthCheckManager) RegisterPlugin(pluginName string, plugin plugins.HealthCheckablePlugin) {
+func (hm *HealthCheckManager) RegisterPlugin(pluginName string, plugin plugins.HealthCheckCapablePlugin) {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
 
@@ -116,14 +116,14 @@ func (hm *HealthCheckManager) runHealthChecks(ctx context.Context) {
 // performHealthChecks 執行所有插件的健康檢查
 func (hm *HealthCheckManager) performHealthChecks(ctx context.Context) {
 	hm.mu.RLock()
-	pluginsCopy := make(map[string]plugins.HealthCheckablePlugin)
+	pluginsCopy := make(map[string]plugins.HealthCheckCapablePlugin)
 	for name, plugin := range hm.plugins {
 		pluginsCopy[name] = plugin
 	}
 	hm.mu.RUnlock()
 
 	for pluginName, plugin := range pluginsCopy {
-		go func(name string, p plugins.HealthCheckablePlugin) {
+		go func(name string, p plugins.HealthCheckCapablePlugin) {
 			start := time.Now()
 			result := p.HealthCheck(ctx)
 			result.Duration = time.Since(start)
