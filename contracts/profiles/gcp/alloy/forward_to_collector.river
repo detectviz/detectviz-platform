@@ -1,0 +1,15 @@
+// alloy.river — 將 OTLP 轉送至獨立 OTel Collector（建議）
+otelcol.receiver.otlp "ingest" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+}
+otelcol.processor.batch "default" {}
+otelcol.exporter.otlp "to_collector" {
+  client {
+    endpoint = env("OTEL_COLLECTOR_ADDR") // 例如 "otel-collector.default.svc:4317"
+    tls { insecure = true }               // 若 Collector 啟用 mTLS 請移除此行並配置憑證
+  }
+}
+otelcol.pipeline.traces  "to_gcp" { receivers=[otelcol.receiver.otlp.ingest]; processors=[otelcol.processor.batch.default]; exporters=[otelcol.exporter.otlp.to_collector] }
+otelcol.pipeline.metrics "to_gcp" { receivers=[otelcol.receiver.otlp.ingest]; processors=[otelcol.processor.batch.default]; exporters=[otelcol.exporter.otlp.to_collector] }
+otelcol.pipeline.logs    "to_gcp" { receivers=[otelcol.receiver.otlp.ingest]; processors=[otelcol.processor.batch.default]; exporters=[otelcol.exporter.otlp.to_collector] }

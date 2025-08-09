@@ -1,0 +1,58 @@
+// alloy.river — 本地 LGTM
+otelcol.receiver.otlp "ingest" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+}
+
+otelcol.processor.batch "default" {}
+
+otelcol.exporter.otlp "tempo" {
+  // Tempo distributor/ingester 的 OTLP 入口
+  client {
+    endpoint = "tempo:4317"
+    tls { insecure = true }
+  }
+}
+
+otelcol.exporter.prometheusremotewrite "mimir" {
+  endpoint = "http://mimir:9009/api/v1/push"
+}
+
+otelcol.exporter.loki "loki" {
+  endpoint = "http://loki:3100/loki/api/v1/push"
+}
+
+pyroscope.write "pyro" {
+  endpoint {
+    url = "http://pyroscope:4040"
+  }
+}
+
+// 透過 pprof 抓取自身或其他服務（選用）
+pyroscope.scrape "pprof" {
+  targets = [
+    { "__address__" = "python-adk-runtime:6060" }, // 若啟動了 pprof
+  ]
+  forward_to = [pyroscope.write.pyro.receiver]
+}
+
+// Traces → Tempo
+otelcol.pipeline.traces "to_tempo" {
+  receivers  = [otelcol.receiver.otlp.ingest]
+  processors = [otelcol.processor.batch.default]
+  exporters  = [otelcol.exporter.otlp.tempo]
+}
+
+// Metrics → Mimir
+otelcol.pipeline.metrics "to_mimir" {
+  receivers  = [otelcol.receiver.otlp.ingest]
+  processors = [otelcol.processor.batch.default]
+  exporters  = [otelcol.exporter.prometheusremotewrite.mimir]
+}
+
+// Logs → Loki（OTLP Logs）
+otelcol.pipeline.logs "to_loki" {
+  receivers  = [otelcol.receiver.otlp.ingest]
+  processors = [otelcol.processor.batch.default]
+  exporters  = [otelcol.exporter.loki.loki]
+}

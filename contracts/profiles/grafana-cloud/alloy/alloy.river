@@ -1,0 +1,34 @@
+// alloy.river — Grafana Cloud（單一 OTLP 出站）
+otelcol.receiver.otlp "ingest" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+}
+
+otelcol.processor.batch "default" {}
+
+otelcol.exporter.otlp "grafana_cloud" {
+  client {
+    endpoint = env("GRAFANA_CLOUD_OTLP_ENDPOINT")
+    headers = {
+      // 建議以環境變數提供完整 Authorization 標頭值（Basic base64(instanceId:apiKey)）
+      "Authorization" = env("GRAFANA_CLOUD_OTLP_AUTH")
+    }
+  }
+}
+
+// 三類資料統一送 GC OTLP Gateway
+otelcol.pipeline.traces "to_gc" {
+  receivers  = [otelcol.receiver.otlp.ingest]
+  processors = [otelcol.processor.batch.default]
+  exporters  = [otelcol.exporter.otlp.grafana_cloud]
+}
+otelcol.pipeline.metrics "to_gc" {
+  receivers  = [otelcol.receiver.otlp.ingest]
+  processors = [otelcol.processor.batch.default]
+  exporters  = [otelcol.exporter.otlp.grafana_cloud]
+}
+otelcol.pipeline.logs "to_gc" {
+  receivers  = [otelcol.receiver.otlp.ingest]
+  processors = [otelcol.processor.batch.default]
+  exporters  = [otelcol.exporter.otlp.grafana_cloud]
+}

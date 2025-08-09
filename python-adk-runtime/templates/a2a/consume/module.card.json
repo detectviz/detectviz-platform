@@ -1,0 +1,41 @@
+{
+  "specVersion": "1.1.0",
+  "kind": "agent",
+  "id": "detectviz.templates.a2a.consume",
+  "version": "0.1.0",
+  "responsibility": "消費遠端 A2A Agent，包裝成本地 agent 介面供 root_agent 呼叫。",
+  "role": "custom",
+  "inputs": [
+    {
+      "name": "input",
+      "schema": "schemas/generic.input.v1"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "schema": "schemas/generic.output.v1"
+    }
+  ],
+  "a2a": {
+    "capability_tags": [
+      "client",
+      "remote"
+    ],
+    "concurrency_limit": 16,
+    "queue_depth": 200,
+    "timeouts_ms": {
+      "tool": 2000,
+      "task": 8000,
+      "total": 12000
+    }
+  },
+  "observability": {
+    "spans": [
+      "agent.run"
+    ],
+    "metrics": [
+      "agent_runs_total"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+processors:
+  batch:
+exporters:
+  googlecloud:
+    project: ${GCP_PROJECT_ID}
+    user_agent: detectviz-otel-collector
+    metric:
+      prefix: ${GCP_METRIC_PREFIX}
+    # 若在 GKE，建議以 Workload Identity 授權（不需明文憑證）
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [googlecloud]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [googlecloud]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [googlecloud]

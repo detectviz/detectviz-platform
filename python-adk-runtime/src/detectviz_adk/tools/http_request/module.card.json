@@ -1,0 +1,22 @@
+{
+  "specVersion": "1.1.0",
+  "kind": "tool",
+  "id": "detectviz.tools.http_request",
+  "version": "0.1.0",
+  "responsibility": "透過 ToolBridge 呼叫 Go 端 capability.gateway.http_request 插件以執行對外 HTTP/HTTPS 請求。",
+  "observability": {
+    "spans": [
+      "tool.exec"
+    ]
+  },
+  "rate_limit": {
+    "rps": 64,
+    "burst": 128,
+    "per_tenant": true
+  },
+  "timeouts_ms": {
+    "tool": 3000,
+    "task": 8000,
+    "total": 10000
+  }
+}

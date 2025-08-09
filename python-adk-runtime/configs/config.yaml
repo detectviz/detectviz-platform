@@ -1,0 +1,41 @@
+# Python ADK Runtime Configuration
+# According to spec.md: 統一配置管理，支持環境變數覆蓋
+
+env: development
+
+# Unified observability - single OTLP endpoint to Alloy/Collector
+observability:
+  mode: lgtm_local  # lgtm_local, production, cloud, disabled
+  otlpEndpoint: http://localhost:4317
+  serviceName: detectviz-adk-runtime
+  serviceVersion: "1.0.0"
+
+# Memory service configuration
+memory:
+  backend: inmem  # inmem, redis, weaviate, chroma, vertex
+  redis:
+    url: redis://localhost:6379
+    db: 0
+  vector:
+    provider: chroma  # chroma, weaviate, vertex
+    endpoint: http://localhost:8000
+
+# Plugin system configuration
+plugin:
+  paths: 
+    - ./plugins
+    - ./src/plugins
+  hotReload: true
+  timeout: 30s
+
+# Agent service configuration
+agent:
+  goPluginApiUrl: http://localhost:8080  # Go plugin service HTTP API
+  defaultTimeout: 60s
+  maxConcurrentRuns: 100
+
+# Workflow service configuration
+workflow:
+  maxSteps: 50
+  defaultTimeout: 300s  # 5 minutes
+  persistResults: true

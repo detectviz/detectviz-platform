@@ -1,0 +1,28 @@
+{
+  "specVersion": "1.1.0",
+  "kind": "tool",
+  "id": "detectviz.templates.agent_tool_wrapper",
+  "version": "0.1.0",
+  "responsibility": "將子代理包裝為 Tool，提供多個 root_agent 以工具形式共用，呼叫方保有裁決權。",
+  "inputs": [
+    {
+      "name": "payload",
+      "schema": "schemas/generic.input.v1"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "schema": "schemas/generic.output.v1"
+    }
+  ],
+  "observability": {
+    "spans": [
+      "tool.exec"
+    ],
+    "metrics": [
+      "tool_exec_duration_seconds_bucket"
+    ]
+  },
+  "permissions": []
+}

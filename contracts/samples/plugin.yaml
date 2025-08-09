@@ -1,0 +1,19 @@
+manifestVersion: "1.0"
+id: "detectviz.capabilities.weaviate"
+version: "1.0.0"
+type: "capability"
+entryPoint: "main.py"
+hostCompatibility:
+  apiVersion: "v1.0"
+  runtimeVersion: "3.11+"
+dependencies:
+  "weaviate-client": ">=4.0.0"
+  "requests": ">=2.28.0"
+permissions:
+  - "net"
+metadata:
+  author: "Detectviz Team"
+  description: "Weaviate vector database capability for knowledge storage and retrieval"
+  tags:
+    - "vector-database"
+    - "capability"

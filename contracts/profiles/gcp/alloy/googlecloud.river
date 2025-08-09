@@ -1,0 +1,14 @@
+// alloy.river — 直接輸出 Google Cloud（若 Alloy 版本包含 googlecloud exporter）
+otelcol.receiver.otlp "ingest" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+}
+otelcol.processor.batch "default" {}
+otelcol.exporter.googlecloud "gcp" {
+  project       = env("GCP_PROJECT_ID")
+  user_agent    = "detectviz-alloy"
+  metric { prefix = env("GCP_METRIC_PREFIX") }
+}
+otelcol.pipeline.traces  "to_gcp" { receivers=[otelcol.receiver.otlp.ingest]; processors=[otelcol.processor.batch.default]; exporters=[otelcol.exporter.googlecloud.gcp] }
+otelcol.pipeline.metrics "to_gcp" { receivers=[otelcol.receiver.otlp.ingest]; processors=[otelcol.processor.batch.default]; exporters=[otelcol.exporter.googlecloud.gcp] }
+otelcol.pipeline.logs    "to_gcp" { receivers=[otelcol.receiver.otlp.ingest]; processors=[otelcol.processor.batch.default]; exporters=[otelcol.exporter.googlecloud.gcp] }
