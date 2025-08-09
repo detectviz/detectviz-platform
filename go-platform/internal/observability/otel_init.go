@@ -99,18 +99,22 @@ func InitFromConfig(cfg interface{}) (func(), error) {
 	// 初始化 Continuous Profiling（pprof 模式）
 	var profilerStop func()
 	profilerConfig := getMap(obsConfig, "profiling")
-	zap.L().Info("Profiling configuration check", zap.Any("profiler_config", profilerConfig), zap.Int("config_len", len(profilerConfig)))
+	enabledProfiling := getBoolValue(profilerConfig, "enabled", false)
+	zap.L().Info("Profiling configuration check", zap.Bool("enabled", enabledProfiling), zap.Any("profiler_config", profilerConfig))
 
-	if len(profilerConfig) > 0 {
+	if enabledProfiling {
 		stop, err := initContinuousProfiling(profilerConfig)
 		if err != nil {
-			zap.L().Warn("Failed to initialize continuous profiling", zap.Error(err))
-		} else {
-			profilerStop = stop
-			zap.L().Info("Continuous profiling initialized")
+			// 關鍵服務（已啟用 profiling）初始化失敗 → 停止啟動並回傳錯誤
+			if logCloser != nil {
+				_ = logCloser()
+			}
+			return nil, fmt.Errorf("failed to initialize continuous profiling (pprof): %w", err)
 		}
+		profilerStop = stop
+		zap.L().Info("Continuous profiling initialized")
 	} else {
-		zap.L().Warn("Profiling configuration not found or empty")
+		zap.L().Info("Continuous profiling disabled or not configured")
 	}
 
 	// 建立 Resource（遵循 spec.md）

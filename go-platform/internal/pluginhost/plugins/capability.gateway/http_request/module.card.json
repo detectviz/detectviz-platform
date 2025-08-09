@@ -1,11 +1,41 @@
 {
   "specVersion": "1.1.0",
-  "kind": "plugin",
-  "category": "capability.gateway",
-  "id": "detectviz.plugins.http_request_gateway",
+  "name": "detectviz.plugins.http_request_gateway",
   "version": "0.1.0",
-  "observability": { "spans": ["capability.request"] },
-  "rate_limit": { "rps": 64, "burst": 128, "per_tenant": true },
-  "a2a": { "concurrency_limit": 32, "queue_depth": 200 },
-  "permissions": ["net"]
+  "language": "go",
+  "entrypoint": "./internal/pluginhost/plugins/capability.gateway/http_request/plugin.go",
+  "role": "plugin.gateway",
+  "category": "gateway",
+  "contracts": {
+    "min_proto": "0.1.0"
+  },
+  "requires": [
+    {
+      "name": "detectviz.contracts",
+      "version": ">=0.1.0"
+    }
+  ],
+  "exposes": {
+    "tool": "detectviz.tools.http_request",
+    "tool_version": "0.1.0"
+  },
+  "observability": {
+    "tags": {
+      "plugin.id": "detectviz.plugins.http_request_gateway"
+    }
+  },
+  "x-detectviz": {
+    "rate_limit": {
+      "rps": 64,
+      "burst": 128,
+      "per_tenant": true
+    },
+    "a2a": {
+      "concurrency_limit": 32,
+      "queue_depth": 200
+    },
+    "permissions": [
+      "net"
+    ]
+  }
 }
