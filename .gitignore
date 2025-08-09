@@ -32,8 +32,9 @@ go.work.sum
 # .vscode/
 .DS_Store
 var/
-grafana-alloy/
+grafana-alloy/alloy
 data-alloy/
+reference/
 detectviz
 .claude/
 *note.md
