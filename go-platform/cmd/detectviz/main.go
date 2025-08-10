@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/detectviz/detectviz-platform/go-platform/internal/configx"
+	"github.com/detectviz/detectviz-platform/go-platform/internal/contracts"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/health"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/observability"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost"
@@ -130,7 +131,7 @@ func cmdPluginServe() {
 	fs := flag.NewFlagSet("plugin serve", flag.ExitOnError)
 	// 支援環境變數覆寫
 	defaultListen := getenvDefault("A2A_LISTEN", ":6606")
-	defaultCfg := getenvDefault("DETECTVIZ_CONFIG", "./configs/config.yaml")
+	defaultCfg := getenvDefault("DETECTVIZ_CONFIG", "./config.yaml") // 修正預設路徑
 	defaultHTTPDemo := getenvDefault("DETECTVIZ_HTTP_DEMO", "0") == "1"
 	defaultHTTPDemoListen := getenvDefault("DETECTVIZ_HTTP_DEMO_LISTEN", ":7777")
 
@@ -148,10 +149,31 @@ func cmdPluginServe() {
 	healthSrv := health.NewServer(healthAddr)
 	healthSrv.Start()
 	defer healthSrv.Stop(context.Background())
+	
+	// CRITICAL: Validate contract version consistency before proceeding
+	if err := contracts.ValidateContractVersion(); err != nil {
+		fmt.Printf("Contract version validation failed: %v\n", err)
+		fmt.Printf("This prevents startup to ensure SSOT compliance.\n")
+		os.Exit(1)
+	}
+	
+	// Additional contract consistency check
+	if err := contracts.ValidateContractConsistency(); err != nil {
+		fmt.Printf("Contract consistency validation failed: %v\n", err)
+		os.Exit(1)
+	}
+	
 	cfg, err := configx.LoadAndValidate(*cfgPath)
 	if err != nil {
 		fmt.Printf("Failed to load config: %v\n", err)
 		os.Exit(1)
+	}
+
+	// 如果命令行參數使用默認值且配置檔案有設定，則優先使用配置檔案的值
+	finalListen := *listen
+	if *listen == defaultListen && cfg.GRPC.Listen != "" {
+		finalListen = cfg.GRPC.Listen
+		fmt.Printf("Using gRPC listen address from config: %s\n", finalListen)
 	}
 
 	// 初始化觀測（Grafana/Cloud/Otel 由 config 決定）
@@ -176,20 +198,15 @@ func cmdPluginServe() {
 	// import http_request "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/capability.gateway/http_request"
 	// reg.Register("detectviz.tools.http_request", http_request.New())
 
-	fmt.Printf("ToolBridge listening on %s (mTLS=%v)\n", *listen, tlsCfg != nil)
+	fmt.Printf("ToolBridge listening on %s (mTLS=%v)\n", finalListen, tlsCfg != nil)
 
-	rt := pluginhost.NewRuntime(*listen, tlsCfg, reg)
+	rt := pluginhost.NewRuntime(finalListen, tlsCfg, reg)
 	rt.SetOnReady(func() { healthSrv.SetReady(true) })
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	// 可選：啟動示範 HTTP 服務，使用 otelhttp 自動注入 tracing
-
-	// 啟動 ToolBridge gRPC 服務
-	if err := rt.Start(ctx); err != nil {
-		zap.L().Fatal("無法啟動 ToolBridge", zap.Error(err))
-	}
 	var httpSrv *http.Server
 	if *httpDemo {
 		mux := setupHTTPDemoHandlers()
@@ -202,6 +219,7 @@ func cmdPluginServe() {
 		}()
 	}
 
+	// 啟動 ToolBridge gRPC 服務
 	go func() {
 		if err := rt.Start(ctx); err != nil {
 			zap.L().Fatal("ToolBridge 啟動失敗", zap.Error(err))

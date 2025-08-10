@@ -40,8 +40,12 @@ data-alloy/
 reference/
 .claude/
 *note.md
+detectviz
 
 # Python bytecode cache directories
 __pycache__/
 *.py[cod]
 *.$py.class
+
+# GitHub Actions
+.github/

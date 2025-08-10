@@ -2,10 +2,12 @@ package health
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sync/atomic"
 	"time"
 
+	"github.com/detectviz/detectviz-platform/go-platform/internal/contracts"
 	"go.uber.org/zap"
 )
 
@@ -34,6 +36,22 @@ func NewServer(addr string) *Server {
 		}
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte("not ready"))
+	})
+
+	// contract info endpoint for debugging and validation
+	mux.HandleFunc("/contracts", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		contractInfo := contracts.GetContractInfo()
+		
+		if contractInfo["status"] == "error" {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+		
+		if err := json.NewEncoder(w).Encode(contractInfo); err != nil {
+			zap.L().Error("Failed to encode contract info", zap.Error(err))
+		}
 	})
 
 	return s
