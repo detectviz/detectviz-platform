@@ -1,44 +1,91 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import os
-from typing import Any, Dict, Optional
+import asyncio
+from typing import Any, Dict, Optional, List, Tuple
 
 import grpc
+from google.protobuf.struct_pb2 import Struct
+from google.protobuf import json_format
 
-try:
-    # buf 產碼後的相對匯入（依你的 python out 路徑調整）
-    from contracts.gen.python.detectviz.contracts import adk_bridge_pb2 as pb
-    from contracts.gen.python.detectviz.contracts import adk_bridge_pb2_grpc as pbg
-except Exception as e:  # 開發期允許無產碼
-    pb = None
-    pbg = None
-
-try:
-    # ADK Tool 介面
-    from adk.tools import BaseTool  # type: ignore
+# ---- Proto stubs（容錯匯入：優先 v1 命名空間） ------------------------------
+try:  # buf 產碼後的相對匯入（依你的 python out 路徑調整）
+    from contracts.gen.python.detectviz.contracts.v1 import adk_bridge_pb2 as pb  # type: ignore
+    from contracts.gen.python.detectviz.contracts.v1 import adk_bridge_pb2_grpc as pbg  # type: ignore
 except Exception:
-    class BaseTool:  # fallback，用於樣板測試
-        async def invoke(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        # 舊路徑向後相容
+        from contracts.gen.python.detectviz.contracts import adk_bridge_pb2 as pb  # type: ignore
+        from contracts.gen.python.detectviz.contracts import adk_bridge_pb2_grpc as pbg  # type: ignore
+    except Exception:
+        pb = None  # type: ignore
+        pbg = None  # type: ignore
+
+# ---- ADK Tool 介面容錯 ----------------------------------------------------
+try:
+    from adk.tools import BaseTool  # type: ignore
+except Exception:  # fallback，用於樣板/測試
+    class BaseTool:  # type: ignore
+        async def invoke(self, payload: Dict[str, Any]) -> Dict[str, Any]:  # pragma: no cover
             raise NotImplementedError
+
+# ---- Config：對齊 Detectviz SSOT ------------------------------------------
+try:
+    from detectviz_adk.config.loader import get_toolbridge_addr  # 統一以 DETECTVIZ_TOOLBRIDGE_ADDR 為主
+except Exception:
+    def get_toolbridge_addr(default: str = "127.0.0.1:6606") -> str:  # 後備
+        return os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR", default)
+
+# ---- 可選：從 OTel Context 注入 traceparent/tracestate --------------------
+try:
+    from opentelemetry.propagate import inject
+    from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+    _HAS_OTEL = True
+except Exception:
+    _HAS_OTEL = False
+
 
 class RemoteTool(BaseTool):
     """
-    將 ADK Tool 的 invoke 轉交 ToolBridge.Invoke（gRPC）
-    - 端點／mTLS 憑證由 Profiles 注入環境變數，不得硬編碼：
-      A2A_ENDPOINT, A2A_CERT_PATH, A2A_KEY_PATH, A2A_CA_PATH
+    透過 ToolBridge.Invoke（gRPC）呼叫 Go 端工具。
+
+    設定來源（優先序）：
+    - 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`（建議）或後備 `A2A_ENDPOINT`，預設 127.0.0.1:6606
+    - 安全性：
+      - `DETECTVIZ_TOOLBRIDGE_TLS_CERT`/`DETECTVIZ_TOOLBRIDGE_TLS_KEY`/`DETECTVIZ_TOOLBRIDGE_TLS_CA`
+        （或後備 `A2A_CERT_PATH`/`A2A_KEY_PATH`/`A2A_CA_PATH`）
+      - `DETECTVIZ_TOOLBRIDGE_INSECURE`（true/false）
+    - 時限：`timeout_ms` 以建構參數為主
+
+    備註：
+    - 本類別使用 `grpc.aio`，避免阻塞 ADK 的事件迴圈。
+    - metadata 會攜帶 `tenant_id`、`owner.root_agent_id`、`traceparent`/`tracestate`（若可取得）。
     """
 
-    def __init__(self, tool_id: str, tool_version: str = "0.1.0", timeout_ms: int = 5000):
+    def __init__(self, tool_id: str, tool_version: str = "0.1.0", timeout_ms: int = 5000) -> None:
         self.tool_id = tool_id
         self.tool_version = tool_version
         self.timeout_ms = timeout_ms
 
-        endpoint = os.getenv("A2A_ENDPOINT", "127.0.0.1:6606")
-        cert = os.getenv("A2A_CERT_PATH")
-        key = os.getenv("A2A_KEY_PATH")
-        ca = os.getenv("A2A_CA_PATH")
+        self._channel: Optional[grpc.aio.Channel] = None
+        self._stub: Optional[pbg.ToolBridgeStub] = None  # type: ignore
 
-        if cert and key:
+        self._init_channel_and_stub()
+
+    # ---- 連線初始化 -------------------------------------------------------
+    def _init_channel_and_stub(self) -> None:
+        if not pbg:
+            return
+
+        addr = os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR") or os.getenv("A2A_ENDPOINT") or get_toolbridge_addr()
+        insecure = _env_bool("DETECTVIZ_TOOLBRIDGE_INSECURE", default=False)
+
+        cert = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT") or os.getenv("A2A_CERT_PATH")
+        key = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY") or os.getenv("A2A_KEY_PATH")
+        ca = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA") or os.getenv("A2A_CA_PATH")
+
+        if cert and key:  # 優先 mTLS/單向 TLS
             with open(cert, "rb") as f:
                 cert_pem = f.read()
             with open(key, "rb") as f:
@@ -48,48 +95,61 @@ class RemoteTool(BaseTool):
                 with open(ca, "rb") as f:
                     root = f.read()
             creds = grpc.ssl_channel_credentials(root_certificates=root, private_key=key_pem, certificate_chain=cert_pem)
-            self._channel = grpc.secure_channel(endpoint, creds)
+            self._channel = grpc.aio.secure_channel(addr, creds)
+        elif insecure:
+            self._channel = grpc.aio.insecure_channel(addr)
         else:
-            # 開發模式允許明文通道；正式環境請務必提供 mTLS
-            self._channel = grpc.insecure_channel(endpoint)
+            # 無憑證但也未明確允許明文 → 開發預設允許，生產請設憑證或 INSECURE=true
+            self._channel = grpc.aio.insecure_channel(addr)
 
-        self._stub: Optional[pbg.ToolBridgeStub] = pbg.ToolBridgeStub(self._channel) if pbg else None
+        self._stub = pbg.ToolBridgeStub(self._channel)  # type: ignore
 
+    # ---- 公開 API ---------------------------------------------------------
     async def invoke(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         if not pb or not self._stub:
             return {"ok": False, "error": "proto stubs not generated; run buf generate first"}
 
-        md = [
-            ("tenant_id", payload.get("tenant_id", "")),
-            ("owner.root_agent_id", payload.get("owner.root_agent_id", "")),
-            ("traceparent", payload.get("traceparent", "")),
-        ]
+        # 轉換 payload → Struct（保留使用者傳入所有鍵）
+        s = Struct()
+        s.update(payload)
+
         req = pb.ToolInvokeRequest(
             tool_id=self.tool_id,
             tool_version=self.tool_version,
-            payload=pb.google_dot_protobuf_dot_struct__pb2.Struct(fields={}),  # 由 helper 轉換
+            payload=s,
             timeout_ms=self.timeout_ms,
-            metadata={},
+            metadata={},  # 可選：未來擴充為規範化字典欄位
         )
-        # 將 dict 轉 Struct（簡化版）
-        from google.protobuf.struct_pb2 import Struct
-        s = Struct()
-        s.update(payload)
-        req.payload.CopyFrom(s)
 
-        # deadline
-        import time
-        deadline = time.time() + (self.timeout_ms / 1000.0)
-        res: pb.ToolInvokeReply = self._stub.Invoke(req, metadata=md, deadline=deadline)  # type: ignore
+        # 構造 metadata（header），維持向後相容鍵名
+        md = self._build_metadata(payload)
 
-        # 映射最小回傳
-        result = {}
-        if res.result:
-            result = dict(res.result)
+        try:
+            res: pb.ToolInvokeReply = await self._stub.Invoke(
+                req,
+                metadata=md,  # type: ignore[arg-type]
+                timeout=self.timeout_ms / 1000.0,
+            )
+        except grpc.aio.AioRpcError as e:
+            code = getattr(e.code(), "value", (2, "UNKNOWN"))[0]  # type: ignore
+            return {
+                "ok": False,
+                "status": {"code": code, "message": e.details() or str(e)},
+                "result": {},
+                "exec_meta": {"attempt": 1, "duration_ms": 0, "plugin_id": "", "route_id": ""},
+                "error": e.details() or str(e),
+            }
+
+        result: Dict[str, Any] = {}
+        if getattr(res, "result", None):
+            result = json_format.MessageToDict(res.result, preserving_proto_field_name=True)
 
         return {
             "ok": (getattr(res.status, "code", 2) == 0),
-            "status": {"code": getattr(res.status, "code", 2), "message": getattr(res.status, "message", "")},
+            "status": {
+                "code": getattr(res.status, "code", 2),
+                "message": getattr(res.status, "message", ""),
+            },
             "result": result,
             "exec_meta": {
                 "attempt": getattr(res.exec_meta, "attempt", 0),
@@ -98,3 +158,64 @@ class RemoteTool(BaseTool):
                 "route_id": getattr(res.exec_meta, "route_id", ""),
             },
         }
+
+    async def aclose(self) -> None:
+        ch = getattr(self, "_channel", None)
+        if ch is not None:
+            try:
+                await ch.close()
+            except Exception:
+                pass
+
+    def __del__(self) -> None:  # best-effort，避免事件迴圈阻塞
+        ch = getattr(self, "_channel", None)
+        if ch is None:
+            return
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(ch.close())
+            else:
+                loop.run_until_complete(ch.close())
+        except Exception:
+            pass
+
+    # ---- helpers ----------------------------------------------------------
+    def _build_metadata(self, payload: Dict[str, Any]) -> List[Tuple[str, str]]:
+        md: List[Tuple[str, str]] = []
+
+        # 與 Go 端現有橋接邏輯相容的鍵名
+        for k in ("tenant_id", "owner.root_agent_id"):
+            v = payload.get(k)
+            if isinstance(v, str) and v:
+                md.append((k, v))
+
+        # traceparent/tracestate：payload 優先；否則嘗試自動注入
+        tp = str(payload.get("traceparent", "") or "")
+        ts = str(payload.get("tracestate", "") or "")
+
+        if not tp and _HAS_OTEL:
+            carrier: Dict[str, str] = {}
+            try:
+                # 以 W3C Trace Context 注入目前 span
+                TraceContextTextMapPropagator().inject(carrier)  # type: ignore[name-defined]
+                tp = carrier.get("traceparent", tp)
+                ts = carrier.get("tracestate", ts)
+            except Exception:
+                pass
+
+        if tp:
+            md.append(("traceparent", tp))
+        if ts:
+            md.append(("tracestate", ts))
+
+        return md
+
+
+# ---- local helpers --------------------------------------------------------
+def _env_bool(key: str, default: bool = False) -> bool:
+    v = os.getenv(key)
+    if v is None:
+        return default
+    s = v.strip().lower()
+    return s in ("1", "true", "t", "yes", "y", "on")

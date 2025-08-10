@@ -20,14 +20,17 @@ contracts/
       adk_bridge.proto          # ToolBridge / Health 等 gRPC 定義
   schemas/
     module.card.schema.json     # 模組卡（Agent/Tool/Capability/Plugin）規範
-    config.schema.json          # 平台組態規範（go-platform 載入與驗證）
+    config.schema.json          # 平台組態規範（go-platform 與 python-adk-runtime 共同載入）
   samples/
-    config.yaml                 # 樣本設定（與 Schema 對齊）
-  profiles/                     # （選配）Alloy 管線樣板：lgtm_local / grafana_cloud / gcp
+    config.yaml                 # 樣本設定（與 Schema 對齊；建議複製到專案根為 ./config.yaml）
+  profiles/                     # （選配）Alloy Collector 管線樣板：lgtm_local / grafana_cloud / gcp
     alloy/...
   tools/
     validate_module_card.py     # 模組卡驗證工具
     check_contracts.sh          # 一鍵檢查腳本（可選）
+  gen/
+    go/                         # buf 生成的 Go stub（請勿手改）
+    python/                     # buf 生成的 Python stub（請勿手改）
 ```
 
 ---
@@ -41,23 +44,33 @@ buf lint
 buf generate
 ```
 
+或使用 Makefile：
+```bash
+cd contracts
+make gen            # 等同 buf lint + buf generate
+make validate       # 執行 schema 與卡片等檢查（若已定義）
+make validate-cards # 僅驗證 module.card.json（若已定義）
+```
+
 輸出路徑（由 `buf.gen.yaml` 決定）：
 - Go：`contracts/gen/go/detectviz/contracts/v1`（`go_package` 固定）
 - Python：`contracts/gen/python/detectviz/contracts/v1`
 
 注意事項：
 - 生成後請於 `go-platform` 執行 `go mod tidy`；於 `python-adk-runtime` 確保可匯入生成的 Python stub。
-- 請勿手動編輯 `*.pb.go`、`*_grpc.py` 等生成檔。
+- 請勿手動編輯 `*.pb.go`、`*_pb2.py`、`*_pb2_grpc.py` 等生成檔。
 
 ---
 
 ## Proto 契約（`proto/detectviz/contracts/v1/adk_bridge.proto`）
-- **HealthService**：健康檢查、版本與能力列舉。
-- **ToolBridgeService**：
-  - `ExecuteTool(request) -> stream ToolChunk`：工具執行（支援串流回傳）。
-  - `OpenSession/CloseSession`：會話化工具執行（可選）。
-- **MemoryService（預留）**：供 ADK Runtime 透過 Go 平台代理必要操作。
-- **共通訊息**：`ToolRequest`（name/version/args/metadata/trace）、`ToolChunk`（data/status/progress/logs）。
+- **HealthService**：健康檢查、版本與能力列舉（gRPC Health v1 另行註冊）。
+- **ToolBridge**：
+  - `Invoke(ToolInvokeRequest) returns (ToolInvokeReply)`：工具執行（目前採用單次回應）。
+  - 預留串流與會話化 RPC（必要時新增 `ExecuteTool`/`OpenSession`/`CloseSession` 等）。
+- **MemoryService（預留）**：供 ADK Runtime 透過平台代理特定記憶體操作。
+- **主要訊息**：
+  - `ToolInvokeRequest`：`tool_id`、`tool_version`、`payload`（`google.protobuf.Struct`）、`timeout_ms`、`metadata`（`map<string,string>`）
+  - `ToolInvokeReply`：`status`（`code/message`）、`result`（`Struct`）、`exec_meta`（`attempt/duration_ms/plugin_id/route_id`）
 
 版本策略：
 - 遵循 SemVer；相容新增採 optional 欄位與新 RPC；禁止破壞性變更。
@@ -92,16 +105,23 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 ---
 
 ## Config Schema（`schemas/config.schema.json`）
-供 `go-platform` 載入與驗證的平台組態，`samples/config.yaml` 為對齊樣本。
+供 `go-platform` 與 `python-adk-runtime` 共同載入與驗證的平台組態，`samples/config.yaml` 為對齊樣本。
 
 重點欄位：
-- `grpc.listen/max_recv_bytes/max_send_bytes/tls`（最大值限制 ≥ 1 MiB）
+- `grpc.listen/max_recv_bytes/max_send_bytes/tls`（最小值限制 ≥ 1 MiB）
 - `observability.mode`: `lgtm_local | grafana_cloud | gcp`
 - `observability.otlp`: `protocol(grpc|http)/endpoint/insecure/headers`
 - `observability.logs`: `mode(file|stdout|off)` + `file.path/max_*`
 - `observability.profiling`: **僅支援 pprof** → `enabled/pprof_address/application_name/tags`（無 endpoint/username/password）
 - `plugin.paths/registry`：`paths` 為陣列，不能為空值
 - `memory.backend/dsn/default_ttl_seconds`
+
+統一讀取路徑（Go 與 Python 一致）：
+1. 旗標或函式參數：`--config /path/to/config.yaml`
+2. 環境變數：`DETECTVIZ_CONFIG_FILE=/path/to/config.yaml`
+3. 工作目錄：`./config.yaml`
+4. 合約覆蓋：`./contracts/config.yaml`
+5. 樣本兜底：`./contracts/samples/config.yaml`
 
 常見驗證錯誤：
 - `Additional property profiling.* is not allowed`：`config.yaml` 殘留舊欄位（`mode/endpoint/username/password`）。
@@ -112,7 +132,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 ## Alloy Profiles 樣板（選配）
 - `profiles/alloy/` 內提供本地 LGTM、Grafana Cloud、GCP 的 Collector 管線示例。
 - 原則：應用端不持有雲端憑證；由 Collector（Alloy）負責傳輸與認證。
-- Profiles 以 pprof scrape 為唯一路徑（`pyroscope.scrape` → `pyroscope.write`）。
+- Profiles 僅使用 pprof scrape 路徑（`pyroscope.scrape` → `pyroscope.write`）。
 
 環境變數慣例（示例）：
 - OTLP：`GF_CLOUD_OTEL_ID`、`GCLOUD_RW_API_KEY`
@@ -124,7 +144,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 ## 開發工作流（強制）
 1. 任何跨語言介面或設定變更，**先改 `contracts/`**。
 2. `buf lint && buf generate` 產生最新 Go/Python 生成碼。
-3. 更新 `samples/config.yaml`，並確保 `go-platform` 經 `configx/loader.go` 可通過驗證。
+3. 更新 `samples/config.yaml`，並確保下游載入程式可通過 Schema 驗證。
 4. 編修或新增 `module.card.json`，以工具驗證分類與相依。
 5. 在 `go-platform` 執行 `go mod tidy`，在 `python-adk-runtime` 確認 gRPC stub 可匯入。
 6. 執行端到端測試（Logs/Traces/Metrics/Profiles）。

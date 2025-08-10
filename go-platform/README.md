@@ -1,158 +1,183 @@
+# go-platform（Platform Core / ToolBridge）
 
-## go-platform（Platform Core / ToolBridge）
-
-Detectviz 平台的最小平台層，負責：
-- CLI 與 gRPC ToolBridge 服務（跨語言調用 Go 插件供 Python/ADK 使用）
-- Plugin Registry（telegraf-like 分類與註冊）
-- 組態載入與 Schema 驗證（SSOT 對齊 `contracts/schemas/config.schema.json`）
-- 可觀測性初始化（zap + OpenTelemetry；Logs/Traces/Metrics/Profiles）
+最小化的平台核心，提供跨語言可用的 gRPC **ToolBridge**、可插拔 **Plugin Host**、統一 **Observability** 與 **健康檢查／優雅關機**。本模組與 `python-adk-runtime` 僅以 gRPC/HTTP 通訊，嚴格解耦並對齊 `contracts/` 的 SSOT 契約。
 
 ---
 
-## 目錄結構（精簡）
-- `cmd/detectviz/`：CLI 入口（`plugin|config` 子命令）
-- `internal/configx/`：設定載入＋Schema 驗證
-- `internal/pluginhost/`：ToolBridge 伺服端、Registry、插件目錄
-- `internal/observability/`：zap 與 OTLP 初始化（含 pprof 啟動）
-- `configs/config.yaml`：預設組態（與 `contracts/samples/config.yaml` 同步）
+## 平台職責
+- **ToolBridge（gRPC）**：供 Python/ADK 的 `RemoteTool` 呼叫 Go 插件（工具執行）。
+- **Plugin Host**：插件註冊、生命週期與執行；支援嚴格註冊（禁止覆蓋）。
+- **Observability**：OpenTelemetry 統一匯出（Logs/Traces/Metrics），預設透過 Alloy 導至本地 Grafana 或 Grafana Cloud。
+- **健康檢查與優雅關機**：提供 `/livez`、`/readyz` 與 gRPC Health；啟動就緒與 SIGTERM/SIGINT 的有序關閉。
+
+---
+
+## 目錄結構
+- `cmd/detectviz/`：平台啟動器（CLI）
+- `internal/configx/`：設定載入與驗證（統一優先序 + 環境變數覆蓋）
+- `internal/observability/`：OTel 初始化與 zap 日誌
+- `internal/health/`：HTTP 健康檢查服務（/livez、/readyz）
+- `internal/pluginhost/`：插件宿主（registry、runtime、ToolBridge 伺服端）
+  - `plugins/capability.gateway/http_request/`：內建範例插件
 
 ---
 
 ## 系統需求
-- Go 1.21+（建議 1.22）
-- 本機或遠端 Alloy（Grafana Alloy 作為收集/轉送層）
-- `contracts/` 倉庫（SSOT）可讀（同一專案或相鄰路徑）
+- Go 1.22+
+- 已產生 gRPC 生成碼（於 repo 根目錄執行 `cd contracts && make gen`）
+- Alloy 已就緒（本地或 Grafana Cloud）
 
 ---
 
-## 快速開始（本機 LGTM / Grafana Cloud 均適用）
-1. 使用 SSOT 樣本組態（已同步至 `go-platform/configs/config.yaml`）：
-   ```bash
-   detectviz config validate -f ./go-platform/configs/config.yaml
-   ```
-
-2. 啟動 Alloy（請先於 `.env` 設定必要環境變數）。若使用本專案提供的檔案：
-   ```bash
-   ./grafana-alloy/alloy run ./grafana-alloy/config.alloy
-   ```
-
-3. 啟動 ToolBridge 並啟用示範 HTTP（產生 Traces/Metrics/Logs）：
-   ```bash
-   go run ./go-platform/cmd/detectviz plugin serve \
-     --config ./go-platform/configs/config.yaml \
-     --http-demo --http-demo-listen :7777
-   ```
-   另開終端打流量：
-   ```bash
-   curl -sS http://127.0.0.1:7777/hello
-   ```
-
-4. 檔案日誌輸出（供 Alloy 轉發至 Loki）：
-   - `./var/log/detectviz/detectviz.log`（zap ConsoleEncoder 純文字）
-
-5. Profiles（pprof）：
-   - go-platform 依 `observability.profiling` 自動啟動 pprof（預設 `127.0.0.1:6060`）
-   - Alloy 以 `pyroscope.scrape` 擷取並上傳至 Grafana Cloud
-
----
-
-## 組態說明（與 SSOT 對齊）
-- 單一來源：`contracts/schemas/config.schema.json`。範例檔：`contracts/samples/config.yaml`。
-- 觀測端點：
-  - OTLP 預設 gRPC → `127.0.0.1:4317`（若用 HTTP：`protocol: http` 並改 `endpoint: http://127.0.0.1:4318`）
-- 日誌輸出：`observability.logs.mode: file`，檔案路徑 `./var/log/detectviz/detectviz.log`
-- Profiling：**僅支援 pprof**，欄位為 `enabled / pprof_address / application_name / tags`，無任何雲端憑證欄位
-- gRPC（ToolBridge）：`grpc.listen` 預設 `:6606`，最大封包限制 ≥ 1MB（schema 已限制）
-
-節錄（與 SSOT 同步）：
-```yaml
-observability:
-  otlp:
-    protocol: grpc
-    endpoint: "127.0.0.1:4317"
-    insecure: true
-  logs:
-    mode: file
-    file:
-      path: ./var/log/detectviz/detectviz.log
-  profiling:
-    enabled: true
-    pprof_address: "127.0.0.1:6060"
-    application_name: "go-platform"
-    tags:
-      service.name: "go-platform"
-      deployment.environment: "dev"
-```
-
----
-
-## CLI 用法
+## 快速開始
 ```bash
-detectviz plugin serve [--listen :6606] [--config ./go-platform/configs/config.yaml] \
-                       [--mtls-cert path --mtls-key path --mtls-ca path] \
-                       [--http-demo] [--http-demo-listen :7777]
+# 於 repo 根目錄建立生效設定（依 SSOT 樣本）
+cp contracts/samples/config.yaml ./config.yaml
 
-detectviz plugin new <category>/<name>         # 產生 Go 插件骨架
-detectviz plugin validate <path>               # 導引到 contracts 工具/驗證
-detectviz config validate -f <config.yaml>
+# 可選：覆蓋常用環境變數
+export DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=127.0.0.1:4317
+export DETECTVIZ_HEALTH_ADDR=":8081"
+
+# 啟動 ToolBridge 與示範 HTTP（具 otelhttp 儀表化）
+go run ./cmd/detectviz --config ./config.yaml \
+  --http-demo \
+  --http-demo-listen :8080
 ```
-- `--http-demo`：啟動 otelhttp 包裝的示範 HTTP 伺服，產生 span 與 metrics
-- pprof 由 `observability.profiling.enabled` 控制；位址 `pprof_address`
+- 另開終端打流量：`curl -sS http://127.0.0.1:8080/hello`
+- 檔案日誌輸出（供 Alloy 轉發至 Loki）：`./var/log/detectviz/detectviz.log`
+- Profiles（pprof）：依 `observability.profiling` 自動啟動，預設 `127.0.0.1:6060`
 
 ---
 
-## 插件開發（telegraf-like）
-1. 產生骨架：
-   ```bash
-   detectviz plugin new capability.gateway/http_request
-   ```
-2. 實作 `internal/pluginhost/plugins/<category>/<name>/plugin.go`：
-   - 介面：`Execute(ctx, *pb.ToolRequest) (<-chan *pb.ToolChunk, error)`（支援串流回傳）
-3. 在 `internal/pluginhost/registry.go` 註冊
+## 設定載入與優先序（SSOT 對齊）
+**搜尋順序（高 → 低）**：
+1. 旗標：`--config /path/to/config.yaml`
+2. 環境：`DETECTVIZ_CONFIG_FILE=/path/to/config.yaml`
+3. 目前目錄：`./config.yaml`
+4. 合約覆蓋：`./contracts/config.yaml`
+5. 樣本兜底：`./contracts/samples/config.yaml`
 
-4. 撰寫 `module.card.json` 並以 `contracts/tools/validate_module_card.py` 驗證：
-   - `role`: `plugin.gateway`（或依實際分類）
-   - `category`: `gateway` / `collector.input` 等
-5. 啟動後，Python/ADK 端可透過 `RemoteTool` 以名稱路由到該插件
+載入後套用預設值，並執行「**環境變數覆蓋**」：
+- `DETECTVIZ_ENV` → `env`
+- `DETECTVIZ__GRPC__{LISTEN,MAX_RECV_BYTES,MAX_SEND_BYTES}`
+- `DETECTVIZ__OBSERVABILITY__MODE`
+- `DETECTVIZ__OBSERVABILITY__OTLP__{PROTOCOL,ENDPOINT,INSECURE,HEADERS}`
+- `DETECTVIZ__OBSERVABILITY__LOGS__FILE__{PATH,MAX_SIZE_MB,MAX_BACKUPS,MAX_AGE_DAYS,COMPRESS}`
+- `DETECTVIZ__OBSERVABILITY__PROFILING__{ENABLED,PPROF_ADDRESS,APPLICATION_NAME,TAGS}`
+- `DETECTVIZ__OBSERVABILITY__RESOURCE__{SERVICE_NAME,SERVICE_VERSION,ENVIRONMENT}`
+- `DETECTVIZ__OBSERVABILITY__SAMPLING__RATIO`
+- `DETECTVIZ__PLUGIN__{PATHS,REGISTRY}`
+- `DETECTVIZ__MEMORY__{BACKEND,DSN,DEFAULT_TTL_SECONDS}`
+
+最終以 `contracts/schemas/config.schema.json` 驗證，確保鍵位與型別一致。
 
 ---
 
-## 觀測到 Grafana Cloud / GCP
-- 建議使用 Alloy 作為收集與轉送層（本專案提供 `grafana-alloy/config.alloy`）
-- 需要的環境變數（示意，放 `.env`）：
-  - OTLP：`GF_CLOUD_OTEL_ID`、`GCLOUD_RW_API_KEY`
-  - Loki：`GCLOUD_HOSTED_LOGS_URL`、`GCLOUD_HOSTED_LOGS_ID`
-  - Profiles：`GF_CLOUD_PROFILES_URL`、`GF_CLOUD_PROFILES_ID`
-  - 可選覆蓋：`DETECTVIZ_LOG_PATH`、`DETECTVIZ_PPROF_ADDR`
-- 若改本地 LGTM：請切換 `contracts/profiles/lgtm_local/` 對應設定
+## 健康檢查與優雅關機
+- HTTP 健康檢查服務（預設 `:8081`，可用 `DETECTVIZ_HEALTH_ADDR` 覆蓋）：
+  - `GET /livez`：存活檢查（程序存活即 200）
+  - `GET /readyz`：就緒檢查（ToolBridge 成功啟動後返回 200）
+- gRPC Health：註冊 `grpc.health.v1.Health` 服務，便於 gRPC 層探測。
+- 優雅關機順序：
+  1. 健康服務標記為 not ready
+  2. 停止 HTTP Demo（若啟用）
+  3. `ToolBridge` 執行 `GracefulStop`，超時再 `Stop`
+  4. 關閉 listener 與 OTel provider
+
+---
+
+## Observability 與 Alloy 對齊
+- 預設以 OTLP 匯出至 Alloy，再由 Alloy 導流到本地 Grafana Stack 或 Grafana Cloud。
+- 建議：將應用日誌寫入檔案（zap）或 stdout，Alloy 以檔案/STDIN 介面收集並上送。
+- 可於 Grafana 進行 Drilldown：Logs ↔ Traces ↔ Profiles。
+
+關鍵設定（環境變數）：
+```bash
+export DETECTVIZ__OBSERVABILITY__MODE=lgtm_local   # 或 grafana_cloud / gcp
+export DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=127.0.0.1:4317
+export DETECTVIZ__OBSERVABILITY__OTLP__PROTOCOL=grpc
+export DETECTVIZ__OBSERVABILITY__OTLP__INSECURE=true
+```
+
+---
+
+## ToolBridge（gRPC）
+- 介面來源：`contracts/proto/detectviz/contracts/v1/adk_bridge.proto`
+- 服務：`ToolBridge.Invoke(ToolInvokeRequest) returns (ToolInvokeReply)`
+- 已註冊 gRPC Health 服務，便於 gRPC 層存活/就緒探測。
+
+Python 端呼叫方式（示意）：
+- 以 `python-adk-runtime` 的 `RemoteTool` 連線：`DETECTVIZ_TOOLBRIDGE_ADDR=127.0.0.1:6606`
+- 支援 metadata：`tenant_id`、`owner.root_agent_id`、`traceparent`、`tracestate`
+
+---
+
+## Plugin 機制
+- Registry 並發安全，提供：
+  - `RegisterStrict(toolID, handler)`：**嚴格模式**，同名即回錯，不覆蓋
+  - `RegisterOrReplace(toolID, handler)`：允許熱替換（會關閉舊 handler）
+- 內建插件：
+  - `capability.gateway/http_request` → 工具 ID：`detectviz.tools.http_request`
+    - 支援 `method/url/headers/query/body/json/form/timeout_ms/max_response_bytes`
+    - 以 `otelhttp` 攔截器自動產生外呼 span
+- 模組卡（Module Card）：
+  - 位置：`internal/pluginhost/plugins/capability.gateway/http_request/module.card.json`
+  - 驗證：`cd contracts && make validate-cards`
+
+---
+
+## CLI 參數（節選）
+- `--config`：指定設定檔路徑（預設依優先序自動尋找）
+- `--http-demo`：啟用示範 HTTP 服務（含 otelhttp 儀表化）
+- `--http-demo-listen`：示範 HTTP 監聽位址（預設 `:8080`）
+
+常用環境變數：
+```bash
+# 健康服務位置
+export DETECTVIZ_HEALTH_ADDR=":8081"
+
+# ToolBridge gRPC
+export DETECTVIZ__GRPC__LISTEN=":6606"
+export DETECTVIZ__GRPC__MAX_RECV_BYTES=10485760
+export DETECTVIZ__GRPC__MAX_SEND_BYTES=10485760
+
+# Observability（OTLP 端點）
+export DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=127.0.0.1:4317
+export DETECTVIZ__OBSERVABILITY__OTLP__PROTOCOL=grpc
+export DETECTVIZ__OBSERVABILITY__OTLP__INSECURE=true
+```
+
+---
+
+## 與 contracts 對齊
+- SSOT：`contracts/`（proto／schemas／samples）。
+- 修改跨語言契約 → 先改 `contracts/`，再於兩端重新產生生成碼：
+  ```bash
+  cd contracts
+  make gen && make validate
+  ```
 
 ---
 
 ## 疑難排解
-- `configuration validation failed`：`config.yaml` 與 `config.schema.json` 不一致（常見：殘留 `profiling.mode/endpoint/username/password`）。請改用範例檔覆寫。
-- `connect: connection refused :4317`：Alloy 未啟或端口不符；或改用 HTTP（4318）。
-- 無 Profiles：確認 pprof 監聽與 Alloy `pyroscope.scrape` 目標一致（`__address__=127.0.0.1:6060`）。
-- 無 Logs：檢查 `./var/log/detectviz/detectviz.log` 是否存在，並確認 Alloy `loki.source.file` 目標路徑。
-- Drilldown 失敗：請在 Alloy 的 Loki 管線確保解析出 `traceid` 標籤。
+- 無法連線 ToolBridge：
+  - 檢查 `DETECTVIZ_TOOLBRIDGE_ADDR` 與 `DETECTVIZ__GRPC__LISTEN` 是否一致
+  - 確認防火牆或容器網路對應端口已開放
+- Logs 可見但無 Traces：
+  - 檢查 OTLP 端點與 Alloy 設定；確認 `protocol` 與 `insecure` 是否匹配
+- `/readyz` 一直 503：
+  - 檢查 ToolBridge 是否成功啟動；查看應用日誌中的就緒訊息
 
 ---
 
-## 注意事項
-- **請勿**在任何程式碼或設定中放入雲端憑證。憑證應只存在 `.env` 與 `config.alloy`。
-- SSOT 為 `contracts/`，修改 proto/schema 後請以 buf/gojsonschema 驗證並同步生成碼，勿手改 `*.pb.go`。
-
----
-
-## 參考
-- `../spec.md`（整體平台規格）
-- `../contracts/`（SSOT：proto / schema / samples）
-- `../python-adk-runtime/`（ADK Runtime 與 RemoteTool）
-- `../grafana-alloy/config.alloy`（收集/轉送設定）
+## 安全注意
+- 請勿在設定檔硬編密鑰；請使用環境變數或 Secret 管理。
+- 生產環境建議啟用 TLS/mTLS（ToolBridge 與 Alloy 端）。
 
 ---
 
 ## 編譯與執行
 ```bash
 go build -o ./bin/detectviz ./go-platform/cmd/detectviz
-./bin/detectviz plugin serve --config ./go-platform/configs/config.yaml
+./bin/detectviz --config ./config.yaml --http-demo --http-demo-listen :8080
 ```

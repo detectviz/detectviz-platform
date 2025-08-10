@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
+	grpc_health "google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	contractspb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
@@ -35,7 +37,7 @@ func NewGRPCServer(tlsCfg *tls.Config, unary ...grpc.UnaryServerInterceptor) *gr
 }
 
 func (s *Server) Healthz(ctx context.Context, _ *contractspb.HealthCheckRequest) (*contractspb.HealthCheckResponse, error) {
-	return &contractspb.HealthCheckResponse{Status: contractspb.HealthCheckResponse_SERVING, Version: "0.1.0"}, nil
+	return &contractspb.HealthCheckResponse{Status: contractspb.HealthCheckResponse_SERVING, Version: "v1"}, nil
 }
 
 func (s *Server) Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest) (*contractspb.ToolInvokeReply, error) {
@@ -64,6 +66,8 @@ func ListenAndServe(addr string, tlsCfg *tls.Config, reg *Registry, unary ...grp
 		return err
 	}
 	gs := NewGRPCServer(tlsCfg, unary...)
+	hs := grpc_health.NewServer()
+	healthpb.RegisterHealthServer(gs, hs)
 	contractspb.RegisterToolBridgeServer(gs, NewServer(reg))
 	return gs.Serve(lis)
 }

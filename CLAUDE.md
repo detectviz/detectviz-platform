@@ -1,106 +1,143 @@
+# AI 開發守則
+
 ## 目的
-本文件提供給 AI 與人類協作者的操作與開發守則，確保在 Detectviz 平台上以 **SSOT（contracts）為唯一事實來源** 進行變更；同時規範雲端觀測（Grafana Cloud / GCP）、本地 LGTM、以及程式碼變更的安全與品質要求。
+本文件提供給 AI 與人類協作者的操作與開發守則，確保在 Detectviz 平台上以 **SSOT（contracts）為唯一事實來源** 進行變更；同時規範雲端觀測（Grafana Cloud / GCP）、本地 LGTM、與程式碼變更的安全與品質要求。本文已全面對齊目前程式碼與 `spec.md`。
 
-## 安全與機密
-- 請勿在任何檔案（含本文件、README、程式碼、日誌）中放入 **真實 Token / 密碼 / 秘鑰**。一律使用環境變數或 Secret 管理。
-- 若曾將實際 Token 寫入 repo，請**立刻撤銷與輪替**，並改用 `.env` 或 CI Secret 注入。
-- 避免在日誌中輸出敏感資訊；`zap` 的欄位請審核後再新增。
+---
 
-## 觀測環境變數（Grafana Cloud）
-將下列內容放入 `.env`（僅示意，占位符請替換為你自己的值）並 `source .env` 後再啟動 Alloy：
+## SSOT 與提交規範
+- **契約先行**：任何跨語言介面或設定變更，請先修改 `contracts/`（proto/schema/samples）。
+  - Proto：`contracts/proto/detectviz/contracts/v1/adk_bridge.proto`
+  - Schema：`contracts/schemas/{config.schema.json,module.card.schema.json}`
+  - 樣本：`contracts/samples/config.yaml`
+- 生成與驗證：
+  ```bash
+  cd contracts
+  buf lint && buf generate
+  make validate            # 若已提供
+  make validate-cards      # 驗證所有 module.card.json
+  ```
+- **禁止**手動編輯任何生成碼（例如 `*.pb.go`、`*_pb2.py`、`*_pb2_grpc.py`）。
+- 下游（Go / Python）在更新契約後，請同步調整 import 與 `go mod tidy`（Go）。
+
+---
+
+## 設定與啟動（統一搜尋優先序）
+**搜尋順序（高→低）**：
+1. 旗標/參數：`--config /path/to/config.yaml`
+2. 環境變數：`DETECTVIZ_CONFIG_FILE=/path/to/config.yaml`
+3. 工作目錄：`./config.yaml`
+4. 合約覆蓋：`./contracts/config.yaml`
+5. 樣本兜底：`./contracts/samples/config.yaml`
+
+**建議用法**：
+```bash
+# 於 repo 根目錄
+cp contracts/samples/config.yaml ./config.yaml
+```
+
+**環境變數覆蓋（節選，Go/Python 對齊）**：
+- 一般：`DETECTVIZ_ENV`
+- gRPC：`DETECTVIZ__GRPC__{LISTEN,MAX_RECV_BYTES,MAX_SEND_BYTES}`
+- OTLP：`DETECTVIZ__OBSERVABILITY__OTLP__{PROTOCOL,ENDPOINT,INSECURE,HEADERS}`
+- 資源：`DETECTVIZ__OBSERVABILITY__RESOURCE__{SERVICE_NAME,SERVICE_VERSION,ENVIRONMENT}`
+- 取樣：`DETECTVIZ__OBSERVABILITY__SAMPLING__RATIO`
+- 日誌：`DETECTVIZ__OBSERVABILITY__LOGS__FILE__{PATH,MAX_SIZE_MB,MAX_BACKUPS,MAX_AGE_DAYS,COMPRESS}`
+- pprof：`DETECTVIZ__OBSERVABILITY__PROFILING__{ENABLED,PPROF_ADDRESS,APPLICATION_NAME,TAGS}`
+- 插件：`DETECTVIZ__PLUGIN__{PATHS,REGISTRY}`
+- 記憶體：`DETECTVIZ__MEMORY__{BACKEND,DSN,DEFAULT_TTL_SECONDS}`
+- Python RemoteTool：`DETECTVIZ_TOOLBRIDGE_ADDR`、`DETECTVIZ_TOOLBRIDGE_INSECURE`、`DETECTVIZ_TOOLBRIDGE_TLS_{CERT,KEY,CA}`
+
+`.env` 範例（Grafana Cloud）：
 ```bash
 # OTLP（Tempo/Mimir 綜合 OTLP Gateway）使用 Basic Auth
 export GF_CLOUD_OTEL_ID="__STACK_ID__"          # Basic Auth username（同 Stack ID）
-export GCLOUD_RW_API_KEY="__OTEL_RW_TOKEN__"    # Basic Auth password（可覆用於 Logs/Profiles）
+export GCLOUD_RW_API_KEY="__OTEL_RW_TOKEN__"    # Basic Auth password
 
 # Loki（Logs）
 export GCLOUD_HOSTED_LOGS_URL="https://logs-prod-<region>.grafana.net/loki/api/v1/push"
-export GCLOUD_HOSTED_LOGS_ID="__STACK_ID__"      # Basic Auth username
+export GCLOUD_HOSTED_LOGS_ID="__STACK_ID__"
 
 # Pyroscope（Profiles）
 export GF_CLOUD_PROFILES_URL="https://profiles-<region>.grafana.net"
-export GF_CLOUD_PROFILES_ID="__STACK_ID__"       # Basic Auth username
+export GF_CLOUD_PROFILES_ID="__STACK_ID__"
 
 # 可選覆蓋（本機路徑/位址）
 export DETECTVIZ_LOG_PATH="/abs/path/to/var/log/detectviz/detectviz.log"
 export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 ```
 
+---
+
 ## 快速啟動（本地 LGTM 或 Grafana Cloud）
-1. **使用 SSOT 樣本組態**  
-   `contracts/samples/config.yaml` 已同步為 `go-platform/configs/config.yaml` 的預設樣本，任何調整請先改 **contracts** 再同步至各專案。
-2. **啟動 Alloy（Grafana Cloud 例）**  
-   `./grafana-alloy/alloy run ./grafana-alloy/config.alloy`
-3. **啟動 Go 平台（ToolBridge + http-demo）**
+1. **套用 SSOT 樣本組態**：`cp contracts/samples/config.yaml ./config.yaml`
+2. **啟動 Alloy**：`./grafana-alloy/alloy run ./grafana-alloy/config.alloy`
+3. **啟動 Go 平台（ToolBridge + http-demo）**：
    ```bash
-   go run ./go-platform/cmd/detectviz plugin serve \
-     --config ./go-platform/configs/config.yaml \
+   go run ./go-platform/cmd/detectviz --config ./config.yaml \
      --http-demo --http-demo-listen :7777
    # 驗證產生 Traces
    curl -sS http://127.0.0.1:7777/hello
    ```
-4. **在 Grafana Cloud 檢視**  
-   Explore/Logs、Traces、Profiles 皆可 Drilldown。
+4. **在 Grafana 檢視**：Explore/Logs、Traces、Profiles 可 Drilldown。
 
-## SSOT 與設定（必讀）
-- 任何跨語言契約或設定變更，**一律先改 `contracts/`**：
-  - `proto/detectviz/contracts/v1/adk_bridge.proto`：gRPC 契約
-  - `schemas/module.card.schema.json`：模組卡（請維持既有 `role`/`category` 枚舉）
-  - `schemas/config.schema.json`：平台組態（含 `observability` 全部欄位）
-  - `samples/config.yaml`：範例設定（必須與 Schema 對齊）
-- 修改 `proto` 後：`buf lint && buf generate`；**請勿手改 `*.pb.go` 生成碼**。
-- `go-platform` 僅讀取經 `configx/loader.go` 解析與驗證後的設定；請避免繞過 Loader。
+---
 
-## Profiles（Pyroscope）與 Drilldown 完整性
-- **Schema 必須包含 profiling 區塊**（由 SSOT 管理）：
-  ```yaml
-  observability:
-    profiling:
-      enabled: true
-      pprof_address: "127.0.0.1:6060"
-      application_name: "go-platform"
-      tags:
-        service.name: go-platform
-        deployment.environment: dev
-  ```
-- Go 端依設定啟動 `net/http/pprof`。Alloy 以 `pyroscope.scrape` 抓取並透過 `pyroscope.write` 上傳雲端。
-- **Logs ↔ Traces 關聯**：在 Alloy 的 Loki 管線加入 regex 解析 `trace_id` → 標籤 `traceid`，確保從 Logs Drilldown 到 Tempo 穩定。
+## Profiles 與 Drilldown 完整性
+- **僅支援 pprof**：Go 端以 `observability.profiling` 啟動 `net/http/pprof`，預設 `127.0.0.1:6060`。
+- Alloy 使用 `pyroscope.scrape` → `pyroscope.write` 上傳（本地或雲端）。
+- Logs ↔ Traces 關聯：在 Alloy 的 Loki 管線以 regex 萃取 `trace_id` → 標籤 `traceid`。
 
-## Metrics 與匯流量控制
-- 優先在 Collector（Alloy）端做 `batch` 與 `memory_limiter`；必要時再於 Go SDK 調整。
-- 若需要過濾噪音 HTTP 指標，可在 Alloy 的 `otelcol.processor.filter` 處理。
+---
 
 ## Go 平台實作守則（AI 請遵守）
-- **zap 初始化**：`InitZapLoggerToFile()` 需先建立目錄，再 `zap.ReplaceGlobals(zl)`，並禁用 `log.Printf`。
-- **檔案日誌**：ConsoleEncoder 純文字，預設 `./var/log/detectviz/detectviz.log`（供 Alloy file tail）。
-- **OTEL 初始化**：依 `observability.otlp` 輸出（gRPC 4317 或 HTTP 4318）。
-- **pprof 啟動**：僅在 `observability.profiling.enabled: true` 時啟動，位址 `pprof_address`。
-- **CLI 旗標**：`--http-demo`、`--http-demo-listen` 可用；子命令旗標解析採 `fs.Parse(os.Args[3:])` 合理可行。
-- **避免重複定義**：`GetObservabilityConfig()` 僅保留**一份**實作，變更時同步調整 Loader 與 Schema。
-- **gRPC/Proto**：對 `go_package`、import 路徑保持穩定；**不要**手動編輯 `*.pb.go`。
-- **Plugin 機制**：`internal/pluginhost/plugins/<category>/<name>/plugin.go`，介面 `Execute(ctx, *ToolRequest) -> stream ToolChunk`。
+- **設定載入**：一律透過 `internal/configx/loader.go`；**禁止**在其他模組自行讀檔或解析 YAML。
+- **日誌**：使用 `zap`，寫入純文字檔案（非 JSON），預設 `./var/log/detectviz/detectviz.log`；初始化時先建目錄並 `zap.ReplaceGlobals`。
+- **OTEL**：依 `observability.otlp` 初始化 Traces/Metrics；Headers 以 `key=value` CSV 由 Loader 解析。
+- **pprof**：僅在 `observability.profiling.enabled: true` 啟動；位址 `profiling.pprof_address`。
+- **健康檢查**：提供 `/livez`、`/readyz` 與 gRPC Health；ToolBridge 就緒後再宣告 Ready。
+- **優雅關機**：收到 SIGTERM/SIGINT → 先標記 not-ready → 停 HTTP demo → `GracefulStop` gRPC → 關閉 OTel。
+- **錯誤處理**：關鍵服務（ToolBridge/OTLP 初始化/健康服務）失敗**不得靜默**；啟動期錯誤需回傳並中止。
+- **Plugin Registry（並發安全）**：以 `sync.RWMutex` 保護；提供 `RegisterStrict(toolID, h) error`，同名即報錯，不覆蓋；`RegisterOrReplace` 允許熱替換並確保舊實例 `Close`。
+- **ToolBridge 介面**：依 `adk_bridge.proto`；不得修改生成碼；如需串流或會話化，請先於 `contracts/` 設計。
 
-## Python ADK Runtime 提示
-- 嚴格遵循 ADK 模組邊界：Agent / Workflow / MemoryBank / Tools / Capabilities。
-- 遠端工具請使用 `RemoteTool` 經由 ToolBridge 呼叫 Go 插件，**禁止**跨語言直接耦合。
-- 建立或擴增元件時，請先撰寫 `module.card.json` 並以 `contracts/tools/validate_module_card.py` 驗證。
+---
 
-## 典型錯誤與排查
-- `config validation failed: Additional property profiling.*`：
-  - 可能原因：Schema 未更新、或 `config.yaml` 仍含不被允許的欄位（例如舊的 `profiling.mode/endpoint/username/password`）。請先更新 `contracts/schemas/config.schema.json`，再同步 Loader 與樣本。
-- `connect: connection refused :4317`：Alloy 未啟或端口不符；若改用 HTTP，請調整 `protocol: http` 與端點 4318。
-- Logs 無輸出：檢查是否呼叫 `zap.ReplaceGlobals`、是否建立日誌目錄、是否仍殘留 `log.Printf`。
-- Drilldown 失敗：確認 Loki 是否有 `traceid` 標籤（由 regex 萃取）。
+## Python ADK Runtime 守則
+- **ADK 對齊**：遵守 Agent / Workflow / MemoryBank / Tools / Capabilities 模組邊界。
+- **RemoteTool**：透過 `grpc.aio` 呼叫 ToolBridge；端點以 `DETECTVIZ_TOOLBRIDGE_ADDR` 設定；支援 `traceparent/tracestate` 注入。
+- **設定載入**：使用 `detectviz_adk/config/loader.py`，與 Go 相同的搜尋序與環境覆蓋。
+- **模組卡**：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`。
+- **安全**：Python 不持有雲端憑證；外部系統交互集中於 Go 插件（Tools）。
 
-## 一致性檢查（建議）
-```bash
-cd contracts
-buf lint && buf generate
-python3 tools/validate_module_card.py path/to/module.card.json
-```
+---
 
-## 變更要求
-- 任何對規格（spec.md）、契約（contracts）、或觀測管線（profiles）的修改，請在 PR 中：
-  1. 說明對 SSOT 的變更點；
-  2. 附上端到端驗證步驟（logs/traces/profiles）；
-  3. 若影響到使用文件，**同步更新**本檔與 README。
+## 測試與驗證清單
+- 契約：`cd contracts && buf lint && buf generate && make validate-cards`
+- 啟動：`go run ./go-platform/cmd/detectviz --config ./config.yaml --http-demo`
+- 健康：檢查 `GET /livez` 與 `GET /readyz`（Ready 需等 ToolBridge 成功啟動）
+- Drilldown：Grafana Explore 檢查 Logs ↔ Traces ↔ Profiles 是否關聯
+- 關機：發送 SIGTERM，確認優雅關機順序與 OTel flush 成功
+- 插件：測試 `RegisterStrict` 重複註冊回錯；`RegisterOrReplace` 能熱替換且釋放資源
+
+---
+
+## 常見錯誤與排查
+- `config validation failed: ... profiling.* not allowed`：`config.yaml` 殘留舊欄位（如 `mode/endpoint/username/password`）；請以最新 Schema 修正。
+- `plugin.paths: Invalid type. Expected: array`：請確認是 YAML 陣列（即使只有一個路徑也需 `[...]`）。
+- `could not import grpc/codes` 或 `no required module provides package ...`：在 `contracts/` 重新 `buf generate`，並於 Go 端 `go mod tidy`。
+- Logs 無輸出：確認 `zap.ReplaceGlobals`、日誌目錄存在、且未使用 `log.Printf`。
+- Traces 缺失：檢查 OTLP endpoint/協定（grpc/http）與 Alloy 狀態。
+
+---
+
+## 安全與機密
+- **嚴禁**在任何檔案（含 README、程式碼、日誌）寫入真實 Token / 密碼 / 秘鑰；請使用環境變數或 Secret。
+- 若曾誤提交，請立刻撤銷、輪替並於 PR 附上修復步驟。
+
+---
+
+## 變更要求（PR 模板建議）
+1. 說明對 SSOT 的變更（proto/schema/samples）與影響面
+2. 附端到端驗證步驟（Logs/Traces/Profiles 與健康/關機）
+3. 若影響使用文件，請同步更新：`spec.md`、根 `README.md`、子專案 `README.md` 與本檔
