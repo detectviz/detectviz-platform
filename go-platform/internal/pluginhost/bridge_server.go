@@ -37,7 +37,7 @@ func NewGRPCServer(tlsCfg *tls.Config, unary ...grpc.UnaryServerInterceptor) *gr
 }
 
 func (s *Server) Healthz(ctx context.Context, _ *contractspb.HealthCheckRequest) (*contractspb.HealthCheckResponse, error) {
-	return &contractspb.HealthCheckResponse{Status: contractspb.HealthCheckResponse_SERVING, Version: "v1"}, nil
+	return &contractspb.HealthCheckResponse{Status: contractspb.HealthCheckResponse_SERVING, Version: "0.1.0"}, nil
 }
 
 func (s *Server) Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest) (*contractspb.ToolInvokeReply, error) {

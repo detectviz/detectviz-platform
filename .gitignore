@@ -38,7 +38,6 @@ var/
 grafana-alloy/alloy
 data-alloy/
 reference/
-detectviz
 .claude/
 *note.md
 

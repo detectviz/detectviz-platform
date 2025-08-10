@@ -106,78 +106,58 @@
 ## 架構圖
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e1f5fe', 'primaryBorderColor':'#0288d1', 'primaryTextColor':'#01579b', 'lineColor':'#0288d1', 'secondaryColor':'#f3e5f5', 'tertiaryColor':'#e8f5e9', 'quaternaryColor':'#fff3e0', 'background':'#ffffff', 'mainBkg':'#e1f5fe', 'secondBkg':'#f3e5f5', 'tertiaryBkg':'#e8f5e9', 'primaryBorderColor':'#0288d1', 'secondaryBorderColor':'#7b1fa2', 'tertiaryBorderColor':'#388e3c', 'quaternaryBorderColor':'#f57c00', 'clusterBkg':'#fffde7', 'clusterBorder':'#f57f17'}}}%%
-
 flowchart TB
-    subgraph CONTRACTS["📋 CONTRACTS (SSOT)"]
-        direction LR
-        style CONTRACTS fill:#fffde7,stroke:#f57f17,stroke-width:2px
-        PROTO["Proto<br/>gRPC 定義"]
-        SCHEMA["Schema<br/>驗證規則"]
-        PROTO -.->|生成| SCHEMA
-    end
+  subgraph Contracts["contracts/<br/>(SSOT)"]
+    C1[proto/<br/>- adk_bridge.proto]
+    C2[schemas/<br/>- config.schema.json<br/>- module.card.schema.json]
+  end
 
-    subgraph GO_PLATFORM["GO PLATFORM"]
-        direction TB
-        style GO_PLATFORM fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-        TOOLBRIDGE["ToolBridge<br/>gRPC Server"]
-        PLUGINS["Plugins<br/>HTTP/DB/Shell"]
-        OBSERVABILITY_GO["Observability<br/>OTLP + pprof"]
+  subgraph Go["go-platform<br/>(Platform Core / ToolBridge)"]
+    G1[ToolBridge gRPC Server<br/>internal/pluginhost]
+    G2["Plugins (telegraf-like)"]
+    G3["OpenTelemetry SDK (traces/metrics)<br/>+ zap logs"]
+    G4["pprof :6060"]
+  end
 
-        TOOLBRIDGE --> PLUGINS
-        PLUGINS --> OBSERVABILITY_GO
-    end
+  subgraph Py["python-adk-runtime<br/>(ADK Runtime)"]
+    P1[Agents\n- coordinator\n- tool-exec]
+    P2[Capabilities / Tools]
+    P3["RemoteTool (gRPC client)"]
+    P4[MemoryBank]
+  end
 
-    subgraph PYTHON_ADK["PYTHON ADK RUNTIME"]
-        direction TB
-        style PYTHON_ADK fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-        AGENTS["Agents<br/>Coordinator/Executor"]
-        TOOLS["Tools/Capabilities"]
-        MEMORY["MemoryBank"]
-        REMOTE["RemoteTool<br/>gRPC Client"]
+  subgraph Alloy["Grafana Alloy<br/>(Collector)"]
+    A1["otelcol.receiver.otlp<br/>:4317 / :4318"]
+    A2["loki.source.file<br/>(file tail)"]
+    A3["pyroscope.scrape<br/>(pprof)"]
+    A4["batch / transform / auth"]
+  end
 
-        AGENTS --> TOOLS
-        AGENTS --> MEMORY
-        TOOLS --> REMOTE
-    end
+  subgraph Destinations["Observability Backends"]
+    D1["Local LGTM<br/>(Prometheus/Tempo/Loki/Pyroscope)"]
+    D2["Grafana Cloud<br/>(OTLP/Loki/Pyroscope)"]
+    D3["GCP<br/>(Cloud Trace/Logging/Profiler)"]
+  end
 
-    subgraph ALLOY["GRAFANA ALLOY"]
-        direction LR
-        style ALLOY fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-        RECEIVER["Receivers<br/>OTLP/File/pprof"]
-        PROCESSOR["Processors<br/>Batch/Filter"]
-        EXPORTER["Exporters<br/>Cloud/Local"]
+  P3 -->|gRPC\nToolRequest/ToolChunk| G1
+  G2 --> G1
+  G3 -->|OTLP gRPC/HTTP| A1
+  G3 -->|logs file| A2
+  G4 -->|scrape| A3
 
-        RECEIVER --> PROCESSOR
-        PROCESSOR --> EXPORTER
-    end
+  A1 -->|traces/metrics| D2
+  A2 -->|logs| D2
+  A3 -->|profiles| D2
 
-    subgraph BACKENDS["OBSERVABILITY BACKENDS"]
-        direction LR
-        style BACKENDS fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-        LOCAL["Local LGTM"]
-        CLOUD["Grafana Cloud"]
-        GCP["GCP"]
-    end
+  %% 支援以 mode 切換目標（lgtm_local / grafana_cloud / gcp）
+  A1 -.-> D1
+  A2 -.-> D1
+  A3 -.-> D1
 
-    %% 主要連線
-    CONTRACTS ==>|生成程式碼| GO_PLATFORM
-    CONTRACTS ==>|生成程式碼| PYTHON_ADK
+  A1 -.-> D3
+  A2 -.-> D3
+  A3 -.-> D3
 
-    REMOTE -->|gRPC| TOOLBRIDGE
-
-    OBSERVABILITY_GO -->|OTLP| RECEIVER
-    OBSERVABILITY_GO -->|Logs| RECEIVER
-    OBSERVABILITY_GO -->|pprof| RECEIVER
-
-    EXPORTER -->|寫入| LOCAL
-    EXPORTER -->|寫入| CLOUD
-    EXPORTER -->|寫入| GCP
-
-    %% 樣式定義
-    classDef contract fill:#fffde7,stroke:#f57f17,stroke-width:2px,color:#5d4037
-    classDef goStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b
-    classDef pythonStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
-    classDef alloyStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20
-    classDef backendStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100
+  Contracts -. generate .-> Go
+  Contracts -. generate .-> Py
 ```
