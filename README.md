@@ -23,6 +23,47 @@
 
 ---
 
+## 架構圖
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '14px'}}}%%
+
+graph LR
+  subgraph CORE["Detectviz 平台架構"]
+  direction LR
+      style CORE fill:#fafafa,stroke:#424242,stroke-width:1px,color:#000
+
+      C["Contracts<br/><small>Schemas • Proto APIs</small>"]:::contract
+      G["Go Platform<br/><small>ToolBridge • Plugins</small>"]:::go
+      P["Python ADK<br/><small>Agents • RemoteTool</small>"]:::python
+      A["Alloy<br/><small>觀測收集層</small>"]:::alloy
+      B["Backends<br/><small>資料儲存層</small>"]:::backend
+  end
+
+  %% 資料流向
+  C -.->|buf generate<br/>Proto • Go Types| G
+  C -.->|buf generate<br/>Proto • Python Stubs| P
+  P ==>|gRPC ToolBridge<br/>RemoteTool → ToolBridge| G
+  G -->|遙測數據<br/>OTLP • Logs • pprof| A
+  P -->|Context 傳遞<br/>Trace Context| A
+  A ==>|統一導出<br/>Grafana • LGTM • GCP| B
+
+  %% 顏色定義
+  classDef contract fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#000
+  classDef go fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+  classDef python fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
+  classDef alloy fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+  classDef backend fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+```
+
+### 架構說明
+- **Contracts**: SSOT 契約層，包含 JSON Schemas 配置驗證和 Proto APIs 定義，透過 buf 工具生成跨語言類型安全的程式碼
+- **Go Platform**: 基礎設施層，核心組件為 ToolBridge (gRPC 服務器) 和 Plugins (插件系統)，處理高效能平台服務
+- **Python ADK**: 業務邏輯層，由 Agents (AI 代理) 和 RemoteTool (遠端工具客戶端) 組成，實現智能代理功能
+- **Alloy**: 觀測收集層，統一收集 logs/traces/metrics/profiles 並處理資料轉換與路由
+- **Backends**: 資料儲存層，支援本地 LGTM、Grafana Cloud、GCP 等多種觀測性後端
+
+---
+
 ## 目錄導覽
 - `contracts/`：SSOT 契約與樣本
   - `proto/`：gRPC 介面（`adk_bridge.proto`）
@@ -105,44 +146,3 @@
 - [`go-platform/README.md`](./go-platform/README.md)
 - [`python-adk-runtime/README.md`](./python-adk-runtime/README.md)
 - [`grafana-alloy/config.alloy`](./grafana-alloy/config.alloy)
-
----
-
-## 架構圖
-
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '14px'}}}%%
-
-graph LR
-    subgraph CORE[" Detectviz 平台架構 "]
-        style CORE fill:#fafafa,stroke:#424242,stroke-width:1px,color:#000
-
-        C["Contracts<br/><small>SSOT 契約層</small>"]:::contract
-        G["Go Platform<br/><small>基礎設施層</small>"]:::go
-        P["Python ADK<br/><small>業務邏輯層</small>"]:::python
-        A["Alloy<br/><small>觀測收集層</small>"]:::alloy
-        B["Backends<br/><small>資料儲存層</small>"]:::backend
-    end
-
-    %% 資料流向
-    C -.->|buf generate| G
-    C -.->|buf generate| P
-    P ==>|gRPC ToolBridge| G
-    G -->|遙測數據| A
-    P -->|Context 傳遞| A
-    A ==>|統一導出| B
-
-    %% 顏色定義
-    classDef contract fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#000
-    classDef go fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef python fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
-    classDef alloy fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    classDef backend fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-```
-
-### 架構說明
-- **Contracts**: SSOT 契約層，透過 buf 工具生成 Go/Python 程式碼，確保跨語言類型安全
-- **Go Platform**: 基礎設施層，提供高效能 ToolBridge 和插件管理，處理平台級服務
-- **Python ADK**: 業務邏輯層，實現 AI Agent 核心功能，透過 gRPC 調用 Go 插件
-- **Alloy**: 觀測收集層，統一收集 logs/traces/metrics/profiles 並處理資料轉換
-- **Backends**: 資料儲存層，支援本地 LGTM、Grafana Cloud、GCP 等多種觀測後端
