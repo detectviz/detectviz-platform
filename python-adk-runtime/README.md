@@ -71,7 +71,7 @@ Python 與 Go 採用同一套鍵位與環境覆蓋規範（部分鍵位）：
 ---
 
 ## RemoteTool 使用指引
-`RemoteTool` 透過 `ToolBridge.Invoke` 呼叫 Go 端工具。位址以 `DETECTVIZ_TOOLBRIDGE_ADDR` 設定（預設 `127.0.0.1:6606`）。
+`RemoteTool` 透過 `ToolBridge.Invoke` 呼叫 Go 端工具。位址以 `DETECTVIZ_TOOLBRIDGE_ADDR` 設定（預設 `127.0.0.1:5002`）。
 
 ```python
 import asyncio
@@ -91,9 +91,9 @@ if __name__ == "__main__":
 ```
 
 ### 連線與安全
-- 端點：`DETECTVIZ_TOOLBRIDGE_ADDR` 或（相容）`A2A_ENDPOINT`
+- 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`（預設 127.0.0.1:5002）
 - 明文：`DETECTVIZ_TOOLBRIDGE_INSECURE=true`
-- TLS／mTLS：`DETECTVIZ_TOOLBRIDGE_TLS_{CERT,KEY,CA}`（相容 `A2A_{CERT_PATH,KEY_PATH,CA_PATH}`）
+- TLS／mTLS：`DETECTVIZ_TOOLBRIDGE_TLS_{CERT,KEY,CA}`
 - OTel：若安裝 OpenTelemetry，`RemoteTool` 會嘗試自動注入 `traceparent`／`tracestate`
 
 ---

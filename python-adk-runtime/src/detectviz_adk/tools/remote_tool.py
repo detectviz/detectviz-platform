@@ -34,7 +34,7 @@ except Exception:  # fallback，用於樣板/測試
 try:
     from detectviz_adk.config.loader import get_toolbridge_addr  # 統一以 DETECTVIZ_TOOLBRIDGE_ADDR 為主
 except Exception:
-    def get_toolbridge_addr(default: str = "127.0.0.1:6606") -> str:  # 後備
+    def get_toolbridge_addr(default: str = "127.0.0.1:5002") -> str:  # 後備
         return os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR", default)
 
 # ---- 可選：從 OTel Context 注入 traceparent/tracestate --------------------
@@ -51,10 +51,9 @@ class RemoteTool(BaseTool):
     透過 ToolBridge.Invoke（gRPC）呼叫 Go 端工具。
 
     設定來源（優先序）：
-    - 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`（建議）或後備 `A2A_ENDPOINT`，預設 127.0.0.1:6606
+    - 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`，預設 127.0.0.1:5002
     - 安全性：
       - `DETECTVIZ_TOOLBRIDGE_TLS_CERT`/`DETECTVIZ_TOOLBRIDGE_TLS_KEY`/`DETECTVIZ_TOOLBRIDGE_TLS_CA`
-        （或後備 `A2A_CERT_PATH`/`A2A_KEY_PATH`/`A2A_CA_PATH`）
       - `DETECTVIZ_TOOLBRIDGE_INSECURE`（true/false）
     - 時限：`timeout_ms` 以建構參數為主
 
@@ -78,12 +77,12 @@ class RemoteTool(BaseTool):
         if not pbg:
             return
 
-        addr = os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR") or os.getenv("A2A_ENDPOINT") or get_toolbridge_addr()
+        addr = os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR") or get_toolbridge_addr()
         insecure = _env_bool("DETECTVIZ_TOOLBRIDGE_INSECURE", default=False)
 
-        cert = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT") or os.getenv("A2A_CERT_PATH")
-        key = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY") or os.getenv("A2A_KEY_PATH")
-        ca = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA") or os.getenv("A2A_CA_PATH")
+        cert = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT")
+        key = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY")
+        ca = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA")
 
         if cert and key:  # 優先 mTLS/單向 TLS
             with open(cert, "rb") as f:

@@ -1,8 +1,8 @@
 # Detectviz Platform
 
-[![Status: MVP](https://img.shields.io/badge/status-MVP-brightgreen)](./spec.md)
+[![Status: Production Ready](https://img.shields.io/badge/status-Production%20Ready-brightgreen)](./spec.md)
 [![SSOT: contracts](https://img.shields.io/badge/SSOT-contracts-0A84FF)](./contracts)
-[![Go >= 1.22](https://img.shields.io/badge/Go-%3E%3D%201.22-00ADD8?logo=go)](#)
+[![Go 1.24](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go)](#)
 [![Python >= 3.11](https://img.shields.io/badge/Python-%3E%3D%203.11-3776AB?logo=python)](#)
 [![Google ADK aligned](https://img.shields.io/badge/Google%20ADK-aligned-4285F4?logo=google)](https://google.github.io/adk-docs/)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-enabled-6E43E6?logo=opentelemetry)](#)
@@ -26,19 +26,24 @@
 ## 目錄導覽
 - `contracts/`：SSOT 契約與樣本
   - `proto/`：gRPC 介面（`adk_bridge.proto`）
-  - `schemas/`：`config.schema.json`、`module.card.schema.json`
+  - `schemas/`：`config.schema.json`、`module.card.schema.json`、`plugin.schema.json`
   - `samples/`：組態樣本（建議複製到專案根 `./config.yaml`）
   - `tools/`：合規檢查與卡片驗證
+  - `gen/`：生成的 Go 與 Python 程式碼
+  - `specs/`：技術規格文檔
 - `go-platform/`：平台核心（CLI、ToolBridge、插件、觀測初始化）
   - `cmd/detectviz/`：CLI 入口
   - `internal/configx/`：設定載入與 Schema 驗證
-  - `internal/pluginhost/`：Registry 與插件目錄（telegraf-like）
-  - `internal/observability/`：zap 與 OTEL 初始化（含 `pprof`）
+  - `internal/contracts/`：契約版本檢查
+  - `internal/pluginhost/`：Registry、插件目錄、資源監控、安全邊界
+  - `internal/observability/`：zap 與 OpenTelemetry 初始化（含 `pprof`）
   - `internal/health/`：`/livez`、`/readyz` 健康服務
+  - `internal/pluginnew/`：插件腳手架生成工具
 - `python-adk-runtime/`：ADK Runtime 與 RemoteTool
   - `src/detectviz_adk/`：runtime/memory/tools/capabilities（含 `remote_tool.py`）
-  - `agents/`、`templates/`：範例與樣板
+  - `templates/`：Agent、Tool、Capability 樣板
 - `grafana-alloy/`：Alloy 管線設定（本地或雲端）
+- `.github/workflows/`：CI/CD 流程（契約驗證、安全掃描）
 
 ---
 
@@ -54,7 +59,7 @@
    ```
 4. 啟動平台層與示範 HTTP（產生 traces/metrics/logs）：
    ```bash
-   go run ./go-platform/cmd/detectviz --config ./config.yaml \
+   go run ./go-platform/cmd/detectviz plugin serve --config ./config.yaml \
      --http-demo --http-demo-listen :7777
    curl -sS http://127.0.0.1:7777/hello
    ```
@@ -106,58 +111,38 @@
 ## 架構圖
 
 ```mermaid
-flowchart TB
-  subgraph Contracts["contracts/<br/>(SSOT)"]
-    C1[proto/<br/>- adk_bridge.proto]
-    C2[schemas/<br/>- config.schema.json<br/>- module.card.schema.json]
-  end
+%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '14px'}}}%%
 
-  subgraph Go["go-platform<br/>(Platform Core / ToolBridge)"]
-    G1[ToolBridge gRPC Server<br/>internal/pluginhost]
-    G2["Plugins (telegraf-like)"]
-    G3["OpenTelemetry SDK (traces/metrics)<br/>+ zap logs"]
-    G4["pprof :6060"]
-  end
+graph LR
+    subgraph CORE[" Detectviz 平台架構 "]
+        style CORE fill:#fafafa,stroke:#424242,stroke-width:1px,color:#000
 
-  subgraph Py["python-adk-runtime<br/>(ADK Runtime)"]
-    P1[Agents\n- coordinator\n- tool-exec]
-    P2[Capabilities / Tools]
-    P3["RemoteTool (gRPC client)"]
-    P4[MemoryBank]
-  end
+        C["Contracts<br/><small>SSOT 契約層</small>"]:::contract
+        G["Go Platform<br/><small>基礎設施層</small>"]:::go
+        P["Python ADK<br/><small>業務邏輯層</small>"]:::python
+        A["Alloy<br/><small>觀測收集層</small>"]:::alloy
+        B["Backends<br/><small>資料儲存層</small>"]:::backend
+    end
 
-  subgraph Alloy["Grafana Alloy<br/>(Collector)"]
-    A1["otelcol.receiver.otlp<br/>:4317 / :4318"]
-    A2["loki.source.file<br/>(file tail)"]
-    A3["pyroscope.scrape<br/>(pprof)"]
-    A4["batch / transform / auth"]
-  end
+    %% 資料流向
+    C -.->|buf generate| G
+    C -.->|buf generate| P
+    P ==>|gRPC ToolBridge| G
+    G -->|遙測數據| A
+    P -->|Context 傳遞| A
+    A ==>|統一導出| B
 
-  subgraph Destinations["Observability Backends"]
-    D1["Local LGTM<br/>(Prometheus/Tempo/Loki/Pyroscope)"]
-    D2["Grafana Cloud<br/>(OTLP/Loki/Pyroscope)"]
-    D3["GCP<br/>(Cloud Trace/Logging/Profiler)"]
-  end
-
-  P3 -->|gRPC\nToolRequest/ToolChunk| G1
-  G2 --> G1
-  G3 -->|OTLP gRPC/HTTP| A1
-  G3 -->|logs file| A2
-  G4 -->|scrape| A3
-
-  A1 -->|traces/metrics| D2
-  A2 -->|logs| D2
-  A3 -->|profiles| D2
-
-  %% 支援以 mode 切換目標（lgtm_local / grafana_cloud / gcp）
-  A1 -.-> D1
-  A2 -.-> D1
-  A3 -.-> D1
-
-  A1 -.-> D3
-  A2 -.-> D3
-  A3 -.-> D3
-
-  Contracts -. generate .-> Go
-  Contracts -. generate .-> Py
+    %% 顏色定義
+    classDef contract fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#000
+    classDef go fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef python fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef alloy fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef backend fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
 ```
+
+### 架構說明
+- **Contracts**: SSOT 契約層，透過 buf 工具生成 Go/Python 程式碼，確保跨語言類型安全
+- **Go Platform**: 基礎設施層，提供高效能 ToolBridge 和插件管理，處理平台級服務
+- **Python ADK**: 業務邏輯層，實現 AI Agent 核心功能，透過 gRPC 調用 Go 插件
+- **Alloy**: 觀測收集層，統一收集 logs/traces/metrics/profiles 並處理資料轉換
+- **Backends**: 資料儲存層，支援本地 LGTM、Grafana Cloud、GCP 等多種觀測後端

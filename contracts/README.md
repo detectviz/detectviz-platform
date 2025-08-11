@@ -15,22 +15,37 @@
 contracts/
   buf.yaml
   buf.gen.yaml
+  buf.lock
+  Makefile                      # 版本控制與生成管理
   proto/
     detectviz/contracts/v1/
       adk_bridge.proto          # ToolBridge / Health 等 gRPC 定義
   schemas/
-    module.card.schema.json     # 模組卡（Agent/Tool/Capability/Plugin）規範
-    config.schema.json          # 平台組態規範（go-platform 與 python-adk-runtime 共同載入）
+    config.schema.json          # 平台組態規範
+    module.card.schema.json     # 模組卡規範
+    plugin.schema.json          # 插件規範
   samples/
-    config.yaml                 # 樣本設定（與 Schema 對齊；建議複製到專案根為 ./config.yaml）
-  profiles/                     # （選配）Alloy Collector 管線樣板：lgtm_local / grafana_cloud / gcp
-    alloy/...
+    config.yaml                 # 樣本設定（建議複製到專案根）
+    module.card.json            # 模組卡樣本
+    plugin.yaml                 # 插件配置樣本
+  specs/                        # 技術規格文檔
+    error_model.md              # 錯誤模型規範
+    memory_bank_contract.md     # 記憶體契約規範
+    telemetry_conventions.md    # 遙測慣例
   tools/
     validate_module_card.py     # 模組卡驗證工具
-    check_contracts.sh          # 一鍵檢查腳本（可選）
+    validate_config.py          # 配置驗證工具
+    validate_plugin.py          # 插件驗證工具
+    check_contracts.sh          # 一鍵檢查腳本
   gen/
     go/                         # buf 生成的 Go stub（請勿手改）
     python/                     # buf 生成的 Python stub（請勿手改）
+    metadata/
+      version.json              # 版本元數據（由 make gen 生成）
+  profiles/                     # Alloy 配置樣板
+    local/                      # 本地 LGTM 配置
+    grafana-cloud/              # Grafana Cloud 配置
+    gcp/                        # GCP 配置
 ```
 
 ---

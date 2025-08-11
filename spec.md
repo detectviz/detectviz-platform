@@ -14,48 +14,59 @@
 
 * * *
 
-## 2. 目錄結構（3 倉庫）
+## 2. 目錄結構（統一倉庫）
 
 ```bash
-contracts/                          # SSOT 契約（獨立倉庫）
-  proto/detectviz/contracts/v1/
-    adk_bridge.proto                # ToolBridge / Health / AgentCall / Memory APIs
-  schemas/
-    module.card.schema.json         # 模組卡（Agent/Tool/Capability/Plugin）規範
-    config.schema.json              # go-platform 組態規範
-  buf.yaml                          # buf 工作區
-  buf.gen.yaml                      # Go/Python 生成配置
-  tools/
-    validate_module_card.py         # 模組卡驗證工具
+detectviz-platform/                 # 統一平台倉庫
+├── contracts/                      # SSOT 契約
+│   ├── proto/detectviz/contracts/v1/
+│   │   └── adk_bridge.proto        # ToolBridge / Health APIs
+│   ├── schemas/
+│   │   ├── config.schema.json      # 平台組態規範
+│   │   ├── module.card.schema.json # 模組卡規範
+│   │   └── plugin.schema.json      # 插件規範
+│   ├── gen/                        # 生成碼目錄
+│   │   ├── go/detectviz/contracts/v1/
+│   │   ├── python/detectviz/contracts/v1/
+│   │   └── metadata/version.json   # 版本元數據
+│   ├── samples/                    # 範例配置
+│   ├── specs/                      # 技術規格
+│   ├── tools/                      # 驗證工具
+│   ├── buf.yaml                    # buf 工作區
+│   ├── buf.gen.yaml               # 生成配置
+│   └── Makefile                   # 版本控制與生成
 
-go-platform/                        # 平台核心（獨立倉庫）
-  cmd/detectviz/
-    main.go                         # CLI：plugin/config 子命令
-  internal/
-    configx/loader.go               # YAML 載入＋Schema 驗證（對 contracts/schemas）
-    pluginhost/
-      registry.go                   # 插件註冊/發現
-      runtime.go                    # ToolBridge 伺服器整合 Registry
-      plugins/                      # Go 插件目錄（telegraf-like 分類）
-        capability.gateway/http_request/
-          plugin.go                 # 最小範例插件（可被 Python Agent 透過 ToolBridge 呼叫）
-    observability/
-      logging.go                    # zap/otelzap 初始化（ConsoleEncoder+檔案落地）
-      otel_init.go                  # OTLP/Tracer/Meter 初始化（含 pprof 啟動、Go runtime metrics）
-  configs/
-    config.yaml                     # 預設範本（可切換 lgtm_local/grafana_cloud/gcp）
-  Makefile / go.mod                 # 正常編譯/測試
+├── go-platform/                   # Go 平台核心
+│   ├── cmd/detectviz/main.go      # CLI 入口
+│   ├── internal/
+│   │   ├── configx/               # 配置載入與驗證
+│   │   ├── contracts/             # 契約版本檢查
+│   │   ├── health/                # 健康檢查服務
+│   │   ├── observability/         # 日誌與 OTel 初始化
+│   │   ├── pluginhost/           # 插件託管
+│   │   │   ├── plugins/          # 插件實作目錄
+│   │   │   │   └── capability.gateway/http_request/
+│   │   │   │       ├── plugin.go
+│   │   │   │       ├── security.go      # 安全邊界
+│   │   │   │       └── secure_plugin.go # 安全增強版
+│   │   │   ├── registry.go           # 插件註冊（並發安全）
+│   │   │   ├── resource_monitor.go   # 資源監控
+│   │   │   └── monitored_handler.go  # 監控包裝器
+│   │   └── pluginnew/             # 腳手架生成
+│   └── go.mod
 
-python-adk-runtime/                 # ADK Runtime（獨立倉庫）
-  src/detectviz_adk/
-    runtime/                        # ADK 啟動/協作/路由
-    memory/                         # MemoryBank 實作與抽換
-    tools/                          # ADK Tools 與 RemoteTool（走 ToolBridge）
-      remote_tool.py                # 透過 gRPC 呼叫 Go 插件
-    capabilities/                   # ADK Capabilities（可複用模型/資料/規則）
-  agents/                           # 依 ADK 範例模式組織（coordinator/tool-exec）
-  templates/                        # 樣板：agent / tool / capability / workflow
-  pyproject.toml / README.md
+├── python-adk-runtime/            # Python ADK Runtime
+│   ├── src/detectviz_adk/
+│   │   ├── config/                # 配置載入（與 Go 對齊）
+│   │   ├── tools/remote_tool.py   # RemoteTool gRPC 客戶端
+│   │   └── services/              # gRPC 服務實作
+│   ├── templates/                 # ADK 樣板
+│   └── requirements.txt
+
+├── .github/workflows/             # CI/CD 流程
+│   └── contracts-validation.yml   # 契約驗證與安全掃描
+├── grafana-alloy/config.alloy     # 可觀測性收集配置
+└── config.yaml                    # 預設平台配置
 ```
 
 * * *
@@ -103,7 +114,7 @@ python-adk-runtime/                 # ADK Runtime（獨立倉庫）
 ### 4.1 CLI 介面
 
 ```bash
-detectviz plugin serve [--listen :6606] [--config ./configs/config.yaml]
+detectviz plugin serve [--listen :5002] [--config ./config.yaml]
                        [--mtls-cert path --mtls-key path --mtls-ca path]
                        [--http-demo] [--http-demo-listen :7777]
 
@@ -124,16 +135,24 @@ detectviz config validate -f <config.yaml>
 ### 4.3 插件機制（telegraf-like）
 
 - 目錄：`internal/pluginhost/plugins/<category>/<name>/plugin.go`。
-- 介面：`Execute(ctx, *pb.ToolRequest) (<-chan *pb.ToolChunk, error)`；支援串流回傳。
-- 最小範例：`capability.gateway/http_request`（HTTP 呼叫器）。
-- 插件生命週期：`Init(cfg) -> Execute -> Close`（可選）。
+- 介面：`Invoke(ctx, *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error)`；支援同步回傳。
+- 最小範例：`capability.gateway/http_request`（HTTP 呼叫器，具備完整安全邊界）。
+- 插件生命週期：`Invoke -> Close`（可選）；支援 ResourceAwareHandler 進行資源監控。
+- 安全機制：內建 allowlist/denylist、payload 大小限制、超時控制等安全檢查。
 
 ### 4.4 組態載入與驗證
 
 - `configx/loader.go`：YAML 讀取 → 預設值套用 → 以 `gojsonschema` 驗證 `config.schema.json`。
 - 驗證成功後以結構化 `zap` 輸出摘要。
 
-### 4.5 Observability（Go）
+### 4.5 契約版本檢查（Critical）
+
+- `internal/contracts/version_check.go`：啟動時強制檢查 proto 生成碼版本對齊。
+- 讀取 `contracts/gen/metadata/version.json` 驗證 buf 版本、生成時間、proto hash。
+- 版本不一致時拒絕啟動並提供清晰錯誤訊息，確保 SSOT 合規性。
+- 支援跨語言一致性檢查（Go 和 Python 生成碼）。
+
+### 4.6 Observability（Go）
 
 - `logging.go`：以 `zap` + `otelzap` 初始化；ConsoleEncoder；可雙寫 stdout + 檔案（`./var/log/detectviz/detectviz.log`）。
 - `otel_init.go`：

@@ -58,7 +58,7 @@ def load_config(path: Optional[str] = None) -> Dict[str, Any]:
     return config
 
 
-def get_toolbridge_addr(default: str = "127.0.0.1:6606") -> str:
+def get_toolbridge_addr(default: str = "127.0.0.1:5002") -> str:
     """取得 Python RemoteTool 連線位址（不寫入 SSOT Config，以環境變數為主）。"""
     return os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR", default)
 

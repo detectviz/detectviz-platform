@@ -6,7 +6,9 @@
 
 ## 平台職責
 - **ToolBridge（gRPC）**：供 Python/ADK 的 `RemoteTool` 呼叫 Go 插件（工具執行）。
-- **Plugin Host**：插件註冊、生命週期與執行；支援嚴格註冊（禁止覆蓋）。
+- **Plugin Host**：插件註冊、生命週期與執行；支援嚴格註冊（禁止覆蓋）與資源監控。
+- **契約版本檢查**：啟動時自動驗證 proto 生成碼版本一致性，確保 SSOT 合規。
+- **安全邊界**：內建 allowlist/denylist、payload 大小限制、超時控制等安全機制。
 - **Observability**：OpenTelemetry 統一匯出（Logs/Traces/Metrics），預設透過 Alloy 導至本地 Grafana 或 Grafana Cloud。
 - **健康檢查與優雅關機**：提供 `/livez`、`/readyz` 與 gRPC Health；啟動就緒與 SIGTERM/SIGINT 的有序關閉。
 
@@ -15,16 +17,20 @@
 ## 目錄結構
 - `cmd/detectviz/`：平台啟動器（CLI）
 - `internal/configx/`：設定載入與驗證（統一優先序 + 環境變數覆蓋）
+- `internal/contracts/`：契約版本檢查與一致性驗證
 - `internal/observability/`：OTel 初始化與 zap 日誌
 - `internal/health/`：HTTP 健康檢查服務（/livez、/readyz）
 - `internal/pluginhost/`：插件宿主（registry、runtime、ToolBridge 伺服端）
-  - `plugins/capability.gateway/http_request/`：內建範例插件
+  - `plugins/capability.gateway/http_request/`：內建範例插件（含安全邊界）
+  - `resource_monitor.go`：插件級資源使用監控
+  - `monitored_handler.go`：監控處理器包裝
 
 ---
 
 ## 系統需求
-- Go 1.22+
+- Go 1.24+
 - 已產生 gRPC 生成碼（於 repo 根目錄執行 `cd contracts && make gen`）
+- 契約版本驗證通過（啟動時自動檢查）
 - Alloy 已就緒（本地或 Grafana Cloud）
 
 ---
@@ -39,11 +45,11 @@ export DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=127.0.0.1:4317
 export DETECTVIZ_HEALTH_ADDR=":8081"
 
 # 啟動 ToolBridge 與示範 HTTP（具 otelhttp 儀表化）
-go run ./cmd/detectviz --config ./config.yaml \
+go run ./cmd/detectviz plugin serve --config ./config.yaml \
   --http-demo \
-  --http-demo-listen :8080
+  --http-demo-listen :7777
 ```
-- 另開終端打流量：`curl -sS http://127.0.0.1:8080/hello`
+- 另開終端打流量：`curl -sS http://127.0.0.1:7777/hello`
 - 檔案日誌輸出（供 Alloy 轉發至 Loki）：`./var/log/detectviz/detectviz.log`
 - Profiles（pprof）：依 `observability.profiling` 自動啟動，預設 `127.0.0.1:6060`
 
@@ -107,7 +113,7 @@ export DETECTVIZ__OBSERVABILITY__OTLP__INSECURE=true
 - 已註冊 gRPC Health 服務，便於 gRPC 層存活/就緒探測。
 
 Python 端呼叫方式（示意）：
-- 以 `python-adk-runtime` 的 `RemoteTool` 連線：`DETECTVIZ_TOOLBRIDGE_ADDR=127.0.0.1:6606`
+- 以 `python-adk-runtime` 的 `RemoteTool` 連線：`DETECTVIZ_TOOLBRIDGE_ADDR=127.0.0.1:5002`
 - 支援 metadata：`tenant_id`、`owner.root_agent_id`、`traceparent`、`tracestate`
 
 ---
@@ -137,7 +143,7 @@ Python 端呼叫方式（示意）：
 export DETECTVIZ_HEALTH_ADDR=":8081"
 
 # ToolBridge gRPC
-export DETECTVIZ__GRPC__LISTEN=":6606"
+export DETECTVIZ__GRPC__LISTEN=":5002"
 export DETECTVIZ__GRPC__MAX_RECV_BYTES=10485760
 export DETECTVIZ__GRPC__MAX_SEND_BYTES=10485760
 
