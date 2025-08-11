@@ -25,7 +25,7 @@
 
 ## 架構圖
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '14px'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '12px'}}}%%
 
 graph LR
   subgraph CORE["Detectviz 平台架構"]
@@ -48,11 +48,11 @@ graph LR
   A ==>|統一導出<br/>Grafana • LGTM • GCP| B
 
   %% 顏色定義
-  classDef contract fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#000
+  classDef contract fill:#FFF4B3,stroke:#AA7700,stroke-width:2px,color:#000
   classDef go fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
   classDef python fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
-  classDef alloy fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-  classDef backend fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+  classDef alloy fill:#FFE2B3,stroke:#EE7700,stroke-width:2px,color:#000
+  classDef backend fill:#FFCCCC,stroke:#C10066,stroke-width:2px,color:#000
 ```
 
 ### 架構說明
