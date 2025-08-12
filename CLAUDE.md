@@ -72,12 +72,15 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 ## 快速啟動（本地 LGTM 或 Grafana Cloud）
 1. **套用 SSOT 樣本組態**：`cp contracts/samples/config.yaml ./config.yaml`
 2. **啟動 Alloy**：`./grafana-alloy/alloy run ./grafana-alloy/config.alloy`
-3. **啟動 Go 平台（ToolBridge + http-demo）**：
+3. **啟動 Go 平台（ToolBridge + http-demo）- 優化版**：
    ```bash
-   go run ./go-platform/cmd/detectviz --config ./config.yaml \
+   # 優化後的啟動流程，包含詳細日誌和優雅關機
+   go run ./go-platform/cmd/detectviz plugin serve --config ./config.yaml \
      --http-demo --http-demo-listen :7777
-   # 驗證產生 Traces
-   curl -sS http://127.0.0.1:7777/hello
+   
+   # 驗證服務健康狀態
+   curl -sS http://127.0.0.1:8081/readyz  # 等待服務就緒
+   curl -sS http://127.0.0.1:7777/hello   # 產生 Traces
    ```
 4. **在 Grafana 檢視**：Explore/Logs、Traces、Profiles 可 Drilldown。
 
@@ -87,6 +90,34 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 - **僅支援 pprof**：Go 端以 `observability.profiling` 啟動 `net/http/pprof`，預設 `127.0.0.1:6060`。
 - Alloy 使用 `pyroscope.scrape` → `pyroscope.write` 上傳（本地或雲端）。
 - Logs ↔ Traces 關聯：在 Alloy 的 Loki 管線以 regex 萃取 `trace_id` → 標籤 `traceid`。
+
+---
+
+## AI 開發工作流程守則
+**每次程式碼變更時，AI 必須遵循以下檢查清單**：
+
+### 1. 變更前規劃
+- [ ] 識別變更類型：SSOT 契約、核心邏輯、介面變更、內部重構
+- [ ] 評估影響範圍：使用者介面、系統行為、文檔、範例
+- [ ] 建立 TODO 清單，**必須包含文檔更新任務**
+
+### 2. 實作過程中
+- [ ] 遵循 SSOT 原則，契約變更優先
+- [ ] 保持向後相容性，除非明確說明破壞性變更
+- [ ] 記錄重要的設計決策和權衡考量
+
+### 3. 完成後檢查
+- [ ] 編譯和基本功能測試
+- [ ] 檢查是否需要更新文檔（參考上述檢查清單）
+- [ ] 驗證所有範例指令和配置仍然有效
+- [ ] 確認變更符合平台設計原則
+
+### 4. 文檔同步更新
+- [ ] 根據變更類型更新相應文檔
+- [ ] 更新快速開始指南中的指令
+- [ ] 檢查所有文檔間的一致性
+
+**重要提醒**：AI 在進行任何重大變更時，應主動詢問是否需要更新文檔，而不是等使用者提醒。
 
 ---
 
@@ -140,4 +171,23 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 ## 變更要求（PR 模板建議）
 1. 說明對 SSOT 的變更（proto/schema/samples）與影響面
 2. 附端到端驗證步驟（Logs/Traces/Profiles 與健康/關機）
-3. 若影響使用文件，請同步更新：`spec.md`、根 `README.md`、子專案 `README.md` 與本檔
+3. **強制文檔更新檢查清單**：
+   - [ ] 檢查是否影響使用者介面（CLI 參數、環境變數、啟動流程）
+   - [ ] 檢查是否影響架構或系統行為（啟動序列、錯誤處理、關機流程）
+   - [ ] 檢查是否需要更新：`spec.md`、根 `README.md`、子專案 `README.md`、本檔
+   - [ ] 驗證所有文檔中的範例指令和配置是否仍然有效
+   - [ ] 確認新功能在快速開始指南中有適當說明
+
+**文檔更新優先級**：
+- **P0（必須）**：影響使用者操作的變更（CLI、環境變數、啟動指令）
+- **P1（重要）**：架構或行為變更（錯誤處理、關機流程、性能優化）
+- **P2（建議）**：內部實作細節（代碼結構、函數重構）
+
+---
+
+## 文檔與溝通風格規範
+- **禁用 Emoji**：所有文檔、程式碼註解、提示詞和溝通內容都不使用 emoji 符號
+- **專業文字表達**：使用清晰的文字描述代替視覺符號，保持專業和正式的技術文檔風格
+- **標題標記**：使用傳統的標題層級（#、##、###）和項目符號（-、*）來組織內容結構
+- **狀態表示**：使用文字描述狀態，如「已完成」、「進行中」、「待處理」而非符號標記
+- **重點強調**：使用 **粗體** 和 `程式碼格式` 來突出重要內容，而非 emoji 裝飾

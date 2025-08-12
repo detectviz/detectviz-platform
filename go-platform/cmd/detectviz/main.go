@@ -1,10 +1,15 @@
 package main
 
+// main.go
+// Detectviz 平台 CLI 入口
+// 支援兩大子命令: plugin 與 config
+// - plugin serve : 啟動 ToolBridge gRPC 服務並管理 plugin runtime
+// - config validate: 驗證設定檔
+
 import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -46,16 +51,16 @@ func main() {
 	}
 }
 
+// printUsage 顯示 CLI 使用說明
 func printUsage() {
 	fmt.Println("用法: detectviz <plugin|config> [子命令]")
 	fmt.Println()
 	fmt.Println("commands:")
 	fmt.Println("  plugin  - 插件管理與 ToolBridge 服務 (符合 spec.md 規範)")
 	fmt.Println("  config  - 配置管理工具")
-	fmt.Println()
-	fmt.Println("注意: 已移除舊的 HTTP gateway，統一以 gRPC ToolBridge 對外服務")
 }
 
+// handleConfigCommands 處理 config 子指令, 目前支援 validate
 func handleConfigCommands() {
 	if len(os.Args) < 3 {
 		fmt.Println("用法: detectviz config validate -f <config.yaml>")
@@ -64,7 +69,7 @@ func handleConfigCommands() {
 	switch os.Args[2] {
 	case "validate":
 		fs := flag.NewFlagSet("validate", flag.ExitOnError)
-		f := fs.String("f", "./configs/config.yaml", "設定檔路徑")
+		f := fs.String("f", "./config.yaml", "設定檔路徑")
 		_ = fs.Parse(os.Args[3:])
 		cfg, err := configx.LoadAndValidate(*f)
 		if err != nil {
@@ -78,7 +83,7 @@ func handleConfigCommands() {
 	}
 }
 
-// handlePluginCommands 處理插件相關命令（包含啟動 gRPC ToolBridge）
+// handlePluginCommands 處理 plugin 相關子命令 (serve, new, validate, ...)
 func handlePluginCommands() {
 	if len(os.Args) < 3 {
 		fmt.Println("插件管理系統 - 符合 spec.md 規範")
@@ -127,112 +132,297 @@ func handlePluginCommands() {
 	}
 }
 
+// StartupContext 封裝啟動過程中的共享狀態
+type StartupContext struct {
+	Config    *configx.Config
+	HealthSrv *health.Server
+	HTTPSrv   *http.Server
+	Runtime   *pluginhost.Runtime
+	Shutdown  func()
+	StartTime time.Time
+}
+
+// cmdPluginServe 啟動 plugin serve 模式
+// 優化後的啟動流程：
+//  1. 解析參數並驗證
+//  2. 初始化基礎服務（health、observability）
+//  3. 驗證 contracts 一致性
+//  4. 載入配置並初始化觀測
+//  5. 設置 TLS 和註冊插件
+//  6. 啟動服務並優雅關機
 func cmdPluginServe() {
+	startTime := time.Now()
+	ctx := &StartupContext{StartTime: startTime}
+
+	// 解析命令行參數
+	flags, err := parseServeFlags()
+	if err != nil {
+		fmt.Printf("參數解析失敗: %v\n", err)
+		os.Exit(1)
+	}
+
+	// 設置優雅關機處理
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("服務啟動過程中發生嚴重錯誤: %v\n", r)
+			cleanupServices(ctx)
+			os.Exit(1)
+		}
+	}()
+
+	// 執行啟動流程
+	if err := executeStartupSequence(ctx, flags); err != nil {
+		fmt.Printf("服務啟動失敗: %v\n", err)
+		cleanupServices(ctx)
+		os.Exit(1)
+	}
+
+	// 等待關機信號
+	waitForShutdown(ctx)
+}
+
+// ServeFlags 封裝 serve 命令的所有參數
+type ServeFlags struct {
+	Listen         string
+	ConfigPath     string
+	MTLSCert       string
+	MTLSKey        string
+	MTLSCA         string
+	HTTPDemo       bool
+	HTTPDemoListen string
+}
+
+// parseServeFlags 解析 serve 命令的參數
+func parseServeFlags() (*ServeFlags, error) {
 	fs := flag.NewFlagSet("plugin serve", flag.ExitOnError)
-	// 支援環境變數覆寫
-	defaultListen := getenvDefault("A2A_LISTEN", ":6606")
-	defaultCfg := getenvDefault("DETECTVIZ_CONFIG", "./config.yaml") // 修正預設路徑
+
+	// 支援環境變數覆寫（對齊 CLAUDE.md 規範）
+	defaultListen := getenvDefault("DETECTVIZ__GRPC__LISTEN", ":6606")
+	defaultCfg := getenvDefault("DETECTVIZ_CONFIG_FILE", "./config.yaml")
 	defaultHTTPDemo := getenvDefault("DETECTVIZ_HTTP_DEMO", "0") == "1"
 	defaultHTTPDemoListen := getenvDefault("DETECTVIZ_HTTP_DEMO_LISTEN", ":7777")
 
-	listen := fs.String("listen", defaultListen, "ToolBridge gRPC 監聽地址")
-	cfgPath := fs.String("config", defaultCfg, "平台設定檔 (用於 observability 等)")
-	mtlsCert := fs.String("mtls-cert", os.Getenv("A2A_CERT_PATH"), "mTLS 證書路徑")
-	mtlsKey := fs.String("mtls-key", os.Getenv("A2A_KEY_PATH"), "mTLS 私鑰路徑")
-	mtlsCA := fs.String("mtls-ca", os.Getenv("A2A_CA_PATH"), "mTLS CA 路徑")
-	httpDemo := fs.Bool("http-demo", defaultHTTPDemo, "啟動示範 HTTP 服務 (otelhttp instrumentation)")
-	httpDemoListen := fs.String("http-demo-listen", defaultHTTPDemoListen, "示範 HTTP 服務監聽地址")
-	_ = fs.Parse(os.Args[3:])
+	flags := &ServeFlags{}
+	fs.StringVar(&flags.Listen, "listen", defaultListen, "ToolBridge gRPC 監聽地址")
+	fs.StringVar(&flags.ConfigPath, "config", defaultCfg, "平台設定檔 (用於 observability 等)")
+	fs.StringVar(&flags.MTLSCert, "mtls-cert", os.Getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT"), "mTLS 證書路徑")
+	fs.StringVar(&flags.MTLSKey, "mtls-key", os.Getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY"), "mTLS 私鑰路徑")
+	fs.StringVar(&flags.MTLSCA, "mtls-ca", os.Getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA"), "mTLS CA 路徑")
+	fs.BoolVar(&flags.HTTPDemo, "http-demo", defaultHTTPDemo, "啟動示範 HTTP 服務 (otelhttp instrumentation)")
+	fs.StringVar(&flags.HTTPDemoListen, "http-demo-listen", defaultHTTPDemoListen, "示範 HTTP 服務監聽地址")
 
-	// 啟動 Health HTTP 服務（僅供 K8s/監控用），可用環境變數 DETECTVIZ_HEALTH_ADDR 覆蓋
+	if err := fs.Parse(os.Args[3:]); err != nil {
+		return nil, fmt.Errorf("解析參數失敗: %w", err)
+	}
+
+	return flags, nil
+}
+
+// executeStartupSequence 執行完整的啟動序列
+func executeStartupSequence(ctx *StartupContext, flags *ServeFlags) error {
+	// 1. 啟動健康檢查服務
+	if err := initHealthService(ctx); err != nil {
+		return fmt.Errorf("健康檢查服務初始化失敗: %w", err)
+	}
+
+	// 2. 驗證 contracts 一致性
+	if err := validateContracts(); err != nil {
+		return fmt.Errorf("合約驗證失敗: %w", err)
+	}
+
+	// 3. 載入和驗證配置
+	if err := loadConfiguration(ctx, flags.ConfigPath); err != nil {
+		return fmt.Errorf("配置載入失敗: %w", err)
+	}
+
+	// 4. 初始化可觀測性
+	if err := initObservability(ctx); err != nil {
+		return fmt.Errorf("可觀測性初始化失敗: %w", err)
+	}
+
+	// 5. 設置 TLS 和註冊插件
+	if err := setupPluginSystem(ctx, flags); err != nil {
+		return fmt.Errorf("插件系統設置失敗: %w", err)
+	}
+
+	// 6. 啟動 HTTP Demo 服務（如果啟用）
+	if flags.HTTPDemo {
+		if err := startHTTPDemo(ctx, flags.HTTPDemoListen); err != nil {
+			return fmt.Errorf("HTTP Demo 服務啟動失敗: %w", err)
+		}
+	}
+
+	// 7. 啟動主要的 gRPC ToolBridge 服務
+	if err := startToolBridge(ctx, flags.Listen); err != nil {
+		return fmt.Errorf("ToolBridge 服務啟動失敗: %w", err)
+	}
+
+	// 記錄啟動成功
+	startupDuration := time.Since(ctx.StartTime)
+	zap.L().Info("服務啟動完成",
+		zap.Duration("startup_duration", startupDuration),
+		zap.String("grpc_listen", flags.Listen),
+		zap.Bool("http_demo_enabled", flags.HTTPDemo),
+		zap.Bool("mtls_enabled", flags.MTLSCert != ""),
+	)
+
+	return nil
+}
+
+// initHealthService 初始化健康檢查服務
+func initHealthService(ctx *StartupContext) error {
 	healthAddr := getenvDefault("DETECTVIZ_HEALTH_ADDR", ":8081")
-	healthSrv := health.NewServer(healthAddr)
-	healthSrv.Start()
-	defer healthSrv.Stop(context.Background())
-	
-	// CRITICAL: Validate contract version consistency before proceeding
+	ctx.HealthSrv = health.NewServer(healthAddr)
+	ctx.HealthSrv.Start()
+	return nil
+}
+
+// validateContracts 驗證合約一致性
+func validateContracts() error {
 	if err := contracts.ValidateContractVersion(); err != nil {
-		fmt.Printf("Contract version validation failed: %v\n", err)
-		fmt.Printf("This prevents startup to ensure SSOT compliance.\n")
-		os.Exit(1)
+		return fmt.Errorf("合約版本驗證失敗: %w (這會阻止啟動以確保 SSOT 合規性)", err)
 	}
-	
-	// Additional contract consistency check
+
 	if err := contracts.ValidateContractConsistency(); err != nil {
-		fmt.Printf("Contract consistency validation failed: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("合約一致性驗證失敗: %w", err)
 	}
-	
-	cfg, err := configx.LoadAndValidate(*cfgPath)
+
+	return nil
+}
+
+// loadConfiguration 載入和驗證配置
+func loadConfiguration(ctx *StartupContext, configPath string) error {
+	cfg, err := configx.LoadAndValidate(configPath)
 	if err != nil {
-		fmt.Printf("Failed to load config: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("配置載入失敗 (路徑: %s): %w", configPath, err)
 	}
+	ctx.Config = cfg
+	return nil
+}
 
-	// 如果命令行參數使用默認值且配置檔案有設定，則優先使用配置檔案的值
-	finalListen := *listen
-	if *listen == defaultListen && cfg.GRPC.Listen != "" {
-		finalListen = cfg.GRPC.Listen
-		fmt.Printf("Using gRPC listen address from config: %s\n", finalListen)
-	}
-
-	// 初始化觀測（Grafana/Cloud/Otel 由 config 決定）
-	obsConfig := cfg.GetObservabilityConfig()
+// initObservability 初始化可觀測性系統
+func initObservability(ctx *StartupContext) error {
+	obsConfig := ctx.Config.GetObservabilityConfig()
 	shutdown, err := observability.InitFromConfig(obsConfig)
 	if err != nil {
-		fmt.Printf("Failed to initialize observability: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("可觀測性初始化失敗: %w", err)
 	}
-	defer shutdown()
+	ctx.Shutdown = shutdown
+	return nil
+}
 
-	tlsCfg, err := pluginhost.LoadTLSConfig(*mtlsCert, *mtlsKey, *mtlsCA)
+// setupPluginSystem 設置插件系統
+func setupPluginSystem(ctx *StartupContext, flags *ServeFlags) error {
+	// 載入 TLS 配置
+	tlsCfg, err := pluginhost.LoadTLSConfig(flags.MTLSCert, flags.MTLSKey, flags.MTLSCA)
 	if err != nil {
-		zap.L().Fatal("載入 mTLS 憑證失敗", zap.Error(err))
+		return fmt.Errorf("載入 mTLS 憑證失敗: %w", err)
 	}
 
+	// 創建和註冊插件
 	reg := pluginhost.NewRegistry()
 	if err := register.RegisterAll(reg); err != nil {
-		log.Fatalf("register plugins: %v", err)
-	}
-	// 範例：在此註冊插件
-	// import http_request "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/capability.gateway/http_request"
-	// reg.Register("detectviz.tools.http_request", http_request.New())
-
-	fmt.Printf("ToolBridge listening on %s (mTLS=%v)\n", finalListen, tlsCfg != nil)
-
-	rt := pluginhost.NewRuntime(finalListen, tlsCfg, reg)
-	rt.SetOnReady(func() { healthSrv.SetReady(true) })
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	// 可選：啟動示範 HTTP 服務，使用 otelhttp 自動注入 tracing
-	var httpSrv *http.Server
-	if *httpDemo {
-		mux := setupHTTPDemoHandlers()
-		httpSrv = &http.Server{Addr: *httpDemoListen, Handler: mux}
-		go func() {
-			zap.L().Info("HTTP demo listening", zap.String("listen", *httpDemoListen))
-			if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				zap.L().Error("HTTP demo server error", zap.Error(err))
-			}
-		}()
+		return fmt.Errorf("插件註冊失敗: %w", err)
 	}
 
-	// 啟動 ToolBridge gRPC 服務
+	// 決定最終的監聽地址（配置檔案優先於命令行預設值）
+	finalListen := flags.Listen
+	if flags.Listen == getenvDefault("DETECTVIZ__GRPC__LISTEN", ":6606") && ctx.Config.GRPC.Listen != "" {
+		finalListen = ctx.Config.GRPC.Listen
+		zap.L().Info("使用配置檔案中的 gRPC 監聽地址", zap.String("address", finalListen))
+	}
+
+	// 創建 Runtime
+	ctx.Runtime = pluginhost.NewRuntime(finalListen, tlsCfg, reg)
+	ctx.Runtime.SetOnReady(func() {
+		ctx.HealthSrv.SetReady(true)
+		zap.L().Info("ToolBridge 已就緒", zap.String("listen", finalListen))
+	})
+
+	return nil
+}
+
+// startHTTPDemo 啟動 HTTP Demo 服務
+func startHTTPDemo(ctx *StartupContext, listen string) error {
+	mux := setupHTTPDemoHandlers()
+	ctx.HTTPSrv = &http.Server{Addr: listen, Handler: mux}
+
 	go func() {
-		if err := rt.Start(ctx); err != nil {
+		zap.L().Info("HTTP demo 服務啟動", zap.String("listen", listen))
+		if err := ctx.HTTPSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			zap.L().Error("HTTP demo 服務錯誤", zap.Error(err))
+		}
+	}()
+
+	return nil
+}
+
+// startToolBridge 啟動 ToolBridge gRPC 服務
+func startToolBridge(ctx *StartupContext, listen string) error {
+	go func() {
+		if err := ctx.Runtime.Start(context.Background()); err != nil {
 			zap.L().Fatal("ToolBridge 啟動失敗", zap.Error(err))
 		}
 	}()
 
-	<-ctx.Done()
-	if httpSrv != nil {
-		_ = httpSrv.Shutdown(context.Background())
-	}
-	_ = rt.Stop(context.Background())
+	return nil
 }
 
+// waitForShutdown 等待關機信號並執行優雅關機
+func waitForShutdown(ctx *StartupContext) {
+	sigCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	<-sigCtx.Done()
+	zap.L().Info("收到關機信號，開始優雅關機...")
+
+	cleanupServices(ctx)
+}
+
+// cleanupServices 清理所有服務
+func cleanupServices(ctx *StartupContext) {
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 1. 標記服務不健康
+	if ctx.HealthSrv != nil {
+		ctx.HealthSrv.SetReady(false)
+	}
+
+	// 2. 關閉 HTTP Demo 服務
+	if ctx.HTTPSrv != nil {
+		zap.L().Info("關閉 HTTP Demo 服務")
+		if err := ctx.HTTPSrv.Shutdown(shutdownCtx); err != nil {
+			zap.L().Warn("HTTP Demo 服務關閉失敗", zap.Error(err))
+		}
+	}
+
+	// 3. 關閉 ToolBridge
+	if ctx.Runtime != nil {
+		zap.L().Info("關閉 ToolBridge 服務")
+		if err := ctx.Runtime.Stop(shutdownCtx); err != nil {
+			zap.L().Warn("ToolBridge 關閉失敗", zap.Error(err))
+		}
+	}
+
+	// 4. 關閉可觀測性系統
+	if ctx.Shutdown != nil {
+		zap.L().Info("關閉可觀測性系統")
+		ctx.Shutdown()
+	}
+
+	// 5. 關閉健康檢查服務
+	if ctx.HealthSrv != nil {
+		zap.L().Info("關閉健康檢查服務")
+		ctx.HealthSrv.Stop(shutdownCtx)
+	}
+
+	shutdownDuration := time.Since(ctx.StartTime)
+	zap.L().Info("服務已完全關閉",
+		zap.Duration("total_uptime", shutdownDuration))
+}
+
+// getenvDefault 從環境變數讀取值，若不存在則回傳預設值
 func getenvDefault(key, def string) string {
 	v := os.Getenv(key)
 	if v == "" {
@@ -243,6 +433,8 @@ func getenvDefault(key, def string) string {
 
 // setupHTTPDemoHandlers 設置豐富的示範 HTTP endpoints
 // 每個 endpoint 產生不同的 traces, metrics 和 logs 以展示 Grafana Drilldown 功能
+
+// setupHTTPDemoHandlers 建立示範 HTTP handler，展示 tracing/metrics/logs
 func setupHTTPDemoHandlers() *http.ServeMux {
 	mux := http.NewServeMux()
 

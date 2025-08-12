@@ -35,7 +35,7 @@
 
 ---
 
-## 快速開始
+## 快速開始（優化版啟動流程）
 ```bash
 # 於 repo 根目錄建立生效設定（依 SSOT 樣本）
 cp contracts/samples/config.yaml ./config.yaml
@@ -44,12 +44,21 @@ cp contracts/samples/config.yaml ./config.yaml
 export DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=127.0.0.1:4317
 export DETECTVIZ_HEALTH_ADDR=":8081"
 
-# 啟動 ToolBridge 與示範 HTTP（具 otelhttp 儀表化）
+# 啟動 ToolBridge 與示範 HTTP（優化版：模組化啟動、結構化錯誤處理）
 go run ./cmd/detectviz plugin serve --config ./config.yaml \
   --http-demo \
   --http-demo-listen :7777
+
+# 驗證服務健康狀態
+curl -sS http://127.0.0.1:8081/readyz  # 等待服務就緒（200 OK）
+curl -sS http://127.0.0.1:7777/hello   # 產生示範 traces
 ```
-- 另開終端打流量：`curl -sS http://127.0.0.1:7777/hello`
+
+**優化特性**：
+- **模組化啟動**：清晰的啟動序列和錯誤處理
+- **詳細日誌**：啟動時間追蹤和狀態記錄
+- **優雅關機**：10秒超時的有序服務關閉
+- **Panic 恢復**：啟動過程異常處理
 - 檔案日誌輸出（供 Alloy 轉發至 Loki）：`./var/log/detectviz/detectviz.log`
 - Profiles（pprof）：依 `observability.profiling` 自動啟動，預設 `127.0.0.1:6060`
 
@@ -79,16 +88,19 @@ go run ./cmd/detectviz plugin serve --config ./config.yaml \
 
 ---
 
-## 健康檢查與優雅關機
+## 健康檢查與優雅關機（已優化）
 - HTTP 健康檢查服務（預設 `:8081`，可用 `DETECTVIZ_HEALTH_ADDR` 覆蓋）：
   - `GET /livez`：存活檢查（程序存活即 200）
   - `GET /readyz`：就緒檢查（ToolBridge 成功啟動後返回 200）
 - gRPC Health：註冊 `grpc.health.v1.Health` 服務，便於 gRPC 層探測。
-- 優雅關機順序：
-  1. 健康服務標記為 not ready
-  2. 停止 HTTP Demo（若啟用）
-  3. `ToolBridge` 執行 `GracefulStop`，超時再 `Stop`
-  4. 關閉 listener 與 OTel provider
+- **優化版優雅關機順序**（10秒超時保護）：
+  1. 收到 SIGTERM/SIGINT 信號
+  2. 健康服務標記為 not ready
+  3. 停止 HTTP Demo 服務（若啟用）
+  4. `ToolBridge` 執行 `GracefulStop`，超時保護
+  5. 關閉可觀測性系統（OTel flush）
+  6. 關閉健康檢查服務
+  7. 記錄總運行時間並完成關機
 
 ---
 

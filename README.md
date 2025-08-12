@@ -73,7 +73,7 @@ graph LR
   - `gen/`：生成的 Go 與 Python 程式碼
   - `specs/`：技術規格文檔
 - `go-platform/`：平台核心（CLI、ToolBridge、插件、觀測初始化）
-  - `cmd/detectviz/`：CLI 入口
+  - `cmd/detectviz/`：CLI 入口（已優化：模組化啟動流程、結構化錯誤處理、優雅關機）
   - `internal/configx/`：設定載入與 Schema 驗證
   - `internal/contracts/`：契約版本檢查
   - `internal/pluginhost/`：Registry、插件目錄、資源監控、安全邊界
@@ -100,9 +100,13 @@ graph LR
    ```
 4. 啟動平台層與示範 HTTP（產生 traces/metrics/logs）：
    ```bash
+   # 優化後的啟動流程，包含詳細的啟動日誌和優雅關機
    go run ./go-platform/cmd/detectviz plugin serve --config ./config.yaml \
      --http-demo --http-demo-listen :7777
-   curl -sS http://127.0.0.1:7777/hello
+   
+   # 驗證服務健康狀態
+   curl -sS http://127.0.0.1:8081/readyz  # 等待服務就緒
+   curl -sS http://127.0.0.1:7777/hello   # 產生示範 traces
    ```
 5. 於 Grafana 檢視：Logs/Traces/Profiles 可進行 Drilldown；Profiles 由 Alloy `pyroscope.scrape` 擷取 `pprof`。
 
@@ -140,9 +144,21 @@ graph LR
 
 ---
 
-## 參考
-- [`spec.md`](./spec.md)
-- [`contracts/README.md`](./contracts/README.md)
-- [`go-platform/README.md`](./go-platform/README.md)
-- [`python-adk-runtime/README.md`](./python-adk-runtime/README.md)
-- [`grafana-alloy/config.alloy`](./grafana-alloy/config.alloy)
+## 參考文檔
+
+### 核心規範
+- [`spec.md`](./spec.md) - 平台技術規格（完整架構定義）
+- [`CLAUDE.md`](./CLAUDE.md) - AI 開發守則（協作規範）
+
+### 組件文檔
+- [`contracts/README.md`](./contracts/README.md) - SSOT 契約管理
+- [`go-platform/README.md`](./go-platform/README.md) - Go 平台核心
+- [`python-adk-runtime/README.md`](./python-adk-runtime/README.md) - Python ADK 運行時
+
+### 開發指南
+- [`docs/ai-collaboration-guide.md`](./docs/ai-collaboration-guide.md) - AI 協作開發指南
+- [`docs/quick-reference.md`](./docs/quick-reference.md) - 快速參考
+- [`docs/agent-development-guide.md`](./docs/agent-development-guide.md) - Agent 開發指南
+
+### 配置參考
+- [`grafana-alloy/config.alloy`](./grafana-alloy/config.alloy) - 可觀測性配置

@@ -111,7 +111,7 @@ detectviz-platform/                 # 統一平台倉庫
 
 ## 4. Go 平台（go-platform）
 
-### 4.1 CLI 介面
+### 4.1 CLI 介面（已優化）
 
 ```bash
 detectviz plugin serve [--listen :5002] [--config ./config.yaml]
@@ -123,8 +123,16 @@ detectviz plugin validate <path>            # 導引到 contracts/tools 驗證
 detectviz config validate -f <config.yaml>
 ```
 
-- `--http-demo`：啟動 otelhttp 包裝的示範 HTTP 服務（預設路徑 `/hello`）以產生 span。
-- `pprof` 由 `config.yaml` 的 `observability.profiling` 控制並由 `otel_init.go` 啟動，預設 `127.0.0.1:6060`。
+**優化特性**：
+- **模組化啟動流程**：清晰的啟動序列（解析參數 → 健康檢查 → 合約驗證 → 配置載入 → 觀測性 → 插件系統 → 服務啟動）
+- **結構化錯誤處理**：詳細的錯誤上下文和統一的錯誤格式
+- **啟動時間追蹤**：記錄完整的啟動性能指標
+- **Panic 恢復機制**：啟動過程異常處理和資源清理
+- **優雅關機流程**：10秒超時的有序服務關閉
+
+CLI 參數說明：
+- `--http-demo`：啟動 otelhttp 包裝的示範 HTTP 服務（預設路徑 `/hello`）以產生 span
+- `pprof` 由 `config.yaml` 的 `observability.profiling` 控制並由 `otel_init.go` 啟動，預設 `127.0.0.1:6060`
 
 ### 4.2 ToolBridge 服務
 
@@ -266,18 +274,28 @@ memory:
   default_ttl_seconds: 3600
 ```
 
-### 8.2 啟動指令
+### 8.2 啟動指令（優化版）
 
 ```bash
 # 檢查組態
 detectviz config validate -f ./go-platform/configs/config.yaml
 
-# 啟動 ToolBridge（本機）
+# 啟動 ToolBridge（本機）- 優化版啟動流程
 detectviz plugin serve --config ./go-platform/configs/config.yaml --http-demo --http-demo-listen :7777
+
+# 驗證服務健康狀態
+curl -sS http://127.0.0.1:8081/readyz  # 等待服務就緒
 
 # 產生 Traces
 curl -sS http://127.0.0.1:7777/hello
 ```
+
+**啟動流程優化**：
+- 詳細的啟動日誌記錄各階段狀態
+- 自動驗證合約版本一致性
+- 結構化的服務初始化順序
+- 健康檢查服務優先啟動
+- 啟動時間性能追蹤
 
 * * *
 
