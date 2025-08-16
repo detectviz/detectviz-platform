@@ -1,19 +1,35 @@
-# -*- coding: utf-8 -*-
-"""Sub Agent（本地多實例）樣板。"""
-from typing import Any, Dict
+from typing import Dict, Any
+from detectviz_adk.agents.base.base_agent import BaseAgent
 
-try:
-    from adk.agents import BaseAgent  # type: ignore
-except Exception:
-    class BaseAgent:  # type: ignore
-        async def run(self, input: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
-            raise NotImplementedError("ADK BaseAgent not available - replace with real imports.")
+# To use tools, import them from their canonical location:
+# from detectviz_adk.tools.data.health_aggregator import HealthAggregator
+# from detectviz_adk.tools.reporting.report_generator import ReportGenerator
+
 
 class SubAgent(BaseAgent):
-    def __init__(self, *, tools: Dict[str, Any] | None = None, memory=None, config: Dict[str, Any] | None = None) -> None:
-        self._tools = tools or {}
-        self._memory = memory
-        self._config = config or {}
+    """
+    A template for a sub-agent.
+    """
 
-    async def run(self, input: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
-        return {"ok": True, "echo": input}
+    def __init__(self, name: str = "sub_agent_local"):
+        super().__init__(
+            name=name,
+            model="gemini-1.5-flash-001",
+            instruction="This is a template for a sub-agent. You should replace this instruction with a detailed description of the agent's purpose, capabilities, and how it should use its tools.",
+            description="A template for a sub-agent."
+        )
+
+        # To assign tools to this agent, uncomment and use the imported tool objects
+        # self.health_aggregator = HealthAggregator
+        # self.report_generator = ReportGenerator
+
+    async def execute(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        The main execution method for the agent.
+        This method should be implemented to define the agent's logic.
+        """
+        print(f"SubAgent received request: {request}")
+        # Implement the agent's decision-making logic here.
+        # For example, call a tool:
+        # result = await self.health_aggregator.invoke(request)
+        return {"status": "success", "message": "SubAgent executed successfully.", "input": request}

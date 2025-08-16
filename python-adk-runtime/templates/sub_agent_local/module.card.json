@@ -3,53 +3,12 @@
   "kind": "agent",
   "id": "detectviz.templates.sub_agent_local",
   "version": "0.1.0",
-  "responsibility": "以單一職責方式執行特定任務，示範本地多實例 sub_agent 樣板（符合 Single Parent Rule）。",
-  "role": "llm",
-  "inputs": [
-    {
-      "name": "input",
-      "schema": "schemas/generic.input.v1"
-    }
-  ],
-  "outputs": [
-    {
-      "name": "output",
-      "schema": "schemas/generic.output.v1"
-    }
-  ],
-  "a2a": {
-    "capability_tags": [
-      "triage",
-      "classification"
-    ],
-    "concurrency_limit": 16,
-    "queue_depth": 100,
-    "timeouts_ms": {
-      "tool": 2000,
-      "task": 8000,
-      "total": 12000
-    }
-  },
-  "rate_limit": {
-    "rps": 32,
-    "burst": 64,
-    "per_tenant": true
-  },
-  "observability": {
-    "spans": [
-      "agent.run",
-      "tool.exec",
-      "memory.search"
-    ],
-    "metrics": [
-      "agent_runs_total",
-      "tool_exec_duration_seconds_bucket"
-    ]
-  },
+  "responsibility": "A template for a local sub-agent. Its responsibility should be clearly defined here.",
+  "role": "agent.tool_exec",
   "dependencies": [
     "google-adk>=0.0.0"
   ],
-  "permissions": [
-    "net"
-  ]
+  "observability": {
+    "logs_required": true
+  }
 }
