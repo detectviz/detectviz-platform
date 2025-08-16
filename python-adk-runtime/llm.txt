@@ -1,0 +1,42 @@
+# python-adk-runtime — AI 維護指南（llm.txt）
+
+此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `CLAUDE.md`、`spec.md` 一致。
+
+## 範圍與原則
+- 嚴格遵守 ADK 模組邊界：Agents、Workflows、MemoryBank、Tools/Capabilities。
+- 與 Go 平台解耦：僅透過 gRPC ToolBridge（RemoteTool）或 HTTP 互通。
+- 任何跨語言介面或型別變更先改 `contracts/`（SSOT），再回此專案對齊生成碼與相依。
+
+## 必守規範
+1. RemoteTool：以 `grpc.aio` 連 ToolBridge；端點由 `DETECTVIZ_TOOLBRIDGE_ADDR` 指定；傳遞 `traceparent/tracestate`。
+2. 設定載入：`detectviz_adk/config/loader.py` 與 Go Loader 對齊搜尋序與環境覆蓋。
+3. 模組卡：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`。
+4. 安全：Python 端不持有雲端寫入憑證；外部副作用集中於 Go 插件（Tools）。
+5. 不得修改 `contracts/gen/**` 生成碼；如需型別/欄位調整，回到 `contracts/`。
+
+## 允許/禁止
+- 允許：新增 Capability、Workflow、Tool（以 RemoteTool 呼叫 Go 插件）。
+- 禁止：跨越 ADK 邏輯邊界、直連雲端憑證、繞過 Loader 讀寫設定、提交大型二進位。
+
+## 變更流程
+1. 規劃：是否涉及 SSOT？若是，先改 `contracts/` 並 `buf lint && buf generate`。
+2. 實作：使用 templates 腳手架建立元件；補 README 與最小測試。
+3. 驗證：
+```bash
+# 啟動 Go ToolBridge（另窗）
+# detectviz plugin serve --config ./go-platform/configs/config.yaml --http-demo --http-demo-listen :7777
+
+# 執行 Python 端範例/測試（以虛擬環境）
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python server.py   # 或對應入口
+```
+4. 記錄：在根 `README.md`、文件站對應章節同步更新。
+5. PR：說明 SSOT 影響、端到端流程（RemoteTool 呼叫、trace 傳遞）、是否更新文件。
+
+## 提交前檢查清單
+- [ ] 不改動 `contracts/gen/**` 生成碼
+- [ ] RemoteTool 呼叫成功；trace context 具備
+- [ ] Loader 搜尋序與環境覆蓋行為正確
+- [ ] 模組卡通過驗證腳本
+- [ ] README/文件已更新

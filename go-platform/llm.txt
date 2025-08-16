@@ -1,0 +1,49 @@
+# go-platform — AI 維護指南（llm.txt）
+
+此檔為 AI 與協作者在維護 Go 平台（`go-platform/`）時的約束與流程，與 `CLAUDE.md`、`spec.md` 對齊。
+
+## 範圍與原則
+- 僅維護 Go 平台程式（CLI、ToolBridge、Plugin Registry、Observability、Config Loader 等）。
+- 任何跨語言介面或型別變更，一律以 `contracts/` 為 SSOT（先調整 proto/schema/samples，再回到此專案對齊）。
+- 禁止編輯任何由 `contracts/` 生成的程式碼（`contracts/gen/...` 下的檔案）。
+
+## 必守規範（關鍵）
+1. 設定載入：一律經 `internal/configx/loader.go`；禁止於其他模組自行讀檔或解析 YAML。
+2. 日誌：使用 `zap`；預設寫檔（非 JSON），`./var/log/detectviz/detectviz.log`。初始化後 `zap.ReplaceGlobals`。
+3. Observability（OTLP）：依 `observability.otlp` 初始化 Traces/Metrics；Headers 以 CSV `key=value` 由 Loader 解析。
+4. pprof：僅在 `observability.profiling.enabled: true` 時啟動 `net/http/pprof`；位址 `profiling.pprof_address`。
+5. 健康檢查：提供 `/livez`、`/readyz` 與 gRPC Health；ToolBridge 就緒後再宣告 ready。
+6. 優雅關機：SIGTERM/SIGINT → 先標記 not-ready → 停 HTTP demo → `GracefulStop` gRPC → 關閉 OTel。
+7. 插件 Registry：以 `sync.RWMutex` 保護；`RegisterStrict` 同名報錯、`RegisterOrReplace` 熱替換並 `Close` 舊實例。
+8. 契約版本檢查：啟動時讀取 `contracts/gen/metadata/version.json`，版本不一致即拒絕啟動（Critical）。
+9. ToolBridge 介面：嚴格依 `contracts/proto/.../adk_bridge.proto`；若需擴充（串流/會話化），請先回 `contracts/` 設計。
+10. 安全：不得把雲端憑證/Token 寫入程式或 repo；以環境變數/Secret 管理。
+
+## 允許/禁止
+- 允許：新增/擴充 CLI 參數（需更新 README 與 `spec.md`）；新增插件（於 `internal/pluginhost/plugins/...`）。
+- 禁止：繞過 Loader 讀設定、直接修改生成碼、提交 `site/` 或大型二進位到 repo。
+
+## 變更流程（AI/人類一致）
+1) 規劃：
+- 判斷是否涉及 SSOT；若是，先改 `contracts/` 並 `buf lint && buf generate`，再回此專案對齊。
+- 評估影響：CLI、Config、Observability、Plugin、ToolBridge。建立 TODO（含文件更新）。
+2) 實作：
+- 僅在對應模組實作；遵守上列必守規範。
+3) 驗證：
+- 編譯與單元測試；本地啟動（建議）：
+  ```bash
+  detectviz config validate -f ./go-platform/configs/config.yaml
+  detectviz plugin serve --config ./go-platform/configs/config.yaml --http-demo --http-demo-listen :7777
+  curl -sS http://127.0.0.1:8081/readyz && curl -sS http://127.0.0.1:7777/hello
+  ```
+4.記錄：
+- 若影響使用者介面/行為，請同步更新根 README、`spec.md` 與相關文件站章節。
+5) PR：
+- 說明 SSOT 影響、端到端驗證步驟（健康/關機/觀測）、是否更新文件。
+
+## 提交前檢查清單
+- [ ] 不改動 `contracts/gen/**` 生成碼
+- [ ] 啟動/健康/關機行為正確
+- [ ] Observability 指標（Logs/Traces/Metrics/Profiles）可見且關聯
+- [ ] `detectviz config validate` 通過；設定與 Schema 對齊
+- [ ] 文件（README/spec/docs）已更新

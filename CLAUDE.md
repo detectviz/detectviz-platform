@@ -3,6 +3,42 @@
 ## 目的
 本文件提供給 AI 與人類協作者的操作與開發守則，確保在 Detectviz 平台上以 **SSOT（contracts）為唯一事實來源** 進行變更；同時規範雲端觀測（Grafana Cloud / GCP）、本地 LGTM、與程式碼變更的安全與品質要求。本文已全面對齊目前程式碼與 `spec.md`。
 
+## 文件層級關係與架構理解
+
+### 架構文件層級
+本專案的文件遵循以下層級關係：
+
+```
+docs/sre-services-map.md (架構憲法 - 業務邏輯與決策)
+         ↓ 指導
+    spec.md (技術規格 - 實作細節與系統設計)
+         ↓ 實現
+   CLAUDE.md (AI 開發守則 - 協作規範與守則)
+         ↓ 指引
+   MVP Implementation (實際開發工作)
+```
+
+### Agent vs Tool 職責劃分原則
+**核心設計原則**：決策與執行分離
+
+#### Agent 職責（決策層 - WHY/WHAT/WHEN）
+- **PostmortemOrchestratorAgent**：分析事故複盤需求，決定收集哪些數據、如何分析、生成什麼報告
+- **決策邏輯**：根據事故類型、嚴重程度、時間範圍制定分析策略
+- **工作流編排**：協調多個 Tool 完成複雜任務
+- **知識整合**：結合歷史經驗和當前數據進行智能決策
+
+#### Tool 職責（執行層 - HOW/WHERE/WITH）
+- **HealthAggregator**：從 InfluxDB 查詢指標數據，進行高性能數據處理
+- **ReportGenerator**：根據模板和數據生成格式化報告
+- **具體操作**：數據查詢、文件生成、外部 API 調用
+
+### MVP 聚焦：Phase 3（事後複盤）
+當前開發重點為 **Phase 3: 事後複盤系統**，包含：
+- PostmortemOrchestratorAgent（決策協調）
+- HealthAggregator（數據查詢）
+- ReportGenerator（報告生成）
+- ResponseHistoryStore（知識存儲）
+
 ---
 
 ## SSOT 與提交規範
@@ -93,6 +129,77 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 
 ---
 
+## MVP 專用開發守則
+
+### PostmortemOrchestratorAgent 開發規範
+**核心原則**：遵循 ADK Agent 模式，專注決策協調，避免直接執行
+
+#### 實作要求
+1. **繼承 ADK BaseAgent**：
+   ```python
+   from detectviz_adk.agents.base import BaseAgent
+   
+   class PostmortemOrchestratorAgent(BaseAgent):
+       def __init__(self):
+           super().__init__()
+           self.health_aggregator = RemoteTool("observability.health_aggregator")
+           self.report_generator = RemoteTool("reporting.report_generator")
+   ```
+
+2. **決策與執行分離範例**：
+   ```python
+   async def analyze_postmortem(self, request: PostMortemRequest):
+       # ✅ 決策：分析需要什麼數據
+       data_strategy = self._determine_data_collection_strategy(request)
+       
+       # ✅ 執行：通過 RemoteTool 調用 Go 端工具
+       health_data = await self.health_aggregator.invoke(data_strategy.to_dict())
+       
+       # ✅ 決策：分析數據並制定報告策略
+       analysis_result = self._analyze_health_data(health_data)
+       report_strategy = self._determine_report_strategy(analysis_result)
+       
+       # ✅ 執行：生成報告
+       report = await self.report_generator.invoke(report_strategy.to_dict())
+       
+       return report
+   ```
+
+3. **混合架構決策指引**：
+   - **Python 端**：業務邏輯、決策制定、工作流編排
+   - **Go 端**：高性能查詢、數據處理、外部系統集成
+   - **gRPC 通訊**：使用 RemoteTool 進行跨語言調用
+
+### MVP 檢查清單
+
+#### 設計階段（Week 1-2）
+- [ ] **P0** 創建 `python-adk-runtime/src/detectviz_adk/agents/post_mortem/` 目錄結構
+- [ ] **P0** 實現 PostmortemOrchestratorAgent 基本骨架
+- [ ] **P0** 定義 HealthAggregator Go 端插件接口
+- [ ] **P1** 創建 module.card.json 並通過驗證
+- [ ] **P1** 建立基本測試框架
+
+#### 實作階段（Week 3-6）
+- [ ] **P0** 實現 PostmortemOrchestratorAgent 核心業務邏輯
+- [ ] **P0** 完成 HealthAggregator Go 端插件實作
+- [ ] **P0** 實現 ReportGenerator 基本功能
+- [ ] **P1** 集成 ResponseHistoryStore 知識存儲
+- [ ] **P1** 添加錯誤處理和重試邏輯
+- [ ] **P2** 性能優化和資源監控
+
+#### 文檔階段（Week 7-8）
+- [ ] **P0** 更新 README.md 反映 MVP 功能
+- [ ] **P0** 創建使用說明和範例
+- [ ] **P1** 完善 API 文檔
+- [ ] **P1** 更新架構圖和流程圖
+- [ ] **P2** 創建故障排查指南
+
+### MVP 里程碑與交付標準（8 週計畫）
+- **Week 2**：基本架構搭建完成，可以啟動 Agent
+- **Week 4**：核心功能實現，可以執行簡單的事後複盤流程
+- **Week 6**：完整功能實現，包含錯誤處理和優化
+- **Week 8**：文檔完善，準備交付生產環境
+
 ## AI 開發工作流程守則
 **每次程式碼變更時，AI 必須遵循以下檢查清單**：
 
@@ -100,22 +207,26 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 - [ ] 識別變更類型：SSOT 契約、核心邏輯、介面變更、內部重構
 - [ ] 評估影響範圍：使用者介面、系統行為、文檔、範例
 - [ ] 建立 TODO 清單，**必須包含文檔更新任務**
+- [ ] **MVP 檢查**：確認變更符合 Phase 3 事後複盤範圍
 
 ### 2. 實作過程中
 - [ ] 遵循 SSOT 原則，契約變更優先
 - [ ] 保持向後相容性，除非明確說明破壞性變更
 - [ ] 記錄重要的設計決策和權衡考量
+- [ ] **MVP 聚焦**：避免添加非 Phase 3 範圍的功能
 
 ### 3. 完成後檢查
 - [ ] 編譯和基本功能測試
 - [ ] 檢查是否需要更新文檔（參考上述檢查清單）
 - [ ] 驗證所有範例指令和配置仍然有效
 - [ ] 確認變更符合平台設計原則
+- [ ] **MVP 驗證**：確認符合 8 週交付計畫
 
 ### 4. 文檔同步更新
 - [ ] 根據變更類型更新相應文檔
 - [ ] 更新快速開始指南中的指令
 - [ ] 檢查所有文檔間的一致性
+- [ ] **MVP 文檔**：確保文檔反映當前 MVP 狀態
 
 **重要提醒**：AI 在進行任何重大變更時，應主動詢問是否需要更新文檔，而不是等使用者提醒。
 
@@ -140,6 +251,61 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 - **設定載入**：使用 `detectviz_adk/config/loader.py`，與 Go 相同的搜尋序與環境覆蓋。
 - **模組卡**：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`。
 - **安全**：Python 不持有雲端憑證；外部系統交互集中於 Go 插件（Tools）。
+
+### RemoteTool 使用規範
+**MVP 實作要求**：
+```python
+# ✅ 正確使用方式
+from detectviz_adk.tools.remote_tool import RemoteTool
+
+class PostmortemOrchestratorAgent(BaseAgent):
+    def __init__(self):
+        super().__init__()
+        # 使用標準化的工具名稱
+        self.health_aggregator = RemoteTool(
+            tool_id="observability.health_aggregator",
+            tool_version="0.1.0"
+        )
+        self.report_generator = RemoteTool(
+            tool_id="reporting.report_generator", 
+            tool_version="0.1.0"
+        )
+    
+    async def _collect_health_data(self, request):
+        # 包含完整的錯誤處理
+        try:
+            result = await self.health_aggregator.invoke({
+                "time_range": request.time_range,
+                "services": request.affected_services,
+                "metrics": ["cpu_usage", "memory_usage", "error_rate"]
+            })
+            return result
+        except Exception as e:
+            self.logger.error(f"Health data collection failed: {e}")
+            raise
+```
+
+### MVP 目錄結構說明
+**當前 MVP 專用目錄結構**：
+```
+python-adk-runtime/
+├── src/detectviz_adk/
+│   ├── agents/
+│   │   ├── base/                    # 基礎 Agent 類別
+│   │   └── post_mortem/            # MVP: 事後複盤 Agent
+│   │       ├── __init__.py
+│   │       ├── postmortem_orchestrator_agent.py
+│   │       ├── module.card.json
+│   │       └── tests/
+│   ├── tools/
+│   │   ├── data/                   # 數據相關工具
+│   │   │   └── health_aggregator.py (RemoteTool 包裝)
+│   │   └── reporting/              # 報告相關工具  
+│   │       └── report_generator.py (RemoteTool 包裝)
+│   └── memory/
+│       └── stores/                 # 知識存儲
+│           └── response_history_store.py
+```
 
 ---
 

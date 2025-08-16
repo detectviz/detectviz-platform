@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://detectviz.io/schemas/postmortem-request.schema.json",
+  "title": "PostMortemRequest",
+  "description": "事後複盤請求的標準契約",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "trigger_type",
+    "time_range"
+  ],
+  "properties": {
+    "incident_id": {
+      "type": "string",
+      "pattern": "^incident-[0-9]{8}-[a-z0-9]{6}$",
+      "description": "事件唯一標識符",
+      "example": "incident-20250815-a3b2c1"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "alert_resolved",
+        "scheduled",
+        "api"
+      ],
+      "description": "觸發來源"
+    },
+    "time_range": {
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "故障開始時間"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "故障結束時間"
+        }
+      }
+    },
+    "affected_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "受影響的服務列表",
+      "example": [
+        "payment-service",
+        "auth-service"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "default": "P2",
+      "description": "事件嚴重等級"
+    },
+    "requester": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "請求者 ID"
+        },
+        "team": {
+          "type": "string",
+          "description": "請求團隊"
+        }
+      }
+    },
+    "analysis_options": {
+      "type": "object",
+      "properties": {
+        "include_dependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否包含依賴服務分析"
+        },
+        "correlation_window": {
+          "type": "string",
+          "pattern": "^[0-9]+[mhd]$",
+          "default": "30m",
+          "description": "相關性分析時間窗口"
+        },
+        "generate_dashboard": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否生成 Grafana 儀表板"
+        },
+        "output_formats": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "pdf",
+              "json",
+              "confluence"
+            ]
+          },
+          "default": [
+            "markdown",
+            "json"
+          ],
+          "description": "報告輸出格式"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "額外的元數據"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+# contracts — AI 維護指南（llm.txt）
+
+此檔為 SSOT 契約維護規範。任何跨語言介面或設定變更，**必須**優先在此專案完成並驗證，其他語言/子專案僅同步對齊生成碼與相依。
+
+## 範圍
+- proto（`contracts/proto/...`）
+- JSON Schemas（`contracts/schemas/*.schema.json`）
+- 樣本與規格（`contracts/samples/`, `contracts/specs/`）
+- 生成與工具（`contracts/gen/`, `buf.yaml`, `buf.gen.yaml`, `tools/`）
+
+## 原則
+1. SSOT：proto/schema 是唯一事實來源；禁止在下游手改型別或生成碼。
+2. 相容性：避免破壞性變更；若需，請標註版本並提供遷移指南。
+3. 驗證先行：任何變更需先 `buf lint && buf generate`，並執行提供的驗證腳本（如 `make validate`、`validate_module_card.py`）。
+
+## 標準流程
+1. 規劃：描述需求與影響面（Go/Python/Docs/部署）。
+2. 編輯：修改 proto/schema/samples/specs；保持命名與枚舉一致性（見 `spec.md`）。
+3. 生成：
+```bash
+cd contracts
+buf lint && buf generate
+make validate            # 若提供
+make validate-cards      # 模組卡驗證（若提供）
+```
+4. 同步：提交後，通知下游專案更新 import/生成碼（Go `go mod tidy`、Python 相依更新）。
+5. 文檔：更新 `spec.md` 與相關 README；如有行為/欄位變更，必須在文件站更新。
+
+## 風格與命名
+- Proto package 與 go_package/python package 固定；避免漂移。
+- 枚舉與常數統一於 `spec.md`；新增前先檢視既有分類（role/category 等）。
+- 欄位命名採一致風格（snake_case），避免縮寫不明確。
+
+## 驗證清單（提交前）
+- [ ] `buf lint` 通過（無 Lint 錯誤）
+- [ ] `buf generate` 成功（生成碼更新）
+- [ ] `make validate`、`make validate-cards` 通過（如提供）
+- [ ] `gen/metadata/version.json` 更新（若有）
+- [ ] 影響面已記錄並通知下游同步
+- [ ] `spec.md`/README/文件站已更新
+
+## 破壞性變更（需審慎）
+- 必須：
+  - 明確版本升級（SemVer/DateVer）
+  - 提供遷移步驟與兼容期策略
+  - 與文件站同步發布說明
+
+## 安全與授權
+- 禁止提交真實憑證/Token；敏感參數以範例值表示。
+- Schema 樣本需避免實際機密資訊。

@@ -187,3 +187,8 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 - 移除 `observability.profiling.mode`、`profiling.endpoint/username/password` 欄位；統一 pprof（scrape）。
 - 明確化 `role`/`category` 枚舉與對齊關係，供 AI 擴增自動套用。
 - 強制以 `buf` 產生跨語言生成碼，禁止下游手動變更。
+
+---
+
+## 維護指南
+- 請參考：`contracts/llm.txt`（SSOT 契約維護規範、生成與驗證流程、提交前檢查清單）

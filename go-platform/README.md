@@ -199,3 +199,8 @@ export DETECTVIZ__OBSERVABILITY__OTLP__INSECURE=true
 go build -o ./bin/detectviz ./go-platform/cmd/detectviz
 ./bin/detectviz --config ./config.yaml --http-demo --http-demo-listen :8080
 ```
+
+---
+
+## 維護指南
+- 請參考：`go-platform/llm.txt`（AI 維護規範與提交前檢查清單）

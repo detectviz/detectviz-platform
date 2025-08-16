@@ -217,7 +217,7 @@ func TestRegistry_ConcurrentAccess(t *testing.T) {
 
 				// 註冊處理器
 				r.RegisterOrReplace(toolID, handler)
-				
+
 				// 立即查詢應該成功
 				h, ok := r.Lookup(toolID)
 				assert.True(t, ok, fmt.Sprintf("Should find handler for %s", toolID))

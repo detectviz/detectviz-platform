@@ -9,7 +9,7 @@ cd "$ROOT"
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
-# ---- 0) 先檢查必備檔案 -----------------------------------------------------
+# ---- 0. 先檢查必備檔案 -----------------------------------------------------
 req=(
   "buf.yaml"
   "buf.gen.yaml"
@@ -34,7 +34,7 @@ if [[ $missing -ne 0 ]]; then
   exit 1
 fi
 
-# ---- 1) 工具與環境檢查 -----------------------------------------------------
+# ---- 1. 工具與環境檢查 -----------------------------------------------------
 if ! have_cmd buf; then
   echo "[FAIL] 未找到 'buf' 指令，請先安裝：https://buf.build/" >&2
   exit 1
@@ -43,7 +43,7 @@ if ! have_cmd python3; then
   echo "[WARN] 未找到 'python3'，將跳過部分驗證（config/schema 與 module.card）。" >&2
 fi
 
-# ---- 2) buf lint & generate ------------------------------------------------
+# ---- 2. buf lint & generate ------------------------------------------------
 echo
 echo "== buf lint & generate =="
 buf lint
@@ -57,7 +57,7 @@ PYOUT="gen/python/detectviz/contracts/v1"
 
 echo "[OK] 生成碼產出：$GOGO, $PYOUT"
 
-# ---- 3) Schema 驗證：samples/config.yaml -----------------------------------
+# ---- 3. Schema 驗證：samples/config.yaml -----------------------------------
 echo
 echo "== validate: schemas/config.schema.json vs samples/config.yaml =="
 if have_cmd python3; then
@@ -81,7 +81,7 @@ else
   echo "[SKIP] 無 python3，略過 config.yaml 驗證"
 fi
 
-# ---- 4) Module Cards 驗證 --------------------------------------------------
+# ---- 4. Module Cards 驗證 --------------------------------------------------
 echo
 echo "== validate: module.card.json (recursive) =="
 if have_cmd python3; then
@@ -107,7 +107,7 @@ else
   echo "[SKIP] 無 python3，略過 module.card.json 驗證"
 fi
 
-# ---- 5) 總結 ----------------------------------------------------------------
+# ---- 5. 總結 ----------------------------------------------------------------
 echo
 echo "== Summary =="
 echo "contracts 目錄 lint/generate/validate 全部完成"

@@ -1,41 +1,477 @@
-# Detectviz 平台最小設定
-env: dev
+# contracts/samples/config.yaml
+# Detectviz Platform MVP Configuration
+# This is the SSOT sample configuration for MVP (Phase 3: Post-Mortem)
+
+# Environment: dev, staging, production
+env: development
+
+# ============================================
+# Core Platform Configuration
+# ============================================
+
+# gRPC Server Configuration
 grpc:
   listen: ":6606"
-  max_recv_bytes: 4194304
-  max_send_bytes: 4194304
+  max_recv_bytes: 4194304 # 4MB
+  max_send_bytes: 4194304 # 4MB
+  keepalive:
+    time: 30s
+    timeout: 10s
+  tls:
+    enabled: false
+    cert_file: ""
+    key_file: ""
+    ca_file: ""
+
+# ============================================
+# Observability Configuration
+# ============================================
+
 observability:
-  mode: lgtm_local # lgtm_local | grafana_cloud | gcp
+  # Mode: lgtm_local, grafana_cloud, gcp
+  mode: lgtm_local
+
+  # OpenTelemetry Configuration
   otlp:
-    protocol: grpc # grpc | http
-    endpoint: "127.0.0.1:4317" # 指向本機 Alloy OTLP gRPC；若使用 HTTP，改成 http://127.0.0.1:4318 並將 protocol 設為 http
+    protocol: grpc
+    endpoint: "localhost:4317"
     insecure: true
     headers: {}
+    timeout: 30s
+
+  # Logging Configuration
   logs:
-    mode: file # file | stdout | off
+    mode: file
+    level: info
+    format: text
     file:
-      path: ./var/log/detectviz/detectviz.log
-      max_size_mb: 50
+      path: "./var/log/detectviz/detectviz.log"
+      max_size_mb: 100
       max_backups: 7
-      max_age_days: 14
+      max_age_days: 30
       compress: true
+
+  # Metrics Configuration
+  metrics:
+    enabled: true
+    interval: 60s
+    histograms:
+      enabled: true
+      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  # Tracing Configuration
+  traces:
+    enabled: true
+    sampling:
+      ratio: 1.0 # 100% sampling for development
+      parent_based: true
+
+  # Profiling Configuration
   profiling:
     enabled: true
-    pprof_address: "127.0.0.1:6060" # 由 Alloy pyroscope.scrape 抓取
-    application_name: "go-platform"
+    pprof_address: "127.0.0.1:6060"
+    application_name: "detectviz-platform"
     tags:
-      service.name: "go-platform"
-      deployment.environment: "dev"
+      service.name: "detectviz-platform"
+      deployment.environment: "development"
+      version: "mvp-1.0.0"
+
+  # Resource Attributes
   resource:
-    service_name: go-platform
-    service_version: "0.1.0"
-    environment: dev
-  sampling:
-    ratio: 1.0
+    service_name: "detectviz-platform"
+    service_version: "1.0.0"
+    environment: "development"
+    attributes:
+      team: "platform"
+      component: "core"
+
+# ============================================
+# Plugin System Configuration
+# ============================================
+
 plugin:
-  paths: ["./go-platform/internal/pluginhost/plugins"]
+  paths:
+    - "./go-platform/internal/pluginhost/plugins"
+    - "./plugins" # Additional plugin directory
   registry: file
+  discovery:
+    enabled: true
+    interval: 30s
+  security:
+    sandbox: true
+    max_execution_time: 30s
+    resource_limits:
+      memory_mb: 512
+      cpu_percent: 50
+
+# ============================================
+# Memory Backend Configuration
+# ============================================
+
 memory:
-  backend: inmem
-  dsn: ""
+  backend: redis # Options: inmem, redis, postgres
   default_ttl_seconds: 3600
+
+  # Redis Configuration (for MVP)
+  redis:
+    addr: "localhost:6379"
+    password: ""
+    db: 0
+    pool_size: 10
+    min_idle_conns: 2
+    max_retries: 3
+    read_timeout: 3s
+    write_timeout: 3s
+
+  # Alternative: In-Memory (for testing)
+  inmem:
+    max_size_mb: 256
+    eviction_policy: lru
+
+# ============================================
+# MVP: Post-Mortem Configuration
+# ============================================
+
+postmortem:
+  enabled: true
+
+  # Agent Configuration
+  agent:
+    model: "gemini-2.0-flash"
+    max_execution_time: 300s
+    retry_policy:
+      max_attempts: 3
+      initial_interval: 1s
+      max_interval: 30s
+      multiplier: 2.0
+
+  # Analysis Configuration
+  analysis:
+    # Root cause analysis settings
+    root_cause:
+      enabled: true
+      auto_detect: true
+      confidence_threshold: 0.7
+      max_depth: 5
+
+    # Impact analysis settings
+    impact:
+      enabled: true
+      include_cost: false # Enable in production
+      include_regions: true
+      include_sla: true
+
+    # Timeline generation
+    timeline:
+      enabled: true
+      key_events_only: false
+      include_deployments: true
+      include_alerts: true
+      include_config_changes: true
+
+  # Report Generation
+  reporting:
+    output_dir: "./reports"
+    temp_dir: "./tmp/reports"
+
+    # Supported formats
+    formats:
+      - markdown
+      - json
+      - html
+
+    # Template configuration
+    templates:
+      dir: "./templates/reports"
+      default: "standard"
+
+    # Dashboard creation
+    dashboard:
+      enabled: true
+      auto_create: true
+      retention_days: 90
+      template: "postmortem_standard"
+
+  # Knowledge Base
+  knowledge_base:
+    enabled: true
+    auto_update: true
+    similarity_threshold: 0.8
+    max_similar_incidents: 5
+    categories:
+      - infrastructure
+      - application
+      - database
+      - network
+      - security
+      - configuration
+
+# ============================================
+# External Services Configuration
+# ============================================
+
+external_services:
+  # InfluxDB Configuration
+  influxdb:
+    enabled: true
+    url: "${INFLUXDB_URL:-http://localhost:8086}"
+    token: "${INFLUXDB_TOKEN}"
+    org: "${INFLUXDB_ORG:-detectviz}"
+    bucket: "${INFLUXDB_BUCKET:-metrics}"
+    timeout: 30s
+    retry:
+      enabled: true
+      max_attempts: 3
+    query:
+      max_points: 10000
+      default_aggregation: "mean"
+      default_window: "1m"
+
+  # Grafana Configuration
+  grafana:
+    enabled: true
+    url: "${GRAFANA_URL:-http://localhost:3000}"
+    api_key: "${GRAFANA_API_KEY}"
+    org_id: 1
+    folder_id: "" # Empty for General folder
+    dashboard:
+      auto_create: true
+      uid_prefix: "pm-"
+      tags:
+        - postmortem
+        - incident
+        - automated
+    timeout: 30s
+
+  # Slack Configuration (Optional)
+  slack:
+    enabled: false
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#incidents"
+    username: "Detectviz Bot"
+    icon_emoji: ":robot_face:"
+    notifications:
+      on_complete: true
+      on_error: true
+      include_summary: true
+
+  # PagerDuty Configuration (Optional)
+  pagerduty:
+    enabled: false
+    api_key: "${PAGERDUTY_API_KEY}"
+    integration_key: "${PAGERDUTY_INTEGRATION_KEY}"
+    auto_resolve: true
+
+# ============================================
+# Health Check Configuration
+# ============================================
+
+health:
+  enabled: true
+
+  # Liveness probe
+  liveness:
+    path: "/livez"
+    port: 8081
+    initial_delay: 10s
+    period: 30s
+    timeout: 5s
+    failure_threshold: 3
+
+  # Readiness probe
+  readiness:
+    path: "/readyz"
+    port: 8081
+    initial_delay: 20s
+    period: 10s
+    timeout: 5s
+    success_threshold: 1
+    failure_threshold: 3
+
+  # Startup probe
+  startup:
+    path: "/startupz"
+    port: 8081
+    initial_delay: 0s
+    period: 10s
+    timeout: 5s
+    failure_threshold: 30
+
+# ============================================
+# Python ADK Runtime Configuration
+# ============================================
+
+python_adk:
+  enabled: true
+
+  # gRPC Client to Go Platform
+  toolbridge:
+    address: "${DETECTVIZ_TOOLBRIDGE_ADDR:-localhost:6606}"
+    insecure: true
+    timeout: 30s
+    retry:
+      enabled: true
+      max_attempts: 3
+      backoff: exponential
+
+  # Agent Runtime
+  runtime:
+    max_workers: 10
+    task_timeout: 300s
+    memory_limit_mb: 1024
+
+  # RemoteTool Configuration
+  remote_tools:
+    health_aggregator:
+      enabled: true
+      cache_ttl: 60s
+      batch_size: 100
+
+    report_generator:
+      enabled: true
+      max_concurrent: 5
+      timeout: 60s
+
+# ============================================
+# Feature Flags (MVP)
+# ============================================
+
+features:
+  # MVP Core Features
+  postmortem_analysis: true
+  dashboard_creation: true
+  report_generation: true
+  knowledge_update: true
+
+  # Advanced Features (Future)
+  auto_remediation: false
+  predictive_analysis: false
+  cost_analysis: false
+  ml_root_cause: false
+
+  # Experimental
+  experimental:
+    parallel_analysis: false
+    streaming_updates: false
+    ai_recommendations: false
+
+# ============================================
+# Rate Limiting Configuration
+# ============================================
+
+rate_limiting:
+  enabled: true
+
+  # API rate limits
+  api:
+    requests_per_minute: 60
+    burst: 10
+
+  # Analysis rate limits
+  analysis:
+    concurrent_max: 5
+    queue_size: 100
+    timeout: 600s
+
+# ============================================
+# Security Configuration
+# ============================================
+
+security:
+  # Authentication
+  auth:
+    enabled: false # Enable in production
+    type: "jwt" # jwt, oauth2, basic
+    jwt:
+      secret: "${JWT_SECRET}"
+      issuer: "detectviz"
+      audience: "detectviz-platform"
+      expiry: 24h
+
+  # Authorization
+  authorization:
+    enabled: false # Enable in production
+    rbac:
+      enabled: false
+      policy_file: "./configs/rbac_policy.yaml"
+
+  # Encryption
+  encryption:
+    at_rest: false # Enable in production
+    in_transit: true
+    algorithm: "AES-256-GCM"
+
+# ============================================
+# Development Configuration
+# ============================================
+
+development:
+  # Debug settings
+  debug:
+    enabled: true
+    verbose: false
+    pprof: true
+    trace_requests: true
+
+  # Mock data
+  mock:
+    enabled: false
+    data_dir: "./test/mock_data"
+
+  # Hot reload
+  hot_reload:
+    enabled: false
+    watch_paths:
+      - "./configs"
+      - "./templates"
+    exclude_patterns:
+      - "*.tmp"
+      - "*.log"
+
+# ============================================
+# Deployment Configuration
+# ============================================
+
+deployment:
+  # Kubernetes specific
+  kubernetes:
+    namespace: "detectviz"
+    service_account: "detectviz-platform"
+    config_map: "detectviz-config"
+    secret: "detectviz-secret"
+
+  # Resource requirements
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+  # Scaling
+  scaling:
+    min_replicas: 1
+    max_replicas: 10
+    target_cpu_percent: 70
+    target_memory_percent: 80
+
+# ============================================
+# Maintenance Configuration
+# ============================================
+
+maintenance:
+  # Cleanup jobs
+  cleanup:
+    enabled: true
+    schedule: "0 2 * * *" # Daily at 2 AM
+    retention_days: 30
+    batch_size: 1000
+
+  # Backup
+  backup:
+    enabled: false
+    schedule: "0 3 * * *" # Daily at 3 AM
+    destination: "s3://detectviz-backups"
+    retention_days: 90
+# End of configuration

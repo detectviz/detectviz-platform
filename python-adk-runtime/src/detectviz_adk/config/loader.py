@@ -1,11 +1,11 @@
 # Configuration loader for Python ADK Runtime
 # 對齊 Detectviz SSOT：統一搜尋順序、環境變數覆蓋、Schema 驗證
 # 生效優先序（高→低）：
-#  1) 函式參數 path / CLI --config
-#  2) 環境變數 DETECTVIZ_CONFIG_FILE
-#  3) ./config.yaml（工作目錄）
-#  4) ./contracts/config.yaml（團隊覆蓋，可選）
-#  5) ./contracts/samples/config.yaml（SSOT 樣本兜底）
+#  1. 函式參數 path / CLI --config
+#  2. 環境變數 DETECTVIZ_CONFIG_FILE
+#  3. `./config.yaml`（工作目錄）
+#  4. `../contracts/config.yaml`（團隊覆蓋，可選）
+#  5. `./contracts/samples/config.yaml`（SSOT 樣本兜底）
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def load_config(path: Optional[str] = None) -> Dict[str, Any]:
     1) 解析設定檔（依優先序尋找）
     2) 套用預設值（僅補缺，不覆蓋）
     3) 環境變數覆蓋（DETECTVIZ__* 鍵位對齊 Go）
-    4) 以 contracts/schemas/config.schema.json 驗證
+    4.以 contracts/schemas/config.schema.json 驗證
     """
     resolved, tried = _resolve_config_path(path)
 
@@ -191,7 +191,7 @@ def _resolve_config_path(arg: Optional[str]) -> Tuple[Optional[Path], List[str]]
         if cand.exists() and cand.is_file():
             return cand, tried
 
-    # 4) ./contracts/config.yaml
+    # 4../contracts/config.yaml
     for cand in (Path("./contracts/config.yaml"), Path("contracts/config.yaml")):
         tried.append(str(cand))
         if cand.exists() and cand.is_file():
