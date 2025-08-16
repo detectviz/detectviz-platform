@@ -1,10 +1,11 @@
 {
   "specVersion": "1.1.0",
-  "name": "detectviz.plugins.http_request_gateway",
+  "kind": "plugin",
+  "id": "detectviz.plugins.http_request_gateway",
   "version": "0.1.0",
+  "responsibility": "Provides a secure gateway to make HTTP requests as a remote tool.",
   "language": "go",
   "entrypoint": "./internal/pluginhost/plugins/capability.gateway/http_request/plugin.go",
-  "role": "plugin.gateway",
   "category": "gateway",
   "contracts": {
     "min_proto": "0.1.0"

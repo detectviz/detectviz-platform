@@ -26,19 +26,19 @@ message VersionContext {
   string api_version = 3;
 }
 
-message HealthCheckRequest {}
+message HealthzRequest {}
 
-message HealthCheckResponse {
+message HealthzResponse {
   enum ServingStatus {
-    UNKNOWN = 0;
-    SERVING = 1;
-    NOT_SERVING = 2;
+    SERVING_STATUS_UNSPECIFIED = 0;
+    SERVING_STATUS_SERVING = 1;
+    SERVING_STATUS_NOT_SERVING = 2;
   }
   ServingStatus status = 1;
   string version = 2;
 }
 
-message ToolInvokeRequest {
+message InvokeRequest {
   string tool_id = 1;
   string tool_version = 2;
   google.protobuf.Struct payload = 3;
@@ -50,15 +50,28 @@ message ToolInvokeRequest {
   VersionContext version = 8;
 }
 
-message ToolInvokeReply {
+message InvokeResponse {
   google.protobuf.Struct result = 1;
   google.rpc.Status status = 2;
   ToolExecutionMeta exec_meta = 3;
 }
 
-message ToolChunk {
+message InvokeStreamRequest {
+  string tool_id = 1;
+  string tool_version = 2;
+  google.protobuf.Struct payload = 3;
+  uint32 timeout_ms = 4;
+  map<string, string> metadata = 5;
+
+  TenantContext tenant = 6;
+  TraceContext  trace  = 7;
+  VersionContext version = 8;
+}
+
+message InvokeStreamResponse {
   google.protobuf.Struct chunk = 1;
 }
+
 
 message ToolExecutionMeta {
   uint32 attempt = 1;
@@ -68,8 +81,8 @@ message ToolExecutionMeta {
   google.protobuf.Timestamp finished_at = 5;
 }
 
-service ToolBridge {
-  rpc Invoke(ToolInvokeRequest) returns (ToolInvokeReply);
-  rpc InvokeStream(ToolInvokeRequest) returns (stream ToolChunk);
-  rpc Healthz(HealthCheckRequest) returns (HealthCheckResponse);
+service ToolBridgeService {
+  rpc Invoke(InvokeRequest) returns (InvokeResponse);
+  rpc InvokeStream(InvokeStreamRequest) returns (stream InvokeStreamResponse);
+  rpc Healthz(HealthzRequest) returns (HealthzResponse);
 }

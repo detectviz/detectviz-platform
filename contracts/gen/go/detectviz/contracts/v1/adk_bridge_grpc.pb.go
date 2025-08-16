@@ -19,45 +19,45 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ToolBridge_Invoke_FullMethodName       = "/detectviz.contracts.v1.ToolBridge/Invoke"
-	ToolBridge_InvokeStream_FullMethodName = "/detectviz.contracts.v1.ToolBridge/InvokeStream"
-	ToolBridge_Healthz_FullMethodName      = "/detectviz.contracts.v1.ToolBridge/Healthz"
+	ToolBridgeService_Invoke_FullMethodName       = "/detectviz.contracts.v1.ToolBridgeService/Invoke"
+	ToolBridgeService_InvokeStream_FullMethodName = "/detectviz.contracts.v1.ToolBridgeService/InvokeStream"
+	ToolBridgeService_Healthz_FullMethodName      = "/detectviz.contracts.v1.ToolBridgeService/Healthz"
 )
 
-// ToolBridgeClient is the client API for ToolBridge service.
+// ToolBridgeServiceClient is the client API for ToolBridgeService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ToolBridgeClient interface {
-	Invoke(ctx context.Context, in *ToolInvokeRequest, opts ...grpc.CallOption) (*ToolInvokeReply, error)
-	InvokeStream(ctx context.Context, in *ToolInvokeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ToolChunk], error)
-	Healthz(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
+type ToolBridgeServiceClient interface {
+	Invoke(ctx context.Context, in *InvokeRequest, opts ...grpc.CallOption) (*InvokeResponse, error)
+	InvokeStream(ctx context.Context, in *InvokeStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvokeStreamResponse], error)
+	Healthz(ctx context.Context, in *HealthzRequest, opts ...grpc.CallOption) (*HealthzResponse, error)
 }
 
-type toolBridgeClient struct {
+type toolBridgeServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewToolBridgeClient(cc grpc.ClientConnInterface) ToolBridgeClient {
-	return &toolBridgeClient{cc}
+func NewToolBridgeServiceClient(cc grpc.ClientConnInterface) ToolBridgeServiceClient {
+	return &toolBridgeServiceClient{cc}
 }
 
-func (c *toolBridgeClient) Invoke(ctx context.Context, in *ToolInvokeRequest, opts ...grpc.CallOption) (*ToolInvokeReply, error) {
+func (c *toolBridgeServiceClient) Invoke(ctx context.Context, in *InvokeRequest, opts ...grpc.CallOption) (*InvokeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ToolInvokeReply)
-	err := c.cc.Invoke(ctx, ToolBridge_Invoke_FullMethodName, in, out, cOpts...)
+	out := new(InvokeResponse)
+	err := c.cc.Invoke(ctx, ToolBridgeService_Invoke_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *toolBridgeClient) InvokeStream(ctx context.Context, in *ToolInvokeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ToolChunk], error) {
+func (c *toolBridgeServiceClient) InvokeStream(ctx context.Context, in *InvokeStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvokeStreamResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ToolBridge_ServiceDesc.Streams[0], ToolBridge_InvokeStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ToolBridgeService_ServiceDesc.Streams[0], ToolBridgeService_InvokeStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ToolInvokeRequest, ToolChunk]{ClientStream: stream}
+	x := &grpc.GenericClientStream[InvokeStreamRequest, InvokeStreamResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -68,132 +68,132 @@ func (c *toolBridgeClient) InvokeStream(ctx context.Context, in *ToolInvokeReque
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ToolBridge_InvokeStreamClient = grpc.ServerStreamingClient[ToolChunk]
+type ToolBridgeService_InvokeStreamClient = grpc.ServerStreamingClient[InvokeStreamResponse]
 
-func (c *toolBridgeClient) Healthz(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
+func (c *toolBridgeServiceClient) Healthz(ctx context.Context, in *HealthzRequest, opts ...grpc.CallOption) (*HealthzResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HealthCheckResponse)
-	err := c.cc.Invoke(ctx, ToolBridge_Healthz_FullMethodName, in, out, cOpts...)
+	out := new(HealthzResponse)
+	err := c.cc.Invoke(ctx, ToolBridgeService_Healthz_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ToolBridgeServer is the server API for ToolBridge service.
-// All implementations must embed UnimplementedToolBridgeServer
+// ToolBridgeServiceServer is the server API for ToolBridgeService service.
+// All implementations must embed UnimplementedToolBridgeServiceServer
 // for forward compatibility.
-type ToolBridgeServer interface {
-	Invoke(context.Context, *ToolInvokeRequest) (*ToolInvokeReply, error)
-	InvokeStream(*ToolInvokeRequest, grpc.ServerStreamingServer[ToolChunk]) error
-	Healthz(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
-	mustEmbedUnimplementedToolBridgeServer()
+type ToolBridgeServiceServer interface {
+	Invoke(context.Context, *InvokeRequest) (*InvokeResponse, error)
+	InvokeStream(*InvokeStreamRequest, grpc.ServerStreamingServer[InvokeStreamResponse]) error
+	Healthz(context.Context, *HealthzRequest) (*HealthzResponse, error)
+	mustEmbedUnimplementedToolBridgeServiceServer()
 }
 
-// UnimplementedToolBridgeServer must be embedded to have
+// UnimplementedToolBridgeServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedToolBridgeServer struct{}
+type UnimplementedToolBridgeServiceServer struct{}
 
-func (UnimplementedToolBridgeServer) Invoke(context.Context, *ToolInvokeRequest) (*ToolInvokeReply, error) {
+func (UnimplementedToolBridgeServiceServer) Invoke(context.Context, *InvokeRequest) (*InvokeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Invoke not implemented")
 }
-func (UnimplementedToolBridgeServer) InvokeStream(*ToolInvokeRequest, grpc.ServerStreamingServer[ToolChunk]) error {
+func (UnimplementedToolBridgeServiceServer) InvokeStream(*InvokeStreamRequest, grpc.ServerStreamingServer[InvokeStreamResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method InvokeStream not implemented")
 }
-func (UnimplementedToolBridgeServer) Healthz(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
+func (UnimplementedToolBridgeServiceServer) Healthz(context.Context, *HealthzRequest) (*HealthzResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Healthz not implemented")
 }
-func (UnimplementedToolBridgeServer) mustEmbedUnimplementedToolBridgeServer() {}
-func (UnimplementedToolBridgeServer) testEmbeddedByValue()                    {}
+func (UnimplementedToolBridgeServiceServer) mustEmbedUnimplementedToolBridgeServiceServer() {}
+func (UnimplementedToolBridgeServiceServer) testEmbeddedByValue()                           {}
 
-// UnsafeToolBridgeServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ToolBridgeServer will
+// UnsafeToolBridgeServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ToolBridgeServiceServer will
 // result in compilation errors.
-type UnsafeToolBridgeServer interface {
-	mustEmbedUnimplementedToolBridgeServer()
+type UnsafeToolBridgeServiceServer interface {
+	mustEmbedUnimplementedToolBridgeServiceServer()
 }
 
-func RegisterToolBridgeServer(s grpc.ServiceRegistrar, srv ToolBridgeServer) {
-	// If the following call pancis, it indicates UnimplementedToolBridgeServer was
+func RegisterToolBridgeServiceServer(s grpc.ServiceRegistrar, srv ToolBridgeServiceServer) {
+	// If the following call pancis, it indicates UnimplementedToolBridgeServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ToolBridge_ServiceDesc, srv)
+	s.RegisterService(&ToolBridgeService_ServiceDesc, srv)
 }
 
-func _ToolBridge_Invoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ToolInvokeRequest)
+func _ToolBridgeService_Invoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InvokeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ToolBridgeServer).Invoke(ctx, in)
+		return srv.(ToolBridgeServiceServer).Invoke(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ToolBridge_Invoke_FullMethodName,
+		FullMethod: ToolBridgeService_Invoke_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ToolBridgeServer).Invoke(ctx, req.(*ToolInvokeRequest))
+		return srv.(ToolBridgeServiceServer).Invoke(ctx, req.(*InvokeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ToolBridge_InvokeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ToolInvokeRequest)
+func _ToolBridgeService_InvokeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InvokeStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ToolBridgeServer).InvokeStream(m, &grpc.GenericServerStream[ToolInvokeRequest, ToolChunk]{ServerStream: stream})
+	return srv.(ToolBridgeServiceServer).InvokeStream(m, &grpc.GenericServerStream[InvokeStreamRequest, InvokeStreamResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ToolBridge_InvokeStreamServer = grpc.ServerStreamingServer[ToolChunk]
+type ToolBridgeService_InvokeStreamServer = grpc.ServerStreamingServer[InvokeStreamResponse]
 
-func _ToolBridge_Healthz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HealthCheckRequest)
+func _ToolBridgeService_Healthz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HealthzRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ToolBridgeServer).Healthz(ctx, in)
+		return srv.(ToolBridgeServiceServer).Healthz(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ToolBridge_Healthz_FullMethodName,
+		FullMethod: ToolBridgeService_Healthz_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ToolBridgeServer).Healthz(ctx, req.(*HealthCheckRequest))
+		return srv.(ToolBridgeServiceServer).Healthz(ctx, req.(*HealthzRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ToolBridge_ServiceDesc is the grpc.ServiceDesc for ToolBridge service.
+// ToolBridgeService_ServiceDesc is the grpc.ServiceDesc for ToolBridgeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ToolBridge_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "detectviz.contracts.v1.ToolBridge",
-	HandlerType: (*ToolBridgeServer)(nil),
+var ToolBridgeService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "detectviz.contracts.v1.ToolBridgeService",
+	HandlerType: (*ToolBridgeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Invoke",
-			Handler:    _ToolBridge_Invoke_Handler,
+			Handler:    _ToolBridgeService_Invoke_Handler,
 		},
 		{
 			MethodName: "Healthz",
-			Handler:    _ToolBridge_Healthz_Handler,
+			Handler:    _ToolBridgeService_Healthz_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "InvokeStream",
-			Handler:       _ToolBridge_InvokeStream_Handler,
+			Handler:       _ToolBridgeService_InvokeStream_Handler,
 			ServerStreams: true,
 		},
 	},

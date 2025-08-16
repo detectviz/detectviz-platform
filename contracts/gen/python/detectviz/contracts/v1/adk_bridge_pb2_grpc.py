@@ -5,7 +5,7 @@ import grpc
 from detectviz.contracts.v1 import adk_bridge_pb2 as detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2
 
 
-class ToolBridgeStub(object):
+class ToolBridgeServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -15,23 +15,23 @@ class ToolBridgeStub(object):
             channel: A grpc.Channel.
         """
         self.Invoke = channel.unary_unary(
-                '/detectviz.contracts.v1.ToolBridge/Invoke',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeReply.FromString,
+                '/detectviz.contracts.v1.ToolBridgeService/Invoke',
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeResponse.FromString,
                 _registered_method=True)
         self.InvokeStream = channel.unary_stream(
-                '/detectviz.contracts.v1.ToolBridge/InvokeStream',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolChunk.FromString,
+                '/detectviz.contracts.v1.ToolBridgeService/InvokeStream',
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeStreamRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeStreamResponse.FromString,
                 _registered_method=True)
         self.Healthz = channel.unary_unary(
-                '/detectviz.contracts.v1.ToolBridge/Healthz',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthCheckRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthCheckResponse.FromString,
+                '/detectviz.contracts.v1.ToolBridgeService/Healthz',
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthzRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthzResponse.FromString,
                 _registered_method=True)
 
 
-class ToolBridgeServicer(object):
+class ToolBridgeServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Invoke(self, request, context):
@@ -53,32 +53,32 @@ class ToolBridgeServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_ToolBridgeServicer_to_server(servicer, server):
+def add_ToolBridgeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Invoke': grpc.unary_unary_rpc_method_handler(
                     servicer.Invoke,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeReply.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeResponse.SerializeToString,
             ),
             'InvokeStream': grpc.unary_stream_rpc_method_handler(
                     servicer.InvokeStream,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolChunk.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeStreamRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeStreamResponse.SerializeToString,
             ),
             'Healthz': grpc.unary_unary_rpc_method_handler(
                     servicer.Healthz,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthCheckRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthCheckResponse.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthzRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthzResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'detectviz.contracts.v1.ToolBridge', rpc_method_handlers)
+            'detectviz.contracts.v1.ToolBridgeService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('detectviz.contracts.v1.ToolBridge', rpc_method_handlers)
+    server.add_registered_method_handlers('detectviz.contracts.v1.ToolBridgeService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class ToolBridge(object):
+class ToolBridgeService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -95,9 +95,9 @@ class ToolBridge(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/detectviz.contracts.v1.ToolBridge/Invoke',
-            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeReply.FromString,
+            '/detectviz.contracts.v1.ToolBridgeService/Invoke',
+            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -122,9 +122,9 @@ class ToolBridge(object):
         return grpc.experimental.unary_stream(
             request,
             target,
-            '/detectviz.contracts.v1.ToolBridge/InvokeStream',
-            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolInvokeRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.ToolChunk.FromString,
+            '/detectviz.contracts.v1.ToolBridgeService/InvokeStream',
+            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeStreamRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.InvokeStreamResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -149,9 +149,9 @@ class ToolBridge(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/detectviz.contracts.v1.ToolBridge/Healthz',
-            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthCheckRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthCheckResponse.FromString,
+            '/detectviz.contracts.v1.ToolBridgeService/Healthz',
+            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthzRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_adk__bridge__pb2.HealthzResponse.FromString,
             options,
             channel_credentials,
             insecure,

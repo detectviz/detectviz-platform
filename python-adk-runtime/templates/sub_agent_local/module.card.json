@@ -9,6 +9,17 @@
     "google-adk>=0.0.0"
   ],
   "observability": {
-    "logs_required": true
+    "logs_required": true,
+    "spans": [
+      "agent.run"
+    ]
+  },
+  "a2a": {
+    "concurrency_limit": 1,
+    "timeouts_ms": {
+      "tool": 2000,
+      "task": 8000,
+      "total": 12000
+    }
   }
 }

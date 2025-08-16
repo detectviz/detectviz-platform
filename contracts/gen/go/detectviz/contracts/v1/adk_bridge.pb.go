@@ -24,52 +24,52 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type HealthCheckResponse_ServingStatus int32
+type HealthzResponse_ServingStatus int32
 
 const (
-	HealthCheckResponse_UNKNOWN     HealthCheckResponse_ServingStatus = 0
-	HealthCheckResponse_SERVING     HealthCheckResponse_ServingStatus = 1
-	HealthCheckResponse_NOT_SERVING HealthCheckResponse_ServingStatus = 2
+	HealthzResponse_SERVING_STATUS_UNSPECIFIED HealthzResponse_ServingStatus = 0
+	HealthzResponse_SERVING_STATUS_SERVING     HealthzResponse_ServingStatus = 1
+	HealthzResponse_SERVING_STATUS_NOT_SERVING HealthzResponse_ServingStatus = 2
 )
 
-// Enum value maps for HealthCheckResponse_ServingStatus.
+// Enum value maps for HealthzResponse_ServingStatus.
 var (
-	HealthCheckResponse_ServingStatus_name = map[int32]string{
-		0: "UNKNOWN",
-		1: "SERVING",
-		2: "NOT_SERVING",
+	HealthzResponse_ServingStatus_name = map[int32]string{
+		0: "SERVING_STATUS_UNSPECIFIED",
+		1: "SERVING_STATUS_SERVING",
+		2: "SERVING_STATUS_NOT_SERVING",
 	}
-	HealthCheckResponse_ServingStatus_value = map[string]int32{
-		"UNKNOWN":     0,
-		"SERVING":     1,
-		"NOT_SERVING": 2,
+	HealthzResponse_ServingStatus_value = map[string]int32{
+		"SERVING_STATUS_UNSPECIFIED": 0,
+		"SERVING_STATUS_SERVING":     1,
+		"SERVING_STATUS_NOT_SERVING": 2,
 	}
 )
 
-func (x HealthCheckResponse_ServingStatus) Enum() *HealthCheckResponse_ServingStatus {
-	p := new(HealthCheckResponse_ServingStatus)
+func (x HealthzResponse_ServingStatus) Enum() *HealthzResponse_ServingStatus {
+	p := new(HealthzResponse_ServingStatus)
 	*p = x
 	return p
 }
 
-func (x HealthCheckResponse_ServingStatus) String() string {
+func (x HealthzResponse_ServingStatus) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (HealthCheckResponse_ServingStatus) Descriptor() protoreflect.EnumDescriptor {
+func (HealthzResponse_ServingStatus) Descriptor() protoreflect.EnumDescriptor {
 	return file_detectviz_contracts_v1_adk_bridge_proto_enumTypes[0].Descriptor()
 }
 
-func (HealthCheckResponse_ServingStatus) Type() protoreflect.EnumType {
+func (HealthzResponse_ServingStatus) Type() protoreflect.EnumType {
 	return &file_detectviz_contracts_v1_adk_bridge_proto_enumTypes[0]
 }
 
-func (x HealthCheckResponse_ServingStatus) Number() protoreflect.EnumNumber {
+func (x HealthzResponse_ServingStatus) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use HealthCheckResponse_ServingStatus.Descriptor instead.
-func (HealthCheckResponse_ServingStatus) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use HealthzResponse_ServingStatus.Descriptor instead.
+func (HealthzResponse_ServingStatus) EnumDescriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{4, 0}
 }
 
@@ -261,26 +261,26 @@ func (x *VersionContext) GetApiVersion() string {
 	return ""
 }
 
-type HealthCheckRequest struct {
+type HealthzRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HealthCheckRequest) Reset() {
-	*x = HealthCheckRequest{}
+func (x *HealthzRequest) Reset() {
+	*x = HealthzRequest{}
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HealthCheckRequest) String() string {
+func (x *HealthzRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HealthCheckRequest) ProtoMessage() {}
+func (*HealthzRequest) ProtoMessage() {}
 
-func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
+func (x *HealthzRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -292,33 +292,33 @@ func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HealthCheckRequest.ProtoReflect.Descriptor instead.
-func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use HealthzRequest.ProtoReflect.Descriptor instead.
+func (*HealthzRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{3}
 }
 
-type HealthCheckResponse struct {
-	state         protoimpl.MessageState            `protogen:"open.v1"`
-	Status        HealthCheckResponse_ServingStatus `protobuf:"varint,1,opt,name=status,proto3,enum=detectviz.contracts.v1.HealthCheckResponse_ServingStatus" json:"status,omitempty"`
-	Version       string                            `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+type HealthzResponse struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Status        HealthzResponse_ServingStatus `protobuf:"varint,1,opt,name=status,proto3,enum=detectviz.contracts.v1.HealthzResponse_ServingStatus" json:"status,omitempty"`
+	Version       string                        `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HealthCheckResponse) Reset() {
-	*x = HealthCheckResponse{}
+func (x *HealthzResponse) Reset() {
+	*x = HealthzResponse{}
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HealthCheckResponse) String() string {
+func (x *HealthzResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HealthCheckResponse) ProtoMessage() {}
+func (*HealthzResponse) ProtoMessage() {}
 
-func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
+func (x *HealthzResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -330,26 +330,26 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
-func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use HealthzResponse.ProtoReflect.Descriptor instead.
+func (*HealthzResponse) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *HealthCheckResponse) GetStatus() HealthCheckResponse_ServingStatus {
+func (x *HealthzResponse) GetStatus() HealthzResponse_ServingStatus {
 	if x != nil {
 		return x.Status
 	}
-	return HealthCheckResponse_UNKNOWN
+	return HealthzResponse_SERVING_STATUS_UNSPECIFIED
 }
 
-func (x *HealthCheckResponse) GetVersion() string {
+func (x *HealthzResponse) GetVersion() string {
 	if x != nil {
 		return x.Version
 	}
 	return ""
 }
 
-type ToolInvokeRequest struct {
+type InvokeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ToolId        string                 `protobuf:"bytes,1,opt,name=tool_id,json=toolId,proto3" json:"tool_id,omitempty"`
 	ToolVersion   string                 `protobuf:"bytes,2,opt,name=tool_version,json=toolVersion,proto3" json:"tool_version,omitempty"`
@@ -363,20 +363,20 @@ type ToolInvokeRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ToolInvokeRequest) Reset() {
-	*x = ToolInvokeRequest{}
+func (x *InvokeRequest) Reset() {
+	*x = InvokeRequest{}
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ToolInvokeRequest) String() string {
+func (x *InvokeRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ToolInvokeRequest) ProtoMessage() {}
+func (*InvokeRequest) ProtoMessage() {}
 
-func (x *ToolInvokeRequest) ProtoReflect() protoreflect.Message {
+func (x *InvokeRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -388,68 +388,68 @@ func (x *ToolInvokeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ToolInvokeRequest.ProtoReflect.Descriptor instead.
-func (*ToolInvokeRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use InvokeRequest.ProtoReflect.Descriptor instead.
+func (*InvokeRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ToolInvokeRequest) GetToolId() string {
+func (x *InvokeRequest) GetToolId() string {
 	if x != nil {
 		return x.ToolId
 	}
 	return ""
 }
 
-func (x *ToolInvokeRequest) GetToolVersion() string {
+func (x *InvokeRequest) GetToolVersion() string {
 	if x != nil {
 		return x.ToolVersion
 	}
 	return ""
 }
 
-func (x *ToolInvokeRequest) GetPayload() *structpb.Struct {
+func (x *InvokeRequest) GetPayload() *structpb.Struct {
 	if x != nil {
 		return x.Payload
 	}
 	return nil
 }
 
-func (x *ToolInvokeRequest) GetTimeoutMs() uint32 {
+func (x *InvokeRequest) GetTimeoutMs() uint32 {
 	if x != nil {
 		return x.TimeoutMs
 	}
 	return 0
 }
 
-func (x *ToolInvokeRequest) GetMetadata() map[string]string {
+func (x *InvokeRequest) GetMetadata() map[string]string {
 	if x != nil {
 		return x.Metadata
 	}
 	return nil
 }
 
-func (x *ToolInvokeRequest) GetTenant() *TenantContext {
+func (x *InvokeRequest) GetTenant() *TenantContext {
 	if x != nil {
 		return x.Tenant
 	}
 	return nil
 }
 
-func (x *ToolInvokeRequest) GetTrace() *TraceContext {
+func (x *InvokeRequest) GetTrace() *TraceContext {
 	if x != nil {
 		return x.Trace
 	}
 	return nil
 }
 
-func (x *ToolInvokeRequest) GetVersion() *VersionContext {
+func (x *InvokeRequest) GetVersion() *VersionContext {
 	if x != nil {
 		return x.Version
 	}
 	return nil
 }
 
-type ToolInvokeReply struct {
+type InvokeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *structpb.Struct       `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	Status        *status.Status         `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
@@ -458,20 +458,20 @@ type ToolInvokeReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ToolInvokeReply) Reset() {
-	*x = ToolInvokeReply{}
+func (x *InvokeResponse) Reset() {
+	*x = InvokeResponse{}
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ToolInvokeReply) String() string {
+func (x *InvokeResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ToolInvokeReply) ProtoMessage() {}
+func (*InvokeResponse) ProtoMessage() {}
 
-func (x *ToolInvokeReply) ProtoReflect() protoreflect.Message {
+func (x *InvokeResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -483,53 +483,60 @@ func (x *ToolInvokeReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ToolInvokeReply.ProtoReflect.Descriptor instead.
-func (*ToolInvokeReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use InvokeResponse.ProtoReflect.Descriptor instead.
+func (*InvokeResponse) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ToolInvokeReply) GetResult() *structpb.Struct {
+func (x *InvokeResponse) GetResult() *structpb.Struct {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *ToolInvokeReply) GetStatus() *status.Status {
+func (x *InvokeResponse) GetStatus() *status.Status {
 	if x != nil {
 		return x.Status
 	}
 	return nil
 }
 
-func (x *ToolInvokeReply) GetExecMeta() *ToolExecutionMeta {
+func (x *InvokeResponse) GetExecMeta() *ToolExecutionMeta {
 	if x != nil {
 		return x.ExecMeta
 	}
 	return nil
 }
 
-type ToolChunk struct {
+type InvokeStreamRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Chunk         *structpb.Struct       `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
+	ToolId        string                 `protobuf:"bytes,1,opt,name=tool_id,json=toolId,proto3" json:"tool_id,omitempty"`
+	ToolVersion   string                 `protobuf:"bytes,2,opt,name=tool_version,json=toolVersion,proto3" json:"tool_version,omitempty"`
+	Payload       *structpb.Struct       `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	TimeoutMs     uint32                 `protobuf:"varint,4,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	Metadata      map[string]string      `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Tenant        *TenantContext         `protobuf:"bytes,6,opt,name=tenant,proto3" json:"tenant,omitempty"`
+	Trace         *TraceContext          `protobuf:"bytes,7,opt,name=trace,proto3" json:"trace,omitempty"`
+	Version       *VersionContext        `protobuf:"bytes,8,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ToolChunk) Reset() {
-	*x = ToolChunk{}
+func (x *InvokeStreamRequest) Reset() {
+	*x = InvokeStreamRequest{}
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ToolChunk) String() string {
+func (x *InvokeStreamRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ToolChunk) ProtoMessage() {}
+func (*InvokeStreamRequest) ProtoMessage() {}
 
-func (x *ToolChunk) ProtoReflect() protoreflect.Message {
+func (x *InvokeStreamRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -541,12 +548,105 @@ func (x *ToolChunk) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ToolChunk.ProtoReflect.Descriptor instead.
-func (*ToolChunk) Descriptor() ([]byte, []int) {
+// Deprecated: Use InvokeStreamRequest.ProtoReflect.Descriptor instead.
+func (*InvokeStreamRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ToolChunk) GetChunk() *structpb.Struct {
+func (x *InvokeStreamRequest) GetToolId() string {
+	if x != nil {
+		return x.ToolId
+	}
+	return ""
+}
+
+func (x *InvokeStreamRequest) GetToolVersion() string {
+	if x != nil {
+		return x.ToolVersion
+	}
+	return ""
+}
+
+func (x *InvokeStreamRequest) GetPayload() *structpb.Struct {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *InvokeStreamRequest) GetTimeoutMs() uint32 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
+func (x *InvokeStreamRequest) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *InvokeStreamRequest) GetTenant() *TenantContext {
+	if x != nil {
+		return x.Tenant
+	}
+	return nil
+}
+
+func (x *InvokeStreamRequest) GetTrace() *TraceContext {
+	if x != nil {
+		return x.Trace
+	}
+	return nil
+}
+
+func (x *InvokeStreamRequest) GetVersion() *VersionContext {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
+type InvokeStreamResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Chunk         *structpb.Struct       `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvokeStreamResponse) Reset() {
+	*x = InvokeStreamResponse{}
+	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvokeStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvokeStreamResponse) ProtoMessage() {}
+
+func (x *InvokeStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvokeStreamResponse.ProtoReflect.Descriptor instead.
+func (*InvokeStreamResponse) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *InvokeStreamResponse) GetChunk() *structpb.Struct {
 	if x != nil {
 		return x.Chunk
 	}
@@ -566,7 +666,7 @@ type ToolExecutionMeta struct {
 
 func (x *ToolExecutionMeta) Reset() {
 	*x = ToolExecutionMeta{}
-	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[8]
+	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -578,7 +678,7 @@ func (x *ToolExecutionMeta) String() string {
 func (*ToolExecutionMeta) ProtoMessage() {}
 
 func (x *ToolExecutionMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[8]
+	mi := &file_detectviz_contracts_v1_adk_bridge_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -591,7 +691,7 @@ func (x *ToolExecutionMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolExecutionMeta.ProtoReflect.Descriptor instead.
 func (*ToolExecutionMeta) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{8}
+	return file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ToolExecutionMeta) GetAttempt() uint32 {
@@ -648,33 +748,46 @@ const file_detectviz_contracts_v1_adk_bridge_proto_rawDesc = "" +
 	"\x10platform_version\x18\x01 \x01(\tR\x0fplatformVersion\x12'\n" +
 	"\x0fruntime_version\x18\x02 \x01(\tR\x0eruntimeVersion\x12\x1f\n" +
 	"\vapi_version\x18\x03 \x01(\tR\n" +
-	"apiVersion\"\x14\n" +
-	"\x12HealthCheckRequest\"\xbe\x01\n" +
-	"\x13HealthCheckResponse\x12Q\n" +
-	"\x06status\x18\x01 \x01(\x0e29.detectviz.contracts.v1.HealthCheckResponse.ServingStatusR\x06status\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\":\n" +
-	"\rServingStatus\x12\v\n" +
-	"\aUNKNOWN\x10\x00\x12\v\n" +
-	"\aSERVING\x10\x01\x12\x0f\n" +
-	"\vNOT_SERVING\x10\x02\"\xf0\x03\n" +
-	"\x11ToolInvokeRequest\x12\x17\n" +
+	"apiVersion\"\x10\n" +
+	"\x0eHealthzRequest\"\xe7\x01\n" +
+	"\x0fHealthzResponse\x12M\n" +
+	"\x06status\x18\x01 \x01(\x0e25.detectviz.contracts.v1.HealthzResponse.ServingStatusR\x06status\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\"k\n" +
+	"\rServingStatus\x12\x1e\n" +
+	"\x1aSERVING_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16SERVING_STATUS_SERVING\x10\x01\x12\x1e\n" +
+	"\x1aSERVING_STATUS_NOT_SERVING\x10\x02\"\xe8\x03\n" +
+	"\rInvokeRequest\x12\x17\n" +
 	"\atool_id\x18\x01 \x01(\tR\x06toolId\x12!\n" +
 	"\ftool_version\x18\x02 \x01(\tR\vtoolVersion\x121\n" +
 	"\apayload\x18\x03 \x01(\v2\x17.google.protobuf.StructR\apayload\x12\x1d\n" +
 	"\n" +
-	"timeout_ms\x18\x04 \x01(\rR\ttimeoutMs\x12S\n" +
-	"\bmetadata\x18\x05 \x03(\v27.detectviz.contracts.v1.ToolInvokeRequest.MetadataEntryR\bmetadata\x12=\n" +
+	"timeout_ms\x18\x04 \x01(\rR\ttimeoutMs\x12O\n" +
+	"\bmetadata\x18\x05 \x03(\v23.detectviz.contracts.v1.InvokeRequest.MetadataEntryR\bmetadata\x12=\n" +
 	"\x06tenant\x18\x06 \x01(\v2%.detectviz.contracts.v1.TenantContextR\x06tenant\x12:\n" +
 	"\x05trace\x18\a \x01(\v2$.detectviz.contracts.v1.TraceContextR\x05trace\x12@\n" +
 	"\aversion\x18\b \x01(\v2&.detectviz.contracts.v1.VersionContextR\aversion\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb6\x01\n" +
-	"\x0fToolInvokeReply\x12/\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb5\x01\n" +
+	"\x0eInvokeResponse\x12/\n" +
 	"\x06result\x18\x01 \x01(\v2\x17.google.protobuf.StructR\x06result\x12*\n" +
 	"\x06status\x18\x02 \x01(\v2\x12.google.rpc.StatusR\x06status\x12F\n" +
-	"\texec_meta\x18\x03 \x01(\v2).detectviz.contracts.v1.ToolExecutionMetaR\bexecMeta\":\n" +
-	"\tToolChunk\x12-\n" +
+	"\texec_meta\x18\x03 \x01(\v2).detectviz.contracts.v1.ToolExecutionMetaR\bexecMeta\"\xf4\x03\n" +
+	"\x13InvokeStreamRequest\x12\x17\n" +
+	"\atool_id\x18\x01 \x01(\tR\x06toolId\x12!\n" +
+	"\ftool_version\x18\x02 \x01(\tR\vtoolVersion\x121\n" +
+	"\apayload\x18\x03 \x01(\v2\x17.google.protobuf.StructR\apayload\x12\x1d\n" +
+	"\n" +
+	"timeout_ms\x18\x04 \x01(\rR\ttimeoutMs\x12U\n" +
+	"\bmetadata\x18\x05 \x03(\v29.detectviz.contracts.v1.InvokeStreamRequest.MetadataEntryR\bmetadata\x12=\n" +
+	"\x06tenant\x18\x06 \x01(\v2%.detectviz.contracts.v1.TenantContextR\x06tenant\x12:\n" +
+	"\x05trace\x18\a \x01(\v2$.detectviz.contracts.v1.TraceContextR\x05trace\x12@\n" +
+	"\aversion\x18\b \x01(\v2&.detectviz.contracts.v1.VersionContextR\aversion\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"E\n" +
+	"\x14InvokeStreamResponse\x12-\n" +
 	"\x05chunk\x18\x01 \x01(\v2\x17.google.protobuf.StructR\x05chunk\"\xc3\x01\n" +
 	"\x11ToolExecutionMeta\x12\x18\n" +
 	"\aattempt\x18\x01 \x01(\rR\aattempt\x12\x1f\n" +
@@ -683,12 +796,11 @@ const file_detectviz_contracts_v1_adk_bridge_proto_rawDesc = "" +
 	"\tplugin_id\x18\x03 \x01(\tR\bpluginId\x12\x19\n" +
 	"\broute_id\x18\x04 \x01(\tR\arouteId\x12;\n" +
 	"\vfinished_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"finishedAt2\xae\x02\n" +
-	"\n" +
-	"ToolBridge\x12\\\n" +
-	"\x06Invoke\x12).detectviz.contracts.v1.ToolInvokeRequest\x1a'.detectviz.contracts.v1.ToolInvokeReply\x12^\n" +
-	"\fInvokeStream\x12).detectviz.contracts.v1.ToolInvokeRequest\x1a!.detectviz.contracts.v1.ToolChunk0\x01\x12b\n" +
-	"\aHealthz\x12*.detectviz.contracts.v1.HealthCheckRequest\x1a+.detectviz.contracts.v1.HealthCheckResponseB]Z[github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;contractspbb\x06proto3"
+	"finishedAt2\xb5\x02\n" +
+	"\x11ToolBridgeService\x12W\n" +
+	"\x06Invoke\x12%.detectviz.contracts.v1.InvokeRequest\x1a&.detectviz.contracts.v1.InvokeResponse\x12k\n" +
+	"\fInvokeStream\x12+.detectviz.contracts.v1.InvokeStreamRequest\x1a,.detectviz.contracts.v1.InvokeStreamResponse0\x01\x12Z\n" +
+	"\aHealthz\x12&.detectviz.contracts.v1.HealthzRequest\x1a'.detectviz.contracts.v1.HealthzResponseB]Z[github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;contractspbb\x06proto3"
 
 var (
 	file_detectviz_contracts_v1_adk_bridge_proto_rawDescOnce sync.Once
@@ -703,46 +815,53 @@ func file_detectviz_contracts_v1_adk_bridge_proto_rawDescGZIP() []byte {
 }
 
 var file_detectviz_contracts_v1_adk_bridge_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_detectviz_contracts_v1_adk_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_detectviz_contracts_v1_adk_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_detectviz_contracts_v1_adk_bridge_proto_goTypes = []any{
-	(HealthCheckResponse_ServingStatus)(0), // 0: detectviz.contracts.v1.HealthCheckResponse.ServingStatus
-	(*TenantContext)(nil),                  // 1: detectviz.contracts.v1.TenantContext
-	(*TraceContext)(nil),                   // 2: detectviz.contracts.v1.TraceContext
-	(*VersionContext)(nil),                 // 3: detectviz.contracts.v1.VersionContext
-	(*HealthCheckRequest)(nil),             // 4: detectviz.contracts.v1.HealthCheckRequest
-	(*HealthCheckResponse)(nil),            // 5: detectviz.contracts.v1.HealthCheckResponse
-	(*ToolInvokeRequest)(nil),              // 6: detectviz.contracts.v1.ToolInvokeRequest
-	(*ToolInvokeReply)(nil),                // 7: detectviz.contracts.v1.ToolInvokeReply
-	(*ToolChunk)(nil),                      // 8: detectviz.contracts.v1.ToolChunk
-	(*ToolExecutionMeta)(nil),              // 9: detectviz.contracts.v1.ToolExecutionMeta
-	nil,                                    // 10: detectviz.contracts.v1.ToolInvokeRequest.MetadataEntry
-	(*structpb.Struct)(nil),                // 11: google.protobuf.Struct
-	(*status.Status)(nil),                  // 12: google.rpc.Status
-	(*timestamppb.Timestamp)(nil),          // 13: google.protobuf.Timestamp
+	(HealthzResponse_ServingStatus)(0), // 0: detectviz.contracts.v1.HealthzResponse.ServingStatus
+	(*TenantContext)(nil),              // 1: detectviz.contracts.v1.TenantContext
+	(*TraceContext)(nil),               // 2: detectviz.contracts.v1.TraceContext
+	(*VersionContext)(nil),             // 3: detectviz.contracts.v1.VersionContext
+	(*HealthzRequest)(nil),             // 4: detectviz.contracts.v1.HealthzRequest
+	(*HealthzResponse)(nil),            // 5: detectviz.contracts.v1.HealthzResponse
+	(*InvokeRequest)(nil),              // 6: detectviz.contracts.v1.InvokeRequest
+	(*InvokeResponse)(nil),             // 7: detectviz.contracts.v1.InvokeResponse
+	(*InvokeStreamRequest)(nil),        // 8: detectviz.contracts.v1.InvokeStreamRequest
+	(*InvokeStreamResponse)(nil),       // 9: detectviz.contracts.v1.InvokeStreamResponse
+	(*ToolExecutionMeta)(nil),          // 10: detectviz.contracts.v1.ToolExecutionMeta
+	nil,                                // 11: detectviz.contracts.v1.InvokeRequest.MetadataEntry
+	nil,                                // 12: detectviz.contracts.v1.InvokeStreamRequest.MetadataEntry
+	(*structpb.Struct)(nil),            // 13: google.protobuf.Struct
+	(*status.Status)(nil),              // 14: google.rpc.Status
+	(*timestamppb.Timestamp)(nil),      // 15: google.protobuf.Timestamp
 }
 var file_detectviz_contracts_v1_adk_bridge_proto_depIdxs = []int32{
-	0,  // 0: detectviz.contracts.v1.HealthCheckResponse.status:type_name -> detectviz.contracts.v1.HealthCheckResponse.ServingStatus
-	11, // 1: detectviz.contracts.v1.ToolInvokeRequest.payload:type_name -> google.protobuf.Struct
-	10, // 2: detectviz.contracts.v1.ToolInvokeRequest.metadata:type_name -> detectviz.contracts.v1.ToolInvokeRequest.MetadataEntry
-	1,  // 3: detectviz.contracts.v1.ToolInvokeRequest.tenant:type_name -> detectviz.contracts.v1.TenantContext
-	2,  // 4: detectviz.contracts.v1.ToolInvokeRequest.trace:type_name -> detectviz.contracts.v1.TraceContext
-	3,  // 5: detectviz.contracts.v1.ToolInvokeRequest.version:type_name -> detectviz.contracts.v1.VersionContext
-	11, // 6: detectviz.contracts.v1.ToolInvokeReply.result:type_name -> google.protobuf.Struct
-	12, // 7: detectviz.contracts.v1.ToolInvokeReply.status:type_name -> google.rpc.Status
-	9,  // 8: detectviz.contracts.v1.ToolInvokeReply.exec_meta:type_name -> detectviz.contracts.v1.ToolExecutionMeta
-	11, // 9: detectviz.contracts.v1.ToolChunk.chunk:type_name -> google.protobuf.Struct
-	13, // 10: detectviz.contracts.v1.ToolExecutionMeta.finished_at:type_name -> google.protobuf.Timestamp
-	6,  // 11: detectviz.contracts.v1.ToolBridge.Invoke:input_type -> detectviz.contracts.v1.ToolInvokeRequest
-	6,  // 12: detectviz.contracts.v1.ToolBridge.InvokeStream:input_type -> detectviz.contracts.v1.ToolInvokeRequest
-	4,  // 13: detectviz.contracts.v1.ToolBridge.Healthz:input_type -> detectviz.contracts.v1.HealthCheckRequest
-	7,  // 14: detectviz.contracts.v1.ToolBridge.Invoke:output_type -> detectviz.contracts.v1.ToolInvokeReply
-	8,  // 15: detectviz.contracts.v1.ToolBridge.InvokeStream:output_type -> detectviz.contracts.v1.ToolChunk
-	5,  // 16: detectviz.contracts.v1.ToolBridge.Healthz:output_type -> detectviz.contracts.v1.HealthCheckResponse
-	14, // [14:17] is the sub-list for method output_type
-	11, // [11:14] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	0,  // 0: detectviz.contracts.v1.HealthzResponse.status:type_name -> detectviz.contracts.v1.HealthzResponse.ServingStatus
+	13, // 1: detectviz.contracts.v1.InvokeRequest.payload:type_name -> google.protobuf.Struct
+	11, // 2: detectviz.contracts.v1.InvokeRequest.metadata:type_name -> detectviz.contracts.v1.InvokeRequest.MetadataEntry
+	1,  // 3: detectviz.contracts.v1.InvokeRequest.tenant:type_name -> detectviz.contracts.v1.TenantContext
+	2,  // 4: detectviz.contracts.v1.InvokeRequest.trace:type_name -> detectviz.contracts.v1.TraceContext
+	3,  // 5: detectviz.contracts.v1.InvokeRequest.version:type_name -> detectviz.contracts.v1.VersionContext
+	13, // 6: detectviz.contracts.v1.InvokeResponse.result:type_name -> google.protobuf.Struct
+	14, // 7: detectviz.contracts.v1.InvokeResponse.status:type_name -> google.rpc.Status
+	10, // 8: detectviz.contracts.v1.InvokeResponse.exec_meta:type_name -> detectviz.contracts.v1.ToolExecutionMeta
+	13, // 9: detectviz.contracts.v1.InvokeStreamRequest.payload:type_name -> google.protobuf.Struct
+	12, // 10: detectviz.contracts.v1.InvokeStreamRequest.metadata:type_name -> detectviz.contracts.v1.InvokeStreamRequest.MetadataEntry
+	1,  // 11: detectviz.contracts.v1.InvokeStreamRequest.tenant:type_name -> detectviz.contracts.v1.TenantContext
+	2,  // 12: detectviz.contracts.v1.InvokeStreamRequest.trace:type_name -> detectviz.contracts.v1.TraceContext
+	3,  // 13: detectviz.contracts.v1.InvokeStreamRequest.version:type_name -> detectviz.contracts.v1.VersionContext
+	13, // 14: detectviz.contracts.v1.InvokeStreamResponse.chunk:type_name -> google.protobuf.Struct
+	15, // 15: detectviz.contracts.v1.ToolExecutionMeta.finished_at:type_name -> google.protobuf.Timestamp
+	6,  // 16: detectviz.contracts.v1.ToolBridgeService.Invoke:input_type -> detectviz.contracts.v1.InvokeRequest
+	8,  // 17: detectviz.contracts.v1.ToolBridgeService.InvokeStream:input_type -> detectviz.contracts.v1.InvokeStreamRequest
+	4,  // 18: detectviz.contracts.v1.ToolBridgeService.Healthz:input_type -> detectviz.contracts.v1.HealthzRequest
+	7,  // 19: detectviz.contracts.v1.ToolBridgeService.Invoke:output_type -> detectviz.contracts.v1.InvokeResponse
+	9,  // 20: detectviz.contracts.v1.ToolBridgeService.InvokeStream:output_type -> detectviz.contracts.v1.InvokeStreamResponse
+	5,  // 21: detectviz.contracts.v1.ToolBridgeService.Healthz:output_type -> detectviz.contracts.v1.HealthzResponse
+	19, // [19:22] is the sub-list for method output_type
+	16, // [16:19] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_detectviz_contracts_v1_adk_bridge_proto_init() }
@@ -756,7 +875,7 @@ func file_detectviz_contracts_v1_adk_bridge_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_detectviz_contracts_v1_adk_bridge_proto_rawDesc), len(file_detectviz_contracts_v1_adk_bridge_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
