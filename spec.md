@@ -93,7 +93,6 @@ detectviz-platform/                 # 統一平台倉庫
 │   ├── src/detectviz_adk/
 │   │   ├── config/                # 配置載入（與 Go 對齊）
 │   │   ├── agents/                # 🎯 MVP: Agent 實作
-│   │   │   ├── base/              # 基礎 Agent 類別
 │   │   │   └── postmortem/        # 🎯 MVP: 事後檢討 Agent 團隊
 │   │   │       ├── orchestrator.py      # Root Agent
 │   │   │       ├── data_collector.py    # Sub Agent

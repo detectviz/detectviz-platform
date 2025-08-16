@@ -160,60 +160,42 @@ async def run_postmortem_analysis(incident_request: Dict[str, Any]) -> Dict[str,
 | **TimelineAnalyzer** | Capability | 分析時間序列數據，識別異常模式 | Python |
 | **RootCauseEngine** | Capability | 基於規則和 ML 的根因分析引擎 | Python |
 
-### 目錄結構（MVP 專用）
+### 目錄結構
 
 ```
 python-adk-runtime/
 ├── src/detectviz_adk/
-│   ├── config/
-│   │   └── loader.py                    # 統一設定載入
-│   ├── agents/                          # 🎯 MVP: Agent 實作
-│   │   ├── base/
-│   │   │   ├── __init__.py
-│   │   │   ├── base_agent.py           # BaseAgent 基礎類別
-│   │   │   └── workflows.py            # 工作流基礎組件
-│   │   └── post_mortem/                # 🎯 MVP: 事後複盤 Agent
+│   ├── __init__.py                 # 核心模組匯出
+│   ├── agents/
+│   │   └── postmortem/             # 事後檢討 Agent 團隊
 │   │       ├── __init__.py
-│   │       ├── postmortem_orchestrator_agent.py  # 主要 Agent
-│   │       ├── timeline_analyzer.py    # 時間線分析組件
-│   │       ├── root_cause_engine.py    # 根因分析引擎
-│   │       ├── module.card.json        # Agent 模組卡
-│   │       └── tests/
-│   │           ├── test_postmortem_orchestrator.py
-│   │           └── test_integration.py
-│   ├── agents/                         # 🎯 MVP 核心: ADK Agent 實作
+│   │       ├── orchestrator.py     # Root Agent (協調器)
+│   │       ├── data_collector.py   # Sub Agent (資料收集)
+│   │       ├── analyzer.py         # Sub Agent (根因分析)
+│   │       └── report_writer.py    # Sub Agent (報告撰寫)
+│   ├── config/
 │   │   ├── __init__.py
-│   │   └── postmortem/                 # 🎯 MVP: 事後檢討 Agent 團隊
-│   │       ├── __init__.py             # 匯出所有代理
-│   │       ├── orchestrator.py         # Root Agent（協調器）
-│   │       ├── data_collector.py       # Sub Agent（資料收集）
-│   │       ├── analyzer.py             # Sub Agent（根因分析）
-│   │       └── report_writer.py        # Sub Agent（報告撰寫）
-│   ├── tools/                          # 🎯 MVP: ADK 工具集合
-│   │   ├── __init__.py                 # 匯出所有工具
-│   │   ├── adk_tools.py                # FunctionTool 包裝的工具
-│   │   ├── memory_tools.py             # 記憶體管理工具
-│   │   └── remote_tool.py              # Go Platform 遠端工具橋接
-│   ├── runners/                        # 🎯 MVP: ADK 執行器
-│   │   ├── __init__.py                 # 匯出執行器
-│   │   └── postmortem_runner.py        # ADK Runner 實作
-│   ├── sessions/                       # 🎯 MVP: 會話管理
-│   │   ├── __init__.py                 # 匯出會話管理器
-│   │   └── session_manager.py          # Session State 管理
-│   ├── memory/                         # 記憶體管理
+│   │   └── loader.py               # 設定載入器
+│   ├── memory/
+│   │   └── stores/
+│   │       ├── __init__.py
+│   │       └── response_history_store.py # 記憶體儲存
+│   ├── runners/
 │   │   ├── __init__.py
-│   │   ├── stores/                     # 🎯 MVP: 知識存儲
-│   │   │   ├── __init__.py
-│   │   │   └── response_history_store.py # 響應歷史存儲（ADK Session State 整合）
-│   └── config/                         # 🎯 MVP: 設定管理
-│       ├── __init__.py                 # 匯出設定載入器
-│       └── loader.py                   # 統一設定載入器
-├── test_adk_integration.py             # ADK 整合測試
-├── test_simple_adk.py                  # 基本 ADK 測試
-├── example_usage.py                    # 使用範例
-├── requirements.txt                    # 依賴管理
-├── llm.txt                             # AI 維護指南
-└── CLEANUP_SUMMARY.md                  # 清理總結
+│   │   └── postmortem_runner.py    # ADK Runner 實作
+│   ├── sessions/
+│   │   ├── __init__.py
+│   │   └── session_manager.py      # Session State 管理
+│   └── tools/
+│       ├── __init__.py
+│       ├── adk_tools.py            # FunctionTool 包裝的工具
+│       ├── memory_tools.py         # 記憶體管理工具
+│       └── remote_tool.py          # Go Platform 遠端工具橋接
+├── test_adk_integration.py         # ADK 整合測試
+├── test_simple_adk.py              # 基本 ADK 測試
+├── example_usage.py                # 使用範例
+├── requirements.txt                # 依賴管理
+└── llm.txt                         # AI 維護指南
 ```
 
 ---
@@ -745,76 +727,57 @@ python -m detectviz_adk.tools.test_generator \
 
 **類別簽名**：
 ```python
-class PostmortemRunner(BaseAgent):
-    """事後複盤協調器 - MVP 核心 Agent"""
+class PostmortemRunner:
+    """符合 ADK 的事後檢討分析執行器"""
 ```
 
 **主要方法**：
 
 | 方法 | 參數 | 返回值 | 說明 |
 |------|------|--------|------|
-| `conduct_postmortem()` | `request: PostMortemRequest` | `PostMortemResult` | 執行完整事後複盤流程 |
-| `analyze_incident_timeline()` | `time_range: TimeRange, services: List[str]` | `Timeline` | 分析事故時間線 |
-| `identify_root_causes()` | `health_data: dict, events: List[Event]` | `List[RootCause]` | 識別根因 |
-| `generate_recommendations()` | `analysis: AnalysisResult` | `List[Recommendation]` | 生成改進建議 |
+| `execute_postmortem()` | `incident_request: Dict`, `user_id: str`, `session_id: Optional[str]` | `Dict` | 執行完整的事後檢討分析 |
+| `get_session_state()` | `user_id: str`, `session_id: str` | `Optional[Dict]` | 獲取指定會話的狀態 |
 
 **參數說明**：
-- `PostMortemRequest`: 事後複盤請求，包含事故ID、時間範圍、影響服務、嚴重程度
-- `PostMortemResult`: 複盤結果，包含報告路徑、摘要、根因、建議
-- `TimeRange`: 時間範圍對象，包含開始和結束時間
-- `RootCause`: 根因對象，包含原因描述、證據、可信度
-- `Recommendation`: 改進建議，包含建議內容、優先級、預期效果
+- `incident_request`: 包含事後檢討所需資訊的字典，如 `incident_id`, `time_range`, `affected_services`。
+- `user_id`: 執行操作的使用者 ID。
+- `session_id`: 可選的會話 ID，若未提供則會自動產生。
 
-**異常處理**：
-- `PostmortemError`: 複盤過程中的業務邏輯錯誤
-- `ToolTimeoutError`: 工具調用超時
-- `ToolUnavailableError`: 工具不可用
-- `DataCollectionError`: 數據收集失敗
+**返回字典**：
+- `status`: 'success' 或 'error'
+- `response`: Agent 產生的最終回應
+- `session_id`: 該次執行的會話 ID
+- `incident_id`: 該次執行的事件 ID
+
+**便利函式**：
+```python
+async def run_postmortem_analysis(incident_request: Dict[str, Any]) -> Dict[str, Any]:
+    """快速執行事後檢討分析的便利函式"""
+```
+此函式封裝了 `PostmortemRunner` 的實例化和執行過程，簡化了基本用法。
 
 #### RemoteTool
 
 **類別簽名**：
 ```python
-class RemoteTool:
-    """遠端工具客戶端，透過 gRPC 調用 Go 端插件"""
-    
-    def __init__(self, tool_id: str, tool_version: str = "latest", 
-                 timeout_seconds: int = 30, **kwargs):
-        """
-        初始化 RemoteTool
-        
-        Args:
-            tool_id: 工具標識符，如 "observability.health_aggregator"
-            tool_version: 工具版本，預設 "latest" 
-            timeout_seconds: 調用超時時間（秒）
-            **kwargs: 其他連接參數
-        """
+class RemoteTool(BaseTool):
+    """
+    符合 ADK 標準的遠端工具
+    透過 ToolBridge.Invoke（gRPC）呼叫 Go Platform 端的工具
+    """
+    def __init__(self, tool_id: str, tool_version: str = "0.1.0", timeout_ms: int = 5000) -> None:
+        ...
 ```
 
 **主要方法**：
 
 | 方法 | 參數 | 返回值 | 說明 |
 |------|------|--------|------|
-| `invoke()` | `params: dict` | `dict` | 調用遠端工具 |
-| `health_check()` | 無 | `bool` | 檢查工具健康狀態 |
-| `get_schema()` | 無 | `dict` | 獲取工具參數 schema |
+| `invoke()` | `payload: Dict` | `Dict` | 呼叫遠端 Go Platform 工具 |
+| `aclose()` | 無 | `None` | 非同步關閉 gRPC 通道 |
 
-**使用範例**：
-```python
-# 初始化
-health_aggregator = RemoteTool(
-    tool_id="observability.health_aggregator",
-    tool_version="0.1.0",
-    timeout_seconds=10
-)
-
-# 調用
-result = await health_aggregator.invoke({
-    "time_range": {"start": "2024-01-01T10:00:00Z", "end": "2024-01-01T11:00:00Z"},
-    "services": ["api", "db"],
-    "metrics": ["cpu", "memory", "errors"]
-})
-```
+**核心概念**：
+`RemoteTool` 是底層的 gRPC 橋接工具。在 ADK 應用中，它通常被更高層級的 `FunctionTool` 包裝起來，而不是由 Agent 直接呼叫。這樣可以更好地整合到 ADK 的工具生態系統中。
 
 #### ResponseHistoryStore
 
