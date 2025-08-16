@@ -22,7 +22,7 @@ docs/sre-services-map.md (架構憲法 - 業務邏輯與決策)
 **核心設計原則**：決策與執行分離
 
 #### Agent 職責（決策層 - WHY/WHAT/WHEN）
-- **PostmortemOrchestratorAgent**：分析事故複盤需求，決定收集哪些數據、如何分析、生成什麼報告
+- **postmortem_orchestrator**：分析事故複盤需求，透過子代理協作收集數據、分析、生成報告
 - **決策邏輯**：根據事故類型、嚴重程度、時間範圍制定分析策略
 - **工作流編排**：協調多個 Tool 完成複雜任務
 - **知識整合**：結合歷史經驗和當前數據進行智能決策
@@ -34,7 +34,7 @@ docs/sre-services-map.md (架構憲法 - 業務邏輯與決策)
 
 ### MVP 聚焦：Phase 3（事後複盤）
 當前開發重點為 **Phase 3: 事後複盤系統**，包含：
-- PostmortemOrchestratorAgent（決策協調）
+- postmortem_orchestrator（ADK Root Agent 決策協調）
 - HealthAggregator（數據查詢）
 - ReportGenerator（報告生成）
 - ResponseHistoryStore（知識存儲）
@@ -131,38 +131,38 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 
 ## MVP 專用開發守則
 
-### PostmortemOrchestratorAgent 開發規範
-**核心原則**：遵循 ADK Agent 模式，專注決策協調，避免直接執行
+### postmortem_orchestrator ADK Agent 開發規範
+**核心原則**：遵循 Google ADK 標準，使用 Agent 團隊協作模式
 
 #### 實作要求
-1. **繼承 ADK BaseAgent**：
+1. **使用 ADK Agent 定義**：
    ```python
-   from detectviz_adk.agents.base import BaseAgent
+   from google import adk
+   from detectviz_adk.tools.adk_tools import get_health_metrics, generate_report
    
-   class PostmortemOrchestratorAgent(BaseAgent):
-       def __init__(self):
-           super().__init__()
-           self.health_aggregator = RemoteTool("observability.health_aggregator")
-           self.report_generator = RemoteTool("reporting.report_generator")
+   postmortem_orchestrator = adk.Agent(
+       name="postmortem_orchestrator",
+       model="gemini-2.0-flash",
+       instruction="你是事後檢討協調器...",
+       sub_agents=[data_collector_agent, root_cause_analyzer, report_writer]
+   )
    ```
 
-2. **決策與執行分離範例**：
+2. **ADK Runner 使用範例**：
    ```python
-   async def analyze_postmortem(self, request: PostMortemRequest):
-       # ✅ 決策：分析需要什麼數據
-       data_strategy = self._determine_data_collection_strategy(request)
+   from detectviz_adk.runners.postmortem_runner import PostmortemRunner
+   
+   async def run_postmortem_analysis(incident_request):
+       # ✅ 使用 ADK Runner 執行
+       runner = PostmortemRunner()
        
-       # ✅ 執行：通過 RemoteTool 調用 Go 端工具
-       health_data = await self.health_aggregator.invoke(data_strategy.to_dict())
+       # ADK Agent 團隊會自動處理：
+       # 1. data_collector: 根據事件決定收集策略
+       # 2. root_cause_analyzer: 分析數據並制定報告策略
+       # 3. report_writer: 生成結構化報告
        
-       # ✅ 決策：分析數據並制定報告策略
-       analysis_result = self._analyze_health_data(health_data)
-       report_strategy = self._determine_report_strategy(analysis_result)
-       
-       # ✅ 執行：生成報告
-       report = await self.report_generator.invoke(report_strategy.to_dict())
-       
-       return report
+       result = await runner.execute_postmortem(incident_request)
+       return result
    ```
 
 3. **混合架構決策指引**：
@@ -173,14 +173,14 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 ### MVP 檢查清單
 
 #### 設計階段（Week 1-2）
-- [ ] **P0** 創建 `python-adk-runtime/src/detectviz_adk/agents/post_mortem/` 目錄結構
-- [ ] **P0** 實現 PostmortemOrchestratorAgent 基本骨架
+- [ ] **P0** 創建 `python-adk-runtime/src/detectviz_adk/agents/postmortem/` 目錄結構
+- [ ] **P0** 實現 postmortem_orchestrator ADK Agent 團隊基本架構
 - [ ] **P0** 定義 HealthAggregator Go 端插件接口
 - [ ] **P1** 創建 module.card.json 並通過驗證
 - [ ] **P1** 建立基本測試框架
 
 #### 實作階段（Week 3-6）
-- [ ] **P0** 實現 PostmortemOrchestratorAgent 核心業務邏輯
+- [ ] **P0** 實現 postmortem_orchestrator ADK Agent 團隊核心協作邏輯
 - [ ] **P0** 完成 HealthAggregator Go 端插件實作
 - [ ] **P0** 實現 ReportGenerator 基本功能
 - [ ] **P1** 集成 ResponseHistoryStore 知識存儲
@@ -258,31 +258,26 @@ export DETECTVIZ_PPROF_ADDR="127.0.0.1:6060"
 # ✅ 正確使用方式
 from detectviz_adk.tools.remote_tool import RemoteTool
 
-class PostmortemOrchestratorAgent(BaseAgent):
-    def __init__(self):
-        super().__init__()
-        # 使用標準化的工具名稱
-        self.health_aggregator = RemoteTool(
-            tool_id="observability.health_aggregator",
-            tool_version="0.1.0"
-        )
-        self.report_generator = RemoteTool(
-            tool_id="reporting.report_generator", 
-            tool_version="0.1.0"
-        )
-    
-    async def _collect_health_data(self, request):
-        # 包含完整的錯誤處理
-        try:
-            result = await self.health_aggregator.invoke({
-                "time_range": request.time_range,
-                "services": request.affected_services,
-                "metrics": ["cpu_usage", "memory_usage", "error_rate"]
-            })
-            return result
-        except Exception as e:
-            self.logger.error(f"Health data collection failed: {e}")
-            raise
+# ADK 標準實作範例
+from google import adk
+from detectviz_adk.runners.postmortem_runner import PostmortemRunner
+
+# 使用 ADK Agent 團隊
+runner = PostmortemRunner()
+
+async def execute_postmortem_analysis(incident_request):
+    """使用 ADK Agent 團隊執行事後檢討分析"""
+    try:
+        # ADK Runner 會自動協調 Agent 團隊：
+        # - data_collector: 收集相關資料
+        # - root_cause_analyzer: 分析根本原因 
+        # - report_writer: 產生完整報告
+        
+        result = await runner.execute_postmortem(incident_request)
+        return result
+    except Exception as e:
+        logger.error(f"Postmortem analysis failed: {e}")
+        raise
 ```
 
 ### MVP 目錄結構說明
@@ -291,17 +286,22 @@ class PostmortemOrchestratorAgent(BaseAgent):
 python-adk-runtime/
 ├── src/detectviz_adk/
 │   ├── agents/
-│   │   ├── base/                    # 基礎 Agent 類別
-│   │   └── post_mortem/            # MVP: 事後複盤 Agent
-│   │       ├── __init__.py
-│   │       ├── postmortem_orchestrator_agent.py
+│   │   └── postmortem/             # MVP: 事後檢討 Agent 團隊
+│   │       ├── __init__.py         # 匯出所有代理
+│   │       ├── orchestrator.py     # Root Agent（協調器）
+│   │       ├── data_collector.py   # Sub Agent（資料收集）
+│   │       ├── analyzer.py         # Sub Agent（根因分析）
+│   │       ├── report_writer.py    # Sub Agent（報告撰寫）
 │   │       ├── module.card.json
 │   │       └── tests/
 │   ├── tools/
-│   │   ├── data/                   # 數據相關工具
-│   │   │   └── health_aggregator.py (RemoteTool 包裝)
-│   │   └── reporting/              # 報告相關工具  
-│   │       └── report_generator.py (RemoteTool 包裝)
+│   │   ├── adk_tools.py            # FunctionTool 包裝的工具
+│   │   ├── memory_tools.py         # 記憶體管理工具
+│   │   └── remote_tool.py          # Go Platform 遠端工具橋接
+│   ├── runners/
+│   │   └── postmortem_runner.py    # ADK Runner 實作
+│   ├── sessions/
+│   │   └── session_manager.py      # Session State 管理
 │   └── memory/
 │       └── stores/                 # 知識存儲
 │           └── response_history_store.py

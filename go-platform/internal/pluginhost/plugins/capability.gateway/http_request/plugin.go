@@ -60,7 +60,7 @@ func (p *Plugin) Close() error {
 	return nil
 }
 
-func (p *Plugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
+func (p *Plugin) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
 	pl := req.GetPayload().AsMap()
 
 	method := strings.ToUpper(getString(pl, "method", "GET"))
@@ -161,7 +161,7 @@ func (p *Plugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.Too
 	}
 	s, _ := structpb.NewStruct(out)
 
-	return &v1.ToolInvokeReply{
+	return &v1.InvokeResponse{
 		Result: s,
 		Status: status,
 		ExecMeta: &v1.ToolExecutionMeta{
@@ -172,8 +172,8 @@ func (p *Plugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.Too
 	}, nil
 }
 
-func wrapErr(err error) *v1.ToolInvokeReply {
-	return &v1.ToolInvokeReply{
+func wrapErr(err error) *v1.InvokeResponse {
+	return &v1.InvokeResponse{
 		Result: nil,
 		Status: &statuspb.Status{Code: 2, Message: err.Error()}, // UNKNOWN
 		ExecMeta: &v1.ToolExecutionMeta{

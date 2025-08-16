@@ -38,21 +38,21 @@ Detectviz Platform 是一個 AI 原生的 SRE 平台，使用 Google ADK 框架�
 
 ## 本週目標
 根據 mvp-implementation-spec.md 的時程表，當前處於 Week 3-4（核心組件開發）：
-- 實現 PostmortemOrchestratorAgent 完整功能
+- 實現 postmortem_orchestrator (ADK Root Agent) 完整功能
 - 完成 HealthAggregator Go 端查詢服務
 - 實現 ReportGenerator Markdown 格式支援
 - 建立基本的端到端測試
 
 ## 具體開發任務
 
-### Task 1: 實現 PostmortemOrchestratorAgent
-位置：`python-adk-runtime/src/detectviz_adk/agents/post_mortem/`
+### Task 1: 實現 postmortem_orchestrator (ADK Root Agent)
+位置：`python-adk-runtime/src/detectviz_adk/agents/postmortem/`
 
-請基於 mvp-implementation-spec.md 中的程式碼骨架，實現：
-1. 完整的決策邏輯（6 個決策點）
-2. 與 HealthAggregator Tool 的整合
-3. 錯誤處理和重試機制
-4. 決策日誌記錄
+請基於 ADK 標準實現 Agent 團隊架構：
+1. Root Agent (orchestrator) 協調決策邏輯
+2. Sub Agents (data_collector, analyzer, report_writer) 專業分工
+3. 透過 FunctionTool 包裝的 RemoteTool 與 Go 端整合
+4. ADK Runner 執行和 Session 管理
 
 ### Task 2: 實現 HealthAggregator Go 端插件
 位置：`go-platform/internal/pluginhost/plugins/observability/health_aggregator/`
@@ -76,7 +76,7 @@ Detectviz Platform 是一個 AI 原生的 SRE 平台，使用 Google ADK 框架�
 位置：`python-adk-runtime/tests/`
 
 編寫測試案例：
-1. PostmortemOrchestratorAgent 單元測試（覆蓋所有決策分支）
+1. postmortem_orchestrator ADK Agent 團隊測試（覆蓋所有代理協作流程）
 2. HealthAggregator Mock 實現
 3. 端到端整合測試（模擬完整複盤流程）
 
@@ -136,35 +136,29 @@ Detectviz Platform 是一個 AI 原生的 SRE 平台，使用 Google ADK 框架�
 # 範例：正確的 Agent 實現
 
 ```python
-class PostmortemOrchestratorAgent(BaseAgent):
-    """
-    事後複盤協調器 Agent
-    
-    職責：
-    - 決策：分析策略、根因判斷、改進建議
-    - 不做：直接查詢數據、生成文件內容
-    """
-    
-    async def execute_postmortem(self, request: PostMortemRequest) -> PostMortemResult:
-        # 決策 1：確定分析範圍
-        scope = self._determine_analysis_scope(request)
-        self.logger.debug(f"Decision: Analysis scope determined", extra={"scope": scope})
-        
-        # 執行：通過 Tool 收集數據（不直接查詢）
-        data = await self.health_aggregator.collect_data(scope)
-        
-        # 決策 2：識別根本原因
-        root_cause = self._analyze_root_cause(data)
-        self.logger.info(f"Decision: Root cause identified", extra={"root_cause": root_cause})
-        
-        # 執行：通過 Tool 生成報告（不直接生成內容）
-        report = await self.report_generator.create(root_cause)
-        
-        return PostMortemResult(
-            success=True,
-            root_cause=root_cause,
-            report_url=report.url
-        )
+# ADK Root Agent 實作範例
+from google import adk
+from detectviz_adk.tools.adk_tools import get_health_metrics, generate_report
+
+postmortem_orchestrator = adk.Agent(
+    name="postmortem_orchestrator",
+    model="gemini-2.0-flash",
+    instruction="""你是事後檢討協調器，負責管理整個檢討流程。
+
+你有以下子代理可以委派任務：
+1. 'data_collector': 收集事故相關資料和指標
+2. 'root_cause_analyzer': 分析根本原因和相關性
+3. 'report_writer': 產生完整報告和文件
+
+重要：你不直接使用工具，而是透過委派給專門的子代理來完成任務。""",
+    description="協調事後檢討流程的主代理",
+    tools=[],  # Root Agent 不直接使用工具
+    sub_agents=[data_collector_agent, root_cause_analyzer, report_writer]
+)
+
+# 使用 PostmortemRunner 執行
+runner = PostmortemRunner()
+result = await runner.execute_postmortem(incident_request)
 ```
 
 # 注意事項
@@ -192,13 +186,13 @@ class PostmortemOrchestratorAgent(BaseAgent):
 - [ ] **go-platform/README.md** - 新增 HealthAggregator 插件說明和配置指南
 
 ### 開發指南
-- [ ] **docs/agent-development-guide.md** - PostmortemOrchestratorAgent 開發範例和最佳實踐
+- [ ] **docs/agent-development-guide.md** - postmortem_orchestrator ADK Agent 開發範例和最佳實踐
 - [ ] **docs/quick-reference.md** - MVP 相關指令和事後複盤 API 參考
 - [ ] **docs/python-adk-runtime-arch.md** - 更新架構反映新的目錄結構
 
 ### 專用指南（新建）
 - [ ] **docs/mvp-guide.md** - MVP 快速開始指南、使用手冊和故障排查
-- [ ] **python-adk-runtime/agents/post_mortem/README.md** - PostmortemOrchestratorAgent 詳細說明
+- [ ] **python-adk-runtime/agents/postmortem/README.md** - postmortem_orchestrator ADK Agent 團隊詳細說明
 
 ### 工具與部署
 - [ ] **Makefile** - 統一構建腳本

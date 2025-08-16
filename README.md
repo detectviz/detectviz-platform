@@ -25,7 +25,7 @@ graph LR
         direction LR
         P1["Phase 1: 事前預防<br/><small>HealthCheckAgent</small><br/><small>CapacityPlannerAgent</small>"]:::future
         P2["Phase 2: 事中響應<br/><small>AlertTriageAgent</small><br/><small>IncidentResponseAgent</small>"]:::future  
-        P3["Phase 3: 事後複盤<br/><small>PostmortemOrchestratorAgent</small><br/><small>HealthAggregator</small>"]:::mvp
+        P3["Phase 3: 事後複盤<br/><small>postmortem_orchestrator (ADK)</small><br/><small>HealthAggregator</small>"]:::mvp
     end
     
     P1 -->|"預防失效"| P2
@@ -71,7 +71,7 @@ flowchart TB
     
     Input --> Validate{請求<br/>驗證}
     Validate -->|無效| Error[返回錯誤]
-    Validate -->|有效| Agent[啟動<br/>PostmortemOrchestrator]
+    Validate -->|有效| Agent[啟動<br/>postmortem_orchestrator]
     
     Agent --> Decision1{決策:<br/>分析範圍}
     
@@ -143,7 +143,7 @@ graph TB
     subgraph "智能決策層 (Python)"
         subgraph "ADK Runtime"
             RA[Root Agent]
-            PA[PostmortemOrchestrator<br/>Agent]
+            PA[postmortem_orchestrator<br/>Root Agent (ADK)]
             HA[HealthCheck<br/>Agent]
             AA[AlertTriage<br/>Agent]
         end
@@ -303,7 +303,7 @@ graph TB
    echo "✅ Go Platform Ready"
    ```
 
-5. **啟動 Python ADK Runtime**（PostmortemOrchestratorAgent）：
+5. **啟動 Python ADK Runtime**（postmortem_orchestrator）：
    ```bash
    cd python-adk-runtime
    
@@ -311,9 +311,9 @@ graph TB
    export DETECTVIZ_TOOLBRIDGE_ADDR="127.0.0.1:5002"
    export DETECTVIZ_TOOLBRIDGE_INSECURE="true"
    
-   # 啟動事後複盤 Agent
-   python -m detectviz_adk.agents.post_mortem.postmortem_orchestrator_agent
-   echo "✅ PostmortemOrchestratorAgent Ready"
+   # 執行 ADK 事後檢討範例
+   python example_usage.py
+   echo "✅ ADK postmortem_orchestrator Ready"
    ```
 
 ### 驗證 MVP 功能
@@ -370,14 +370,14 @@ graph TB
 | 週次 | 里程碑 | 主要交付物 | 驗收標準 |
 |------|--------|------------|----------|
 | W1-2 | 基礎架構搭建 | Agent 骨架、插件框架、基本測試 | ✅ 可啟動空 Agent<br/>✅ 插件註冊成功<br/>✅ gRPC 通訊正常 |
-| W3-4 | 核心功能實現 | PostmortemOrchestratorAgent、HealthAggregator | ✅ 基本複盤流程可運行<br/>✅ 數據查詢功能完整<br/>✅ 報告生成基本功能 |
+| W3-4 | 核心功能實現 | postmortem_orchestrator (ADK)、HealthAggregator | ✅ 基本複盤流程可運行<br/>✅ 數據查詢功能完整<br/>✅ 報告生成基本功能 |
 | W5-6 | 功能完善 | ReportGenerator、知識存儲、錯誤處理 | ✅ 完整的 MVP 功能<br/>✅ 知識庫存儲檢索<br/>✅ 容錯機制完善 |
 | W7-8 | 優化與交付 | 性能優化、文檔完善、部署指南 | ✅ 生產就緒的 MVP<br/>✅ 完整文檔<br/>✅ 部署自動化 |
 
 ### 交付清單
 
 **核心功能**：
-- [x] PostmortemOrchestratorAgent（事後複盤協調器）
+- [x] postmortem_orchestrator（ADK Root Agent 事後檢討協調器）
 - [x] HealthAggregator（健康數據聚合器）
 - [x] ReportGenerator（報告生成器）
 - [x] ResponseHistoryStore（知識存儲）

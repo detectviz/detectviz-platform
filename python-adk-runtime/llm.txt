@@ -3,20 +3,23 @@
 此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `CLAUDE.md`、`spec.md` 一致。
 
 ## 範圍與原則
-- 嚴格遵守 ADK 模組邊界：Agents、Workflows、MemoryBank、Tools/Capabilities。
-- 與 Go 平台解耦：僅透過 gRPC ToolBridge（RemoteTool）或 HTTP 互通。
-- 任何跨語言介面或型別變更先改 `contracts/`（SSOT），再回此專案對齊生成碼與相依。
+- 嚴格遵守 Google ADK 標準：Agent、FunctionTool、Runner、SessionService
+- 與 Go 平台解耦：僅透過 gRPC ToolBridge（RemoteTool）或 HTTP 互通
+- 任何跨語言介面或型別變更先改 `contracts/`（SSOT），再回此專案對齊生成碼與相依
+- 所有註解與文件使用繁體中文
 
 ## 必守規範
-1. RemoteTool：以 `grpc.aio` 連 ToolBridge；端點由 `DETECTVIZ_TOOLBRIDGE_ADDR` 指定；傳遞 `traceparent/tracestate`。
-2. 設定載入：`detectviz_adk/config/loader.py` 與 Go Loader 對齊搜尋序與環境覆蓋。
-3. 模組卡：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`。
-4. 安全：Python 端不持有雲端寫入憑證；外部副作用集中於 Go 插件（Tools）。
-5. 不得修改 `contracts/gen/**` 生成碼；如需型別/欄位調整，回到 `contracts/`。
+1. ADK 標準：使用 `FunctionTool` 包裝函式，Agent 使用 Root + Sub-Agents 架構
+2. RemoteTool：以 `grpc.aio` 連 ToolBridge；端點由 `DETECTVIZ_TOOLBRIDGE_ADDR` 指定；傳遞 `traceparent/tracestate`
+3. Session State：透過 ADK `ToolContext` 管理狀態，不使用全域變數
+4. 設定載入：`detectviz_adk/config/loader.py` 與 Go Loader 對齊搜尋序與環境覆蓋
+5. 模組卡：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`
+6. 安全：Python 端不持有雲端寫入憑證；外部副作用集中於 Go 插件（Tools）
+7. 不得修改 `contracts/gen/**` 生成碼；如需型別/欄位調整，回到 `contracts/`
 
 ## 允許/禁止
-- 允許：新增 Capability、Workflow、Tool（以 RemoteTool 呼叫 Go 插件）。
-- 禁止：跨越 ADK 邏輯邊界、直連雲端憑證、繞過 Loader 讀寫設定、提交大型二進位。
+- 允許：新增 ADK Agent、FunctionTool、Runner（以 RemoteTool 呼叫 Go 插件）
+- 禁止：跨越 ADK 邏輯邊界、直連雲端憑證、繞過 Loader 讀寫設定、提交大型二進位、使用非 ADK 標準的代理架構
 
 ## 變更流程
 1. 規劃：是否涉及 SSOT？若是，先改 `contracts/` 並 `buf lint && buf generate`。

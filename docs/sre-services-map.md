@@ -54,7 +54,7 @@ graph TB
     end
     
     subgraph "Phase 3: 事後複盤 (Post-Mortem) - MVP"
-        P3A[PostmortemOrchestratorAgent]
+        P3A[postmortem_orchestrator<br/>ADK Root Agent]
         P3T1[HealthAggregator]
         P3T2[ReportGenerator]
         P3T3[ResponseHistoryStore]
@@ -228,14 +228,14 @@ async def triage_alert(self, alert: Alert):
 
 | 組件 | 類型 | 職責 | 決策/執行內容 |
 |-----|------|------|-------------|
-| **PostmortemOrchestratorAgent** | Agent | 複盤協調 | **決策**：設計分析策略，識別改進點 |
+| **postmortem_orchestrator** | ADK Root Agent | 複盤協調 | **決策**：設計分析策略，識別改進點 |
 | HealthAggregator | Tool | 數據收集 | **執行**：查詢故障期間的所有相關指標 |
 | ReportGenerator | Tool | 報告生成 | **執行**：生成複盤報告和儀表板 |
 | ResponseHistoryStore | Tool | 知識存儲 | **執行**：保存複盤結論供未來參考 |
 
 **核心決策流程**：
 ```python
-# PostmortemOrchestratorAgent 的複盤決策
+# postmortem_orchestrator 的複盤決策
 async def orchestrate_postmortem(self, incident: Incident):
     # 決策 1: 確定分析範圍
     scope = self.determine_analysis_scope(incident)
@@ -287,7 +287,7 @@ async def orchestrate_postmortem(self, incident: Incident):
 ```
 Root Agent (總指揮)
 ├── Coordinator Agents (協調層)
-│   ├── PostmortemOrchestratorAgent
+│   ├── postmortem_orchestrator
 │   └── IncidentCommanderAgent
 └── Specialist Agents (專家層)
     ├── HealthCheckAgent
@@ -331,7 +331,7 @@ class SRERootAgent(Agent):
 |---------|------|------|-----------|
 | **診斷型** | 識別問題本質 | 判斷告警是否為誤報 | AlertTriageAgent |
 | **預測型** | 預測未來趨勢 | 預測 30 天後的資源使用 | CapacityPlannerAgent |
-| **規劃型** | 制定行動計劃 | 設計複盤分析策略 | PostmortemOrchestratorAgent |
+| **規劃型** | 制定行動計劃 | 設計複盤分析策略 | postmortem_orchestrator |
 | **選擇型** | 從選項中選擇 | 選擇自動修復策略 | FirstResponderAgent |
 | **優化型** | 尋找最優解 | 優化告警閾值 | HealthCheckAgent |
 
@@ -348,7 +348,7 @@ AlertTriageAgent:
     time_of_day: 0.1
     recent_changes: 0.1
 
-PostmortemOrchestratorAgent:
+postmortem_orchestrator:
   factors:
     incident_duration: 0.2
     affected_users: 0.3
@@ -366,7 +366,7 @@ gantt
     dateFormat YYYY-MM-DD
     
     section MVP (8週)
-    PostmortemOrchestratorAgent    :active, 2024-01-15, 2w
+    postmortem_orchestrator    :active, 2024-01-15, 2w
     HealthAggregator Tool          :active, 2024-01-20, 1w
     ReportGenerator Tool           :2024-01-27, 1w
     Knowledge Store                :2024-02-03, 1w

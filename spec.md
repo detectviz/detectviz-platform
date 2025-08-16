@@ -94,8 +94,11 @@ detectviz-platform/                 # 統一平台倉庫
 │   │   ├── config/                # 配置載入（與 Go 對齊）
 │   │   ├── agents/                # 🎯 MVP: Agent 實作
 │   │   │   ├── base/              # 基礎 Agent 類別
-│   │   │   └── post_mortem/       # 🎯 MVP: 事後複盤 Agent
-│   │   │       ├── postmortem_orchestrator_agent.py
+│   │   │   └── postmortem/        # 🎯 MVP: 事後檢討 Agent 團隊
+│   │   │       ├── orchestrator.py      # Root Agent
+│   │   │       ├── data_collector.py    # Sub Agent
+│   │   │       ├── analyzer.py          # Sub Agent
+│   │   │       ├── report_writer.py     # Sub Agent
 │   │   │       ├── module.card.json
 │   │   │       └── tests/
 │   │   ├── tools/                 # 工具抽象層
@@ -164,7 +167,7 @@ detectviz-platform/                 # 統一平台倉庫
 **核心目標**：建立智能化的事後複盤系統，自動收集事故數據、生成分析報告、沉澱知識經驗。
 
 **MVP 包含組件**：
-- **PostmortemOrchestratorAgent**：事後複盤協調器（Python/ADK）
+- **postmortem_orchestrator**：事後檢討協調器 ADK Root Agent（Python/ADK）
 - **HealthAggregator**：健康數據聚合器（Go Plugin）
 - **ReportGenerator**：報告生成器（共享工具）
 - **ResponseHistoryStore**：響應歷史存儲（知識庫）
@@ -177,41 +180,33 @@ detectviz-platform/                 # 統一平台倉庫
 
 ### 4.2 核心組件設計
 
-#### PostmortemOrchestratorAgent（決策協調層）
+#### postmortem_orchestrator（ADK Root Agent 決策協調層）
 ```python
-# 位置：python-adk-runtime/src/detectviz_adk/agents/post_mortem/
-class PostmortemOrchestratorAgent(BaseAgent):
-    """
-    事後複盤協調器 - 負責：
-    1. 分析複盤請求，制定數據收集策略
-    2. 協調多個工具完成數據收集和分析
-    3. 生成結構化的複盤報告
-    4. 將知識存儲到歷史庫中
-    """
+# 位置：python-adk-runtime/src/detectviz_adk/agents/postmortem/
+# ADK Root Agent 定義
+from google import adk
+
+postmortem_orchestrator = adk.Agent(
+    name="postmortem_orchestrator",
+    instruction="""你是事後檢討協調器，負責管理整個檢討流程。
     
-    def __init__(self):
-        super().__init__()
-        self.health_aggregator = RemoteTool("observability.health_aggregator")
-        self.report_generator = RemoteTool("reporting.report_generator")
-        self.history_store = ResponseHistoryStore()
+    你有以下子代理可以委派任務：
+    1. 'data_collector': 收集事故相關資料和指標
+    2. 'root_cause_analyzer': 分析根本原因和相關性
+    3. 'report_writer': 產生完整報告和文件
     
-    async def conduct_postmortem(self, request: PostMortemRequest) -> PostMortemResult:
-        # 決策：確定數據收集範圍和策略
-        data_strategy = self._plan_data_collection(request)
-        
-        # 執行：通過 RemoteTool 收集數據
-        health_data = await self._collect_health_data(data_strategy)
-        
-        # 決策：分析數據並制定報告策略  
-        analysis = self._analyze_incident_data(health_data)
-        
-        # 執行：生成報告
-        report = await self._generate_report(analysis)
-        
-        # 存儲知識
-        await self._store_knowledge(request, report)
-        
-        return report
+    重要：你不直接使用工具，而是透過委派給專門的子代理來完成任務。""",
+    description="協調事後檢討流程的主代理",
+    tools=[],  # Root Agent 不直接使用工具
+    sub_agents=[data_collector_agent, root_cause_analyzer, report_writer]
+)
+
+# 使用 PostmortemRunner 執行
+from detectviz_adk.runners.postmortem_runner import PostmortemRunner
+
+async def run_postmortem_analysis(incident_request):
+    runner = PostmortemRunner()
+    return await runner.execute_postmortem(incident_request)
 ```
 
 #### HealthAggregator（高性能執行層）
@@ -268,7 +263,7 @@ func (h *HealthAggregatorPlugin) Execute(ctx context.Context, req *pb.ToolReques
 | 週次 | 階段 | 主要任務 | 交付物 |
 |------|------|----------|---------|
 | W1-2 | 基礎架構 | 目錄結構、基本 Agent 骨架、Go 插件框架 | 可啟動的空 Agent，插件註冊成功 |
-| W3-4 | 核心功能 | PostmortemOrchestratorAgent 業務邏輯、HealthAggregator 實現 | 基本的複盤流程可運行 |
+| W3-4 | 核心功能 | postmortem_orchestrator ADK Agent 團隊、HealthAggregator 實現 | 基本的複盤流程可運行 |
 | W5-6 | 功能完善 | ReportGenerator、知識存儲、錯誤處理 | 完整功能的 MVP |
 | W7-8 | 優化交付 | 性能優化、文檔完善、部署指南 | 生產就緒的 MVP |
 
@@ -561,7 +556,7 @@ curl -sS http://127.0.0.1:7777/hello
 ### MVP → Phase 2 → Phase 1 演進路徑
 
 **當前（8 週）：Phase 3 - 事後複盤 MVP**
-- ✅ PostmortemOrchestratorAgent
+- ✅ postmortem_orchestrator (ADK Root Agent)
 - ✅ HealthAggregator + ReportGenerator
 - ✅ 基礎知識存儲
 - ✅ Markdown/JSON 報告輸出

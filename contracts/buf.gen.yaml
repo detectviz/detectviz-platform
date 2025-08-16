@@ -1,11 +1,11 @@
 version: v1
 plugins:
   - plugin: buf.build/protocolbuffers/go
-    out: ../go-platform/internal/contracts
+    out: gen/go
     opt:
       - paths=source_relative
   - plugin: buf.build/grpc/go
-    out: ../go-platform/internal/contracts
+    out: gen/go
     opt:
       - paths=source_relative
   - plugin: buf.build/protocolbuffers/python

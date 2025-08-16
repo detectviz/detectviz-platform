@@ -20,9 +20,9 @@ type mockHandler struct {
 	closeErr error
 }
 
-func (m *mockHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
+func (m *mockHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
 	m.invoked = true
-	return &v1.ToolInvokeReply{}, nil
+	return &v1.InvokeResponse{}, nil
 }
 
 func (m *mockHandler) Close() error {
@@ -36,9 +36,9 @@ type basicMockHandler struct {
 	invoked bool
 }
 
-func (m *basicMockHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
+func (m *basicMockHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
 	m.invoked = true
-	return &v1.ToolInvokeReply{}, nil
+	return &v1.InvokeResponse{}, nil
 }
 
 func TestRegistry_NewRegistry(t *testing.T) {

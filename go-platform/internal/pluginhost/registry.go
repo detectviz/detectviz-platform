@@ -14,7 +14,7 @@ import (
 
 // Handler 為每個 tool_id 的處理器介面
 type Handler interface {
-	Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error)
+	Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error)
 }
 
 // 可選：具備釋放資源能力的處理器
@@ -41,7 +41,7 @@ func NewRegistryWithMonitoring(monitorInterval time.Duration) (*Registry, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource monitor: %w", err)
 	}
-	
+
 	return &Registry{
 		byToolID:        map[string]Handler{},
 		resourceMonitor: monitor,
@@ -56,16 +56,16 @@ var ErrHandlerExists = errors.New("handler already registered")
 func (r *Registry) RegisterStrict(toolID string, h Handler) error {
 	r.rwmu.Lock()
 	defer r.rwmu.Unlock()
-	
+
 	if _, ok := r.byToolID[toolID]; ok {
 		return fmt.Errorf("%w: tool_id=%s", ErrHandlerExists, toolID)
 	}
-	
+
 	// 如果啟用監控，包裝處理器
 	actualHandler := r.wrapWithMonitoring(toolID, h)
 	r.byToolID[toolID] = actualHandler
-	
-	zap.L().Info("Handler registered (strict)", 
+
+	zap.L().Info("Handler registered (strict)",
 		zap.String("tool_id", toolID),
 		zap.Bool("monitoring_enabled", r.resourceMonitor != nil))
 	return nil
@@ -76,19 +76,19 @@ func (r *Registry) RegisterStrict(toolID string, h Handler) error {
 func (r *Registry) Register(toolID string, h Handler) {
 	r.rwmu.Lock()
 	defer r.rwmu.Unlock()
-	
+
 	if old, ok := r.byToolID[toolID]; ok && old != h {
 		if err := closeIfPossible(old); err != nil {
-			zap.L().Warn("Failed to close previous handler on re-register", 
+			zap.L().Warn("Failed to close previous handler on re-register",
 				zap.String("tool_id", toolID), zap.Error(err))
 		}
 	}
-	
+
 	// 如果啟用監控，包裝處理器
 	actualHandler := r.wrapWithMonitoring(toolID, h)
 	r.byToolID[toolID] = actualHandler
-	
-	zap.L().Info("Handler registered", 
+
+	zap.L().Info("Handler registered",
 		zap.String("tool_id", toolID),
 		zap.Bool("monitoring_enabled", r.resourceMonitor != nil))
 }
@@ -157,12 +157,12 @@ func (r *Registry) Shutdown() error {
 		}
 		delete(r.byToolID, id)
 	}
-	
+
 	// 關閉資源監控器
 	if r.resourceMonitor != nil {
 		r.resourceMonitor.Stop()
 	}
-	
+
 	if errs != nil {
 		zap.L().Warn("Registry shutdown with errors", zap.Error(errs))
 	} else {
@@ -188,7 +188,7 @@ func (r *Registry) wrapWithMonitoring(toolID string, h Handler) Handler {
 	if r.resourceMonitor == nil {
 		return h // 沒有監控器，直接回傳原始處理器
 	}
-	
+
 	// 檢查處理器是否支援資源感知
 	if resourceAware, ok := h.(ResourceAwareHandler); ok {
 		// 使用增強型監控包裝器
@@ -227,10 +227,10 @@ func (r *Registry) GetMonitoringHealthStatus() map[string]interface{} {
 	if r.resourceMonitor == nil {
 		return map[string]interface{}{
 			"monitoring_enabled": false,
-			"message":           "資源監控未啟用",
+			"message":            "資源監控未啟用",
 		}
 	}
-	
+
 	health := r.resourceMonitor.GetHealthStatus()
 	health["monitoring_enabled"] = true
 	return health
@@ -241,23 +241,23 @@ func (r *Registry) SetPluginResourceLimits(toolID string, maxMemoryBytes int64, 
 	r.rwmu.RLock()
 	handler, exists := r.byToolID[toolID]
 	r.rwmu.RUnlock()
-	
+
 	if !exists {
 		return fmt.Errorf("plugin not found: %s", toolID)
 	}
-	
+
 	// 嘗試找到增強監控處理器
 	if enhancedHandler, ok := handler.(*EnhancedMonitoredHandler); ok {
 		return enhancedHandler.SetResourceLimits(maxMemoryBytes, maxGoroutines, maxConnections)
 	}
-	
+
 	// 嘗試直接訪問資源感知處理器（可能是原始處理器）
 	if monitoredHandler, ok := handler.(*MonitoredHandler); ok {
 		if resourceAwareHandler, ok := monitoredHandler.handler.(ResourceAwareHandler); ok {
 			return resourceAwareHandler.SetResourceLimits(maxMemoryBytes, maxGoroutines, maxConnections)
 		}
 	}
-	
+
 	return fmt.Errorf("plugin %s does not support resource limits", toolID)
 }
 
@@ -266,16 +266,16 @@ func (r *Registry) GetPluginDetailedMetrics(toolID string) map[string]interface{
 	r.rwmu.RLock()
 	handler, exists := r.byToolID[toolID]
 	r.rwmu.RUnlock()
-	
+
 	if !exists {
 		return nil
 	}
-	
+
 	// 嘗試獲取增強監控處理器的詳細指標
 	if enhancedHandler, ok := handler.(*EnhancedMonitoredHandler); ok {
 		return enhancedHandler.GetDetailedMetrics()
 	}
-	
+
 	// 回退到基本監控指標
 	if r.resourceMonitor != nil {
 		basicMetrics := r.resourceMonitor.GetPluginMetrics(toolID)
@@ -291,11 +291,11 @@ func (r *Registry) GetPluginDetailedMetrics(toolID string) map[string]interface{
 				"memory_usage_bytes":  basicMetrics.MemoryUsageBytes,
 				"goroutine_count":     basicMetrics.GoroutineCount,
 				"connection_count":    basicMetrics.ConnectionCount,
-				"uptime_ms":          time.Now().UnixMilli() - basicMetrics.StartTime,
-				"last_update":        basicMetrics.LastUpdateTime,
+				"uptime_ms":           time.Now().UnixMilli() - basicMetrics.StartTime,
+				"last_update":         basicMetrics.LastUpdateTime,
 			}
 		}
 	}
-	
+
 	return nil
 }

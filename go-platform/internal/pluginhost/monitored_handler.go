@@ -12,10 +12,10 @@ import (
 
 // MonitoredHandler 具備資源監控功能的處理器包裝器
 type MonitoredHandler struct {
-	pluginID      string
-	handler       Handler
-	monitor       *ResourceMonitor
-	
+	pluginID string
+	handler  Handler
+	monitor  *ResourceMonitor
+
 	// 資源計數器
 	activeRequests int64
 	goroutineBase  int
@@ -27,7 +27,7 @@ func NewMonitoredHandler(pluginID string, handler Handler, monitor *ResourceMoni
 	// 記錄基線指標
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-	
+
 	mh := &MonitoredHandler{
 		pluginID:      pluginID,
 		handler:       handler,
@@ -35,49 +35,49 @@ func NewMonitoredHandler(pluginID string, handler Handler, monitor *ResourceMoni
 		goroutineBase: runtime.NumGoroutine(),
 		memoryBase:    memStats.Alloc,
 	}
-	
+
 	// 註冊到監控系統
 	monitor.RegisterPlugin(pluginID)
-	
+
 	zap.L().Info("監控處理器已創建",
 		zap.String("plugin_id", pluginID),
 		zap.Int("baseline_goroutines", mh.goroutineBase),
 		zap.Uint64("baseline_memory_bytes", mh.memoryBase))
-	
+
 	return mh
 }
 
 // Invoke 執行請求並進行資源監控
-func (mh *MonitoredHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
+func (mh *MonitoredHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
 	// 記錄請求開始
 	start := time.Now()
 	atomic.AddInt64(&mh.activeRequests, 1)
 	mh.monitor.RecordRequest(mh.pluginID)
-	
+
 	// 採集資源使用情況
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 	currentGoroutines := runtime.NumGoroutine()
-	
+
 	// 計算增量（相對於基線）
 	goroutineDelta := int32(currentGoroutines - mh.goroutineBase)
 	memoryDelta := int64(memStats.Alloc - mh.memoryBase)
 	activeConns := int32(0) // TODO: 如果插件支援連接計數，可以添加
-	
+
 	// 更新資源監控
 	mh.monitor.UpdateResourceUsage(mh.pluginID, memoryDelta, goroutineDelta, activeConns)
-	
+
 	// 執行實際處理邏輯
 	reply, err := mh.handler.Invoke(ctx, req)
-	
+
 	// 記錄請求完成
 	duration := time.Since(start)
 	durationMs := duration.Milliseconds()
 	isError := err != nil || (reply != nil && reply.Status != nil && reply.Status.Code != 0)
-	
+
 	atomic.AddInt64(&mh.activeRequests, -1)
 	mh.monitor.RecordRequestComplete(mh.pluginID, durationMs, isError)
-	
+
 	// 記錄詳細日誌
 	logger := zap.L().With(
 		zap.String("plugin_id", mh.pluginID),
@@ -85,14 +85,14 @@ func (mh *MonitoredHandler) Invoke(ctx context.Context, req *v1.ToolInvokeReques
 		zap.Int64("memory_delta_bytes", memoryDelta),
 		zap.Int32("goroutine_delta", goroutineDelta),
 		zap.Bool("is_error", isError))
-	
+
 	if isError {
 		logger.Warn("插件請求執行失敗",
 			zap.Error(err))
 	} else {
 		logger.Debug("插件請求執行成功")
 	}
-	
+
 	return reply, err
 }
 
@@ -102,18 +102,18 @@ func (mh *MonitoredHandler) Close() error {
 	for atomic.LoadInt64(&mh.activeRequests) > 0 {
 		time.Sleep(10 * time.Millisecond)
 	}
-	
+
 	// 取消監控註冊
 	mh.monitor.UnregisterPlugin(mh.pluginID)
-	
+
 	// 關閉底層處理器
 	if closable, ok := mh.handler.(ClosableHandler); ok {
 		return closable.Close()
 	}
-	
+
 	zap.L().Info("監控處理器已關閉",
 		zap.String("plugin_id", mh.pluginID))
-	
+
 	return nil
 }
 
@@ -125,10 +125,10 @@ func (mh *MonitoredHandler) GetActiveRequests() int64 {
 // ResourceAwareHandler 支援資源感知的處理器接口
 type ResourceAwareHandler interface {
 	Handler
-	
+
 	// GetResourceUsage 返回當前資源使用情況
 	GetResourceUsage() (memoryBytes int64, goroutines int32, connections int32)
-	
+
 	// SetResourceLimits 設置資源限制
 	SetResourceLimits(maxMemoryBytes int64, maxGoroutines int32, maxConnections int32) error
 }
@@ -149,11 +149,11 @@ func NewEnhancedMonitoredHandler(pluginID string, handler ResourceAwareHandler, 
 }
 
 // Invoke 執行增強型監控請求
-func (emh *EnhancedMonitoredHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
+func (emh *EnhancedMonitoredHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
 	// 使用插件自身的資源統計
 	memBytes, goroutines, connections := emh.resourceAware.GetResourceUsage()
 	emh.monitor.UpdateResourceUsage(emh.pluginID, memBytes, goroutines, connections)
-	
+
 	// 執行基礎監控邏輯
 	return emh.MonitoredHandler.Invoke(ctx, req)
 }
@@ -169,9 +169,9 @@ func (emh *EnhancedMonitoredHandler) GetDetailedMetrics() map[string]interface{}
 	if baseMetrics == nil {
 		return nil
 	}
-	
+
 	memBytes, goroutines, connections := emh.resourceAware.GetResourceUsage()
-	
+
 	return map[string]interface{}{
 		"plugin_id":           emh.pluginID,
 		"total_requests":      baseMetrics.TotalRequests,
@@ -183,7 +183,7 @@ func (emh *EnhancedMonitoredHandler) GetDetailedMetrics() map[string]interface{}
 		"memory_usage_bytes":  memBytes,
 		"goroutine_count":     goroutines,
 		"connection_count":    connections,
-		"uptime_ms":          time.Now().UnixMilli() - baseMetrics.StartTime,
-		"last_update":        baseMetrics.LastUpdateTime,
+		"uptime_ms":           time.Now().UnixMilli() - baseMetrics.StartTime,
+		"last_update":         baseMetrics.LastUpdateTime,
 	}
 }

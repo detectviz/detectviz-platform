@@ -1,6 +1,6 @@
 # python-adk-runtime（ADK Runtime）
 
-以 **Google Agent Development Kit（ADK）** 為核心的 Python 執行環境。此 Runtime 嚴格遵循 ADK 模組邊界，並與 `go-platform` 透過 **gRPC ToolBridge** 解耦互通。
+以 **Google Agent Development Kit（ADK）** 為核心的 Python 執行環境。此 Runtime 完全遵循 `adk_tutorial.ipynb` 的官方模式，實現符合 ADK 標準的智慧代理系統，並與 `go-platform` 透過 **gRPC ToolBridge** 解耦互通。
 
 ---
 
@@ -31,9 +31,10 @@ graph TB
 ```
 
 ### 核心設計原則
-- **ADK 原生開發**：嚴格遵循 Agent／Workflow／MemoryBank／Tools／Capabilities 模組邊界
-- **決策與執行分離**：透過 **RemoteTool** 以 gRPC 呼叫 `go-platform` 插件，避免跨語言耦合
-- **多 Agent 協作**：支援 A2A 通訊、共享記憶體 bank 抽換、版本化與依賴描述（Module Card）
+- **ADK 標準實作**：完全遵循 Google ADK API，使用 `google.adk.Agent`、`FunctionTool` 包裝器、`Runner` 和 `SessionService`
+- **Root + Sub-Agents 架構**：實現代理團隊協作，支援自動委派（auto delegation）機制
+- **Session State 管理**：透過 `ToolContext` 實現跨對話的狀態持久化和個人化體驗
+- **決策與執行分離**：透過 **RemoteTool** 包裝在 ADK Tool 內部，呼叫 `go-platform` 插件
 - **契約驅動**：以 **SSOT（contracts）** 為唯一事實來源，proto／schema／samples 必須先於 `contracts/` 更新
 
 ### 與 Go Platform 的關係
@@ -58,7 +59,7 @@ graph LR
             D3[何時執行<br/>WHEN]
         end
         
-        AGENT[PostmortemOrchestratorAgent<br/>協調器]
+        AGENT[postmortem_orchestrator<br/>協調器 Root Agent]
     end
     
     subgraph "Tool 層 (執行手臂)"
@@ -111,7 +112,7 @@ graph LR
 
 ## MVP 功能：Phase 3 事後複盤系統
 
-### PostmortemOrchestratorAgent（核心 Agent）
+### postmortem_orchestrator（ADK Root Agent）
 
 **職責範圍**：
 - **決策制定**：分析事故複盤請求，制定數據收集和分析策略
@@ -121,25 +122,31 @@ graph LR
 
 **核心方法**：
 ```python
-class PostmortemOrchestratorAgent(BaseAgent):
-    async def conduct_postmortem(self, request: PostMortemRequest) -> PostMortemResult:
-        """
-        執行完整的事後複盤流程
-        1. 決策：分析請求並制定數據收集策略
-        2. 執行：調用 HealthAggregator 收集數據  
-        3. 決策：分析數據並識別根因
-        4. 執行：生成結構化報告
-        5. 存儲：將知識保存到歷史庫
-        """
-        
-    async def analyze_incident_timeline(self, time_range, services) -> Timeline:
-        """分析事故時間線，識別關鍵事件"""
-        
-    async def identify_root_causes(self, health_data, events) -> List[RootCause]:
-        """基於數據和事件識別可能的根因"""
-        
-    async def generate_recommendations(self, analysis) -> List[Recommendation]:
-        """生成改進建議和預防措施"""
+# Root Agent（根代理）- 主要協調器
+postmortem_orchestrator = Agent(
+    name="postmortem_orchestrator",
+    model="gemini-2.0-flash",
+    instruction="""你是事後檢討協調器，負責管理整個檢討流程。
+
+你有以下子代理可以委派任務：
+1. 'data_collector': 收集事故相關資料和指標
+2. 'root_cause_analyzer': 分析根本原因和相關性
+3. 'report_writer': 產生完整報告和文件
+
+標準工作流程：
+1. 首先委派 data_collector 收集事件期間的所有相關資料
+2. 將收集的資料交給 root_cause_analyzer 進行深度分析
+3. 最後讓 report_writer 基於分析結果產生完整的事後檢討報告""",
+    description="協調事後檢討流程的主代理",
+    tools=[],  # Root Agent 不直接使用工具
+    sub_agents=[data_collector_agent, root_cause_analyzer, report_writer]
+)
+
+# 使用 PostmortemRunner 執行
+async def run_postmortem_analysis(incident_request: Dict[str, Any]) -> Dict[str, Any]:
+    """便利函式用於快速執行事後檢討分析"""
+    runner = PostmortemRunner()
+    return await runner.execute_postmortem(incident_request)
 ```
 
 ### 核心 Tools 功能表
@@ -174,49 +181,39 @@ python-adk-runtime/
 │   │       └── tests/
 │   │           ├── test_postmortem_orchestrator.py
 │   │           └── test_integration.py
-│   ├── tools/                          # 工具抽象層
-│   │   ├── remote_tool.py              # RemoteTool gRPC 客戶端
-│   │   ├── data/                       # 🎯 MVP: 數據相關工具
-│   │   │   ├── __init__.py
-│   │   │   ├── health_aggregator.py    # HealthAggregator 包裝器
-│   │   │   └── event_collector.py      # EventCollector 包裝器
-│   │   ├── reporting/                  # 🎯 MVP: 報告相關工具
-│   │   │   ├── __init__.py
-│   │   │   ├── report_generator.py     # ReportGenerator 包裝器
-│   │   │   └── template_manager.py     # 報告模板管理
-│   │   └── knowledge/                  # 🎯 MVP: 知識相關工具
-│   │       ├── __init__.py
-│   │       ├── knowledge_retriever.py  # 知識檢索工具
-│   │       └── similarity_engine.py    # 相似性分析
-│   ├── capabilities/                   # 🎯 MVP: 能力組件
+│   ├── agents/                         # 🎯 MVP 核心: ADK Agent 實作
 │   │   ├── __init__.py
-│   │   ├── analysis/
-│   │   │   ├── timeline_analyzer.py    # 時間線分析能力
-│   │   │   ├── pattern_detector.py     # 模式檢測能力
-│   │   │   └── anomaly_detector.py     # 異常檢測能力
-│   │   └── reasoning/
-│   │       ├── root_cause_engine.py    # 根因推理能力
-│   │       └── recommendation_engine.py # 建議生成能力
+│   │   └── postmortem/                 # 🎯 MVP: 事後檢討 Agent 團隊
+│   │       ├── __init__.py             # 匯出所有代理
+│   │       ├── orchestrator.py         # Root Agent（協調器）
+│   │       ├── data_collector.py       # Sub Agent（資料收集）
+│   │       ├── analyzer.py             # Sub Agent（根因分析）
+│   │       └── report_writer.py        # Sub Agent（報告撰寫）
+│   ├── tools/                          # 🎯 MVP: ADK 工具集合
+│   │   ├── __init__.py                 # 匯出所有工具
+│   │   ├── adk_tools.py                # FunctionTool 包裝的工具
+│   │   ├── memory_tools.py             # 記憶體管理工具
+│   │   └── remote_tool.py              # Go Platform 遠端工具橋接
+│   ├── runners/                        # 🎯 MVP: ADK 執行器
+│   │   ├── __init__.py                 # 匯出執行器
+│   │   └── postmortem_runner.py        # ADK Runner 實作
+│   ├── sessions/                       # 🎯 MVP: 會話管理
+│   │   ├── __init__.py                 # 匯出會話管理器
+│   │   └── session_manager.py          # Session State 管理
 │   ├── memory/                         # 記憶體管理
 │   │   ├── __init__.py
 │   │   ├── stores/                     # 🎯 MVP: 知識存儲
 │   │   │   ├── __init__.py
-│   │   │   ├── response_history_store.py # 響應歷史存儲
-│   │   │   ├── knowledge_graph_store.py  # 知識圖存儲
-│   │   │   └── file_store.py           # 文件存儲實現
-│   │   └── interfaces/
-│   │       └── memory_interface.py     # 記憶體介面定義
-│   └── services/                       # gRPC 服務實作
-│       ├── __init__.py
-│       └── postmortem_service.py       # 事後複盤服務端點
-├── templates/                          # ADK 樣板
-│   └── postmortem/                     # 🎯 MVP: 複盤相關樣板
-│       ├── report_templates/
-│       │   ├── standard_postmortem.md
-│       │   ├── executive_summary.md
-│       │   └── technical_details.md
-│       └── workflow_templates/
-└── requirements.txt                    # 依賴管理
+│   │   │   └── response_history_store.py # 響應歷史存儲（ADK Session State 整合）
+│   └── config/                         # 🎯 MVP: 設定管理
+│       ├── __init__.py                 # 匯出設定載入器
+│       └── loader.py                   # 統一設定載入器
+├── test_adk_integration.py             # ADK 整合測試
+├── test_simple_adk.py                  # 基本 ADK 測試
+├── example_usage.py                    # 使用範例
+├── requirements.txt                    # 依賴管理
+├── llm.txt                             # AI 維護指南
+└── CLEANUP_SUMMARY.md                  # 清理總結
 ```
 
 ---
@@ -276,46 +273,23 @@ Python 與 Go 採用同一套鍵位與環境覆蓋規範（部分鍵位）：
 
 **正確的設計模式**：
 ```python
-# ✅ 正確：Agent 做決策，Tool 做執行
-class PostmortemOrchestratorAgent(BaseAgent):
-    async def conduct_postmortem(self, request: PostMortemRequest):
-        # 🎯 決策：分析需要收集什麼數據
-        if request.severity == "HIGH":
-            metrics = ["cpu", "memory", "disk", "network", "errors"]
-            time_window = "2h"  # 高嚴重度事故看更長時間
-        else:
-            metrics = ["cpu", "memory", "errors"] 
-            time_window = "30m"
-            
-        # ✅ 執行：通過 RemoteTool 調用 Go 端
-        health_data = await self.health_aggregator.invoke({
-            "metrics": metrics,
-            "time_range": request.time_range,
-            "time_window": time_window
-        })
-        
-        # 🎯 決策：分析數據並制定報告策略
-        if self._detect_cascade_failure(health_data):
-            report_type = "cascade_analysis"
-        elif self._detect_resource_exhaustion(health_data):
-            report_type = "resource_analysis" 
-        else:
-            report_type = "standard_analysis"
-            
-        # ✅ 執行：生成報告
-        report = await self.report_generator.invoke({
-            "type": report_type,
-            "data": health_data,
-            "template": f"{report_type}_template.md"
-        })
-        
-        return report
+# ✅ 正確：使用 ADK 的 Runner 模式
+async def run_postmortem_analysis(incident_request: Dict[str, Any]) -> Dict[str, Any]:
+    runner = PostmortemRunner()
+    
+    # ADK Agent 團隊會自動處理：
+    # 1. data_collector: 根據嚴重度決定收集策略
+    # 2. root_cause_analyzer: 分析數據並制定報告策略  
+    # 3. report_writer: 生成結構化報告
+    
+    result = await runner.execute_postmortem(incident_request)
+    return result
 ```
 
 **錯誤的設計模式**：
 ```python
-# ❌ 錯誤：Agent 直接執行技術操作
-class PostmortemOrchestratorAgent(BaseAgent):
+# ❌ 錯誤：不使用 ADK 標準，直接執行技術操作
+class OldPostmortemAgent:
     async def conduct_postmortem(self, request):
         # ❌ 不應該直接查詢數據庫
         influx_client = InfluxDBClient(url=influx_url, token=token)
@@ -337,7 +311,7 @@ class PostmortemOrchestratorAgent(BaseAgent):
 ```python
 from detectviz_adk.tools.remote_tool import RemoteTool
 
-class PostmortemOrchestratorAgent(BaseAgent):
+class PostmortemRunner(BaseAgent):
     def __init__(self):
         super().__init__()
         # 初始化 RemoteTool 連接
@@ -521,47 +495,34 @@ sequenceDiagram
 # tests/test_postmortem_orchestrator.py
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from detectviz_adk.agents.post_mortem.postmortem_orchestrator_agent import PostmortemOrchestratorAgent
+from detectviz_adk import run_postmortem_analysis, PostmortemRunner
 
-class TestPostmortemOrchestratorAgent:
+class TestPostmortemSystem:
     @pytest.fixture
-    async def agent(self):
-        agent = PostmortemOrchestratorAgent()
-        # Mock RemoteTool 避免實際 gRPC 調用
-        agent.health_aggregator = AsyncMock()
-        agent.report_generator = AsyncMock()
-        return agent
+    async def runner(self):
+        runner = PostmortemRunner()
+        return runner
     
-    async def test_conduct_postmortem_high_severity(self, agent):
+    async def test_conduct_postmortem_high_severity(self, runner):
         """測試高嚴重度事故的處理邏輯"""
         # 準備測試數據
-        request = PostMortemRequest(
-            incident_id="INC-001",
-            severity="HIGH",
-            time_range=TimeRange(start="2024-01-01T10:00:00Z", end="2024-01-01T12:00:00Z"),
-            affected_services=["api", "db"]
-        )
-        
-        # Mock 返回數據
-        agent.health_aggregator.invoke.return_value = {
-            "metrics": {"cpu": [90, 95, 85], "memory": [80, 85, 75]},
-            "anomalies": ["cpu_spike", "memory_leak"]
+        incident_request = {
+            "incident_id": "INC-001",
+            "severity": "P1",
+            "time_range": {
+                "start": "2024-01-01T10:00:00Z", 
+                "end": "2024-01-01T12:00:00Z"
+            },
+            "affected_services": ["api", "database"]
         }
         
-        agent.report_generator.invoke.return_value = {
-            "report_path": "/tmp/report.md",
-            "summary": "Root cause: CPU spike caused by memory leak"
-        }
+        # 執行測試（將使用 ADK Agent 團隊）
+        result = await runner.execute_postmortem(incident_request)
         
-        # 執行測試
-        result = await agent.conduct_postmortem(request)
-        
-        # 驗證決策邏輯
-        assert agent.health_aggregator.invoke.called
-        call_args = agent.health_aggregator.invoke.call_args[0][0]
-        assert "cpu" in call_args["metrics"]
-        assert "memory" in call_args["metrics"] 
-        assert "network" in call_args["metrics"]  # 高嚴重度應包含更多指標
+        # 驗證結果
+        assert result["session_id"] is not None
+        assert result["incident_id"] == "INC-001"
+        assert "response" in result
         
         # 驗證結果
         assert result["report_path"] is not None
@@ -573,7 +534,7 @@ class TestPostmortemOrchestratorAgent:
 # tests/test_integration.py
 import pytest
 import docker
-from detectviz_adk.agents.post_mortem.postmortem_orchestrator_agent import PostmortemOrchestratorAgent
+from detectviz_adk import run_postmortem_analysis, PostmortemRunner
 
 @pytest.mark.integration
 class TestPostmortemIntegration:
@@ -615,24 +576,24 @@ class TestPostmortemIntegration:
     
     async def test_end_to_end_postmortem(self, test_environment):
         """端到端測試：從請求到報告生成"""
-        agent = PostmortemOrchestratorAgent()
+        runner = PostmortemRunner()
         
-        request = PostMortemRequest(
-            incident_id="E2E-001",
-            severity="MEDIUM",
-            time_range=TimeRange(
-                start="2024-01-01T10:00:00Z", 
-                end="2024-01-01T11:00:00Z"
+        incident_request = {
+            "incident_id": "E2E-001",
+            "severity": "P2",
+            "time_range": {
+                "start": "2024-01-01T10:00:00Z", 
+                "end": "2024-01-01T11:00:00Z"
             ),
-            affected_services=["test-service"]
-        )
+            "affected_services": ["test-service"]
+        }
         
-        result = await agent.conduct_postmortem(request)
+        result = await runner.execute_postmortem(incident_request)
         
         # 驗證完整流程
-        assert result["status"] == "completed"
-        assert result["report_path"].endswith(".md")
-        assert os.path.exists(result["report_path"])
+        assert result["session_id"] is not None
+        assert result["incident_id"] == "E2E-001"
+        assert "response" in result
         
         # 驗證報告內容
         with open(result["report_path"]) as f:
@@ -780,11 +741,11 @@ python -m detectviz_adk.tools.test_generator \
 
 ### 主要類別 API 文檔
 
-#### PostmortemOrchestratorAgent
+#### PostmortemRunner
 
 **類別簽名**：
 ```python
-class PostmortemOrchestratorAgent(BaseAgent):
+class PostmortemRunner(BaseAgent):
     """事後複盤協調器 - MVP 核心 Agent"""
 ```
 
@@ -887,7 +848,7 @@ DETECTVIZ_KNOWLEDGE_STORE_PATH = "./data/knowledge.db"  # 知識庫路徑
 **性能調優**：
 ```python
 # Agent 初始化參數
-agent = PostmortemOrchestratorAgent(
+agent = PostmortemRunner(
     max_concurrent_requests=10,    # 最大並發請求數
     cache_ttl_seconds=300,         # 快取 TTL
     enable_metrics=True,           # 啟用指標收集

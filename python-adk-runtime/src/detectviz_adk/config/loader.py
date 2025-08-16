@@ -1,11 +1,10 @@
-# Configuration loader for Python ADK Runtime
+# Python ADK Runtime 設定載入器
 # 對齊 Detectviz SSOT：統一搜尋順序、環境變數覆蓋、Schema 驗證
 # 生效優先序（高→低）：
 #  1. 函式參數 path / CLI --config
 #  2. 環境變數 DETECTVIZ_CONFIG_FILE
 #  3. `./config.yaml`（工作目錄）
-#  4. `../contracts/config.yaml`（團隊覆蓋，可選）
-#  5. `./contracts/samples/config.yaml`（SSOT 樣本兜底）
+#  4. `./contracts/samples/config.yaml`（SSOT 樣本兜底）
 
 from __future__ import annotations
 

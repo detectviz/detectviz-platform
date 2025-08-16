@@ -52,7 +52,7 @@ func TestResourceMonitoringIntegration(t *testing.T) {
 	payload, err := structpb.NewStruct(requestPayload)
 	require.NoError(t, err)
 
-	req := &v1.ToolInvokeRequest{
+	req := &v1.InvokeRequest{
 		ToolId:  pluginID,
 		Payload: payload,
 	}
@@ -159,7 +159,7 @@ func TestConcurrentPluginMonitoring(t *testing.T) {
 				}
 
 				payload, _ := structpb.NewStruct(requestPayload)
-				req := &v1.ToolInvokeRequest{
+				req := &v1.InvokeRequest{
 					ToolId:  pluginID,
 					Payload: payload,
 				}
@@ -264,7 +264,7 @@ func BenchmarkMonitoredPluginPerformance(b *testing.B) {
 	payload, _ := structpb.NewStruct(map[string]interface{}{
 		"test": "data",
 	})
-	req := &v1.ToolInvokeRequest{
+	req := &v1.InvokeRequest{
 		ToolId:  pluginID,
 		Payload: payload,
 	}

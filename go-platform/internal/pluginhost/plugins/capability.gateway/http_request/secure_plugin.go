@@ -118,7 +118,7 @@ func (p *SecurePlugin) Close() error {
 }
 
 // Invoke 執行 HTTP 請求（具備完整安全檢查）
-func (p *SecurePlugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
+func (p *SecurePlugin) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
 	// 併發控制
 	select {
 	case p.semaphore <- struct{}{}:
@@ -288,7 +288,7 @@ func (p *SecurePlugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*
 		zap.Int("response_size", len(responseBody)),
 	)
 
-	return &v1.ToolInvokeReply{
+	return &v1.InvokeResponse{
 		Result: resultStruct,
 		Status: status,
 		ExecMeta: &v1.ToolExecutionMeta{

@@ -22,9 +22,9 @@ type Runtime struct {
 	tlsCfg *tls.Config
 	reg    *Registry
 
-	mu   sync.Mutex
-	gs   *grpc.Server
-	lis  net.Listener
+	mu      sync.Mutex
+	gs      *grpc.Server
+	lis     net.Listener
 	onReady ReadyFunc
 }
 
@@ -38,9 +38,11 @@ func (rt *Runtime) SetOnReady(f ReadyFunc) { rt.onReady = f }
 // Start 啟動 gRPC ToolBridge 服務（阻塞 Serve 放進 goroutine）
 func (rt *Runtime) Start(ctx context.Context, unary ...grpc.UnaryServerInterceptor) error {
 	rlis, err := net.Listen("tcp", rt.addr)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	gs := NewGRPCServer(rt.tlsCfg, unary...)
-	v1.RegisterToolBridgeServer(gs, NewServer(rt.reg))
+	v1.RegisterToolBridgeServiceServer(gs, NewServer(rt.reg))
 	// gRPC Health
 	hs := grpc_health.NewServer()
 	healthpb.RegisterHealthServer(gs, hs)
@@ -61,7 +63,9 @@ func (rt *Runtime) Start(ctx context.Context, unary ...grpc.UnaryServerIntercept
 		_ = rt.Stop(context.Background())
 		return ctx.Err()
 	case <-t.C:
-		if rt.onReady != nil { rt.onReady() }
+		if rt.onReady != nil {
+			rt.onReady()
+		}
 		return nil
 	}
 }

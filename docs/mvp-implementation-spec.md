@@ -16,7 +16,7 @@
 ### 1.2 MVP 範圍定義
 
 **包含**：
-- PostmortemOrchestratorAgent 及其核心工作流程
+- postmortem_orchestrator (ADK Root Agent) 及其核心工作流程
 - ReportGenerator 和 HealthAggregator 基礎實現
 - 與 Grafana/InfluxDB 的基本整合
 - 契約定義和驗證機制
@@ -98,7 +98,7 @@ go-platform/
 
 ## 3. 核心組件詳細設計
 
-### 3.1 PostmortemOrchestratorAgent
+### 3.1 postmortem_orchestrator
 
 **職責**：
 - 接收並驗證複盤請求
@@ -108,7 +108,13 @@ go-platform/
 
 **實現策略**：
 ```python
-class PostmortemOrchestratorAgent(BaseAgent):
+# ADK Root Agent 實作
+postmortem_orchestrator = Agent(
+    name="postmortem_orchestrator",
+    model="gemini-2.0-flash",
+    instruction="""你是事後檢討協調器...""",
+    sub_agents=[data_collector_agent, root_cause_analyzer, report_writer]
+)
     """
     事後複盤協調器 - MVP 實現
     """
@@ -295,7 +301,7 @@ class ReportGenerator(BaseTool):
 sequenceDiagram
     participant User as 使用者/系統
     participant RootAgent as Root Agent
-    participant PMAgent as PostmortemOrchestrator
+    participant PMAgent as postmortem_orchestrator
     participant HealthAgg as HealthAggregator
     participant GoService as Go Health Service
     participant ReportGen as ReportGenerator
@@ -352,7 +358,7 @@ sequenceDiagram
 
 ### 5.1 模組卡定義
 
-**PostmortemOrchestratorAgent 模組卡**：
+**postmortem_orchestrator ADK Agent 模組卡**：
 ```json
 {
   "module_id": "postmortem_orchestrator_agent",
@@ -553,7 +559,7 @@ service PostMortemService {
 **目標**：實現 MVP 核心功能
 
 **交付項目**：
-- PostmortemOrchestratorAgent 基本實現
+- postmortem_orchestrator 基本實現
 - HealthAggregator Python 端實現
 - HealthAggregator Go 端查詢服務
 - ReportGenerator Markdown 格式支援
@@ -688,15 +694,13 @@ memory:
 
 import pytest
 from unittest.mock import Mock, AsyncMock
-from detectviz_adk.agents.post_mortem import PostmortemOrchestratorAgent
+from detectviz_adk import run_postmortem_analysis, PostmortemRunner
 
 @pytest.mark.asyncio
 async def test_postmortem_execution():
     """測試事後複盤執行流程"""
     # Arrange
-    agent = PostmortemOrchestratorAgent()
-    agent.health_aggregator = AsyncMock()
-    agent.report_generator = AsyncMock()
+    runner = PostmortemRunner()
     
     request = {
         "incident_id": "incident-20250815-test01",
@@ -707,29 +711,14 @@ async def test_postmortem_execution():
         "affected_services": ["payment-service"]
     }
     
-    # Mock responses
-    agent.health_aggregator.get_service_health.return_value = {
-        "payment-service": {
-            "sli_score": 85.5,
-            "metrics": {
-                "error_rate": 0.05,
-                "p99_latency": 500
-            }
-        }
-    }
-    
-    agent.report_generator.generate_postmortem_report.return_value = "http://reports/123"
-    agent.report_generator.create_grafana_dashboard.return_value = "http://grafana/d/456"
-    
     # Act
-    result = await agent.execute_postmortem(request)
+    result = await runner.execute_postmortem(request)
     
     # Assert
     assert result["incident_id"] == "incident-20250815-test01"
-    assert result["dashboard_url"] == "http://grafana/d/456"
-    assert result["report_url"] == "http://reports/123"
-    assert agent.health_aggregator.get_service_health.called
-    assert agent.report_generator.generate_postmortem_report.called
+    assert "session_id" in result
+    assert "response" in result
+
 ```
 
 ### 8.2 整合測試範例
@@ -885,7 +874,7 @@ async def test_end_to_end_postmortem_flow():
 下一步行動：
 1. 建立開發環境並初始化專案結構
 2. 實現基礎框架和契約定義
-3. 開始 PostmortemOrchestratorAgent 的開發
+3. 開始 postmortem_orchestrator (ADK) 的開發
 4. 建立 CI/CD 流程
 
 這份規格將作為團隊的開發指南，確保 MVP 的成功交付並為未來擴展奠定堅實基礎。
