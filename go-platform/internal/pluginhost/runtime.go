@@ -11,7 +11,7 @@ import (
 	grpc_health "google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	contractspb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 )
 
 // ReadyFunc 用於在 runtime 完成就緒時通知外部（例如健康檢查）
@@ -40,7 +40,7 @@ func (rt *Runtime) Start(ctx context.Context, unary ...grpc.UnaryServerIntercept
 	rlis, err := net.Listen("tcp", rt.addr)
 	if err != nil { return err }
 	gs := NewGRPCServer(rt.tlsCfg, unary...)
-	contractspb.RegisterToolBridgeServer(gs, NewServer(rt.reg))
+	v1.RegisterToolBridgeServer(gs, NewServer(rt.reg))
 	// gRPC Health
 	hs := grpc_health.NewServer()
 	healthpb.RegisterHealthServer(gs, hs)

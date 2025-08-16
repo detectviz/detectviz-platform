@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: detectviz/contracts/v1/adk_bridge.proto
 
-package contractspb
+package v1
 
 import (
 	context "context"

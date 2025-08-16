@@ -93,7 +93,7 @@ import (
     "context"
     "time"
 
-    contractspb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+    v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
     statuspb "google.golang.org/genproto/googleapis/rpc/status"
     structpb "google.golang.org/protobuf/types/known/structpb"
 )
@@ -104,7 +104,7 @@ type Plugin struct{}
 
 func New() *Plugin { return &Plugin{} }
 
-func (p *Plugin) Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest) (*contractspb.ToolInvokeReply, error) {
+func (p *Plugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
     start := time.Now()
 
     var res *structpb.Struct
@@ -114,10 +114,10 @@ func (p *Plugin) Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest)
         res, _ = structpb.NewStruct(map[string]interface{}{"echo": true})
     }
 
-    return &contractspb.ToolInvokeReply{
+    return &v1.ToolInvokeReply{
         Result: res,
         Status: &statuspb.Status{Code: 0, Message: "OK"},
-        ExecMeta: &contractspb.ToolExecutionMeta{
+        ExecMeta: &v1.ToolExecutionMeta{
             Attempt:    1,
             DurationMs: uint64(time.Since(start) / time.Millisecond),
             PluginId:   "%s",

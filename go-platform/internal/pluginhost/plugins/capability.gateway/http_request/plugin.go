@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 
@@ -60,7 +60,7 @@ func (p *Plugin) Close() error {
 	return nil
 }
 
-func (p *Plugin) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error) {
+func (p *Plugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	pl := req.GetPayload().AsMap()
 
 	method := strings.ToUpper(getString(pl, "method", "GET"))
@@ -161,10 +161,10 @@ func (p *Plugin) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.Too
 	}
 	s, _ := structpb.NewStruct(out)
 
-	return &pb.ToolInvokeReply{
+	return &v1.ToolInvokeReply{
 		Result: s,
 		Status: status,
-		ExecMeta: &pb.ToolExecutionMeta{
+		ExecMeta: &v1.ToolExecutionMeta{
 			Attempt:    1,
 			DurationMs: uint64(time.Since(start) / time.Millisecond),
 			PluginId:   PluginID,
@@ -172,11 +172,11 @@ func (p *Plugin) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.Too
 	}, nil
 }
 
-func wrapErr(err error) *pb.ToolInvokeReply {
-	return &pb.ToolInvokeReply{
+func wrapErr(err error) *v1.ToolInvokeReply {
+	return &v1.ToolInvokeReply{
 		Result: nil,
 		Status: &statuspb.Status{Code: 2, Message: err.Error()}, // UNKNOWN
-		ExecMeta: &pb.ToolExecutionMeta{
+		ExecMeta: &v1.ToolExecutionMeta{
 			Attempt:  1,
 			PluginId: PluginID,
 		},

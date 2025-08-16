@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package detectviz.contracts.v1;
-option go_package = "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;contractspb";
+option go_package = "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;v1";
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";

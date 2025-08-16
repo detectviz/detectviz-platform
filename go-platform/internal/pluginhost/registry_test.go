@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	contractspb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,9 +20,9 @@ type mockHandler struct {
 	closeErr error
 }
 
-func (m *mockHandler) Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest) (*contractspb.ToolInvokeReply, error) {
+func (m *mockHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	m.invoked = true
-	return &contractspb.ToolInvokeReply{}, nil
+	return &v1.ToolInvokeReply{}, nil
 }
 
 func (m *mockHandler) Close() error {
@@ -36,9 +36,9 @@ type basicMockHandler struct {
 	invoked bool
 }
 
-func (m *basicMockHandler) Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest) (*contractspb.ToolInvokeReply, error) {
+func (m *basicMockHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	m.invoked = true
-	return &contractspb.ToolInvokeReply{}, nil
+	return &v1.ToolInvokeReply{}, nil
 }
 
 func TestRegistry_NewRegistry(t *testing.T) {

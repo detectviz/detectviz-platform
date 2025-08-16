@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	"go.uber.org/zap"
 )
 
@@ -48,7 +48,7 @@ func NewMonitoredHandler(pluginID string, handler Handler, monitor *ResourceMoni
 }
 
 // Invoke 執行請求並進行資源監控
-func (mh *MonitoredHandler) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error) {
+func (mh *MonitoredHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	// 記錄請求開始
 	start := time.Now()
 	atomic.AddInt64(&mh.activeRequests, 1)
@@ -149,7 +149,7 @@ func NewEnhancedMonitoredHandler(pluginID string, handler ResourceAwareHandler, 
 }
 
 // Invoke 執行增強型監控請求
-func (emh *EnhancedMonitoredHandler) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error) {
+func (emh *EnhancedMonitoredHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	// 使用插件自身的資源統計
 	memBytes, goroutines, connections := emh.resourceAware.GetResourceUsage()
 	emh.monitor.UpdateResourceUsage(emh.pluginID, memBytes, goroutines, connections)

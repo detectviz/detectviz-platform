@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
@@ -22,7 +22,7 @@ type MockHandler struct {
 	mu             sync.Mutex
 }
 
-func (m *MockHandler) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error) {
+func (m *MockHandler) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	m.mu.Lock()
 	m.callCount++
 	m.mu.Unlock()
@@ -32,7 +32,7 @@ func (m *MockHandler) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*p
 	}
 	
 	if m.shouldError {
-		return &pb.ToolInvokeReply{
+		return &v1.ToolInvokeReply{
 			Status: &statuspb.Status{Code: 2, Message: "模擬錯誤"},
 		}, nil
 	}
@@ -42,7 +42,7 @@ func (m *MockHandler) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*p
 		"data":    "test response",
 	})
 	
-	return &pb.ToolInvokeReply{
+	return &v1.ToolInvokeReply{
 		Result: result,
 		Status: &statuspb.Status{Code: 0, Message: "OK"},
 	}, nil
@@ -188,7 +188,7 @@ func TestMonitoredHandler(t *testing.T) {
 	defer monitoredHandler.Close()
 	
 	// 創建測試請求
-	req := &pb.ToolInvokeRequest{
+	req := &v1.ToolInvokeRequest{
 		ToolId: "test_tool",
 		Payload: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
@@ -232,7 +232,7 @@ func TestMonitoredHandler_ErrorHandling(t *testing.T) {
 	monitoredHandler := NewMonitoredHandler(pluginID, mockHandler, monitor)
 	defer monitoredHandler.Close()
 	
-	req := &pb.ToolInvokeRequest{
+	req := &v1.ToolInvokeRequest{
 		ToolId: "test_tool",
 		Payload: &structpb.Struct{},
 	}

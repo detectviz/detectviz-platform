@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/capability.gateway/http_request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,7 +52,7 @@ func TestResourceMonitoringIntegration(t *testing.T) {
 	payload, err := structpb.NewStruct(requestPayload)
 	require.NoError(t, err)
 
-	req := &pb.ToolInvokeRequest{
+	req := &v1.ToolInvokeRequest{
 		ToolId:  pluginID,
 		Payload: payload,
 	}
@@ -159,7 +159,7 @@ func TestConcurrentPluginMonitoring(t *testing.T) {
 				}
 
 				payload, _ := structpb.NewStruct(requestPayload)
-				req := &pb.ToolInvokeRequest{
+				req := &v1.ToolInvokeRequest{
 					ToolId:  pluginID,
 					Payload: payload,
 				}
@@ -264,7 +264,7 @@ func BenchmarkMonitoredPluginPerformance(b *testing.B) {
 	payload, _ := structpb.NewStruct(map[string]interface{}{
 		"test": "data",
 	})
-	req := &pb.ToolInvokeRequest{
+	req := &v1.ToolInvokeRequest{
 		ToolId:  pluginID,
 		Payload: payload,
 	}

@@ -8,13 +8,13 @@ import (
 	"sync"
 	"time"
 
-	contractspb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	"go.uber.org/zap"
 )
 
 // Handler 為每個 tool_id 的處理器介面
 type Handler interface {
-	Invoke(ctx context.Context, req *contractspb.ToolInvokeRequest) (*contractspb.ToolInvokeReply, error)
+	Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error)
 }
 
 // 可選：具備釋放資源能力的處理器

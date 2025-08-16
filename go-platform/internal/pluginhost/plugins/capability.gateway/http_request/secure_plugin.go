@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 
@@ -118,7 +118,7 @@ func (p *SecurePlugin) Close() error {
 }
 
 // Invoke 執行 HTTP 請求（具備完整安全檢查）
-func (p *SecurePlugin) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error) {
+func (p *SecurePlugin) Invoke(ctx context.Context, req *v1.ToolInvokeRequest) (*v1.ToolInvokeReply, error) {
 	// 併發控制
 	select {
 	case p.semaphore <- struct{}{}:
@@ -288,10 +288,10 @@ func (p *SecurePlugin) Invoke(ctx context.Context, req *pb.ToolInvokeRequest) (*
 		zap.Int("response_size", len(responseBody)),
 	)
 
-	return &pb.ToolInvokeReply{
+	return &v1.ToolInvokeReply{
 		Result: resultStruct,
 		Status: status,
-		ExecMeta: &pb.ToolExecutionMeta{
+		ExecMeta: &v1.ToolExecutionMeta{
 			Attempt:    1,
 			DurationMs: uint64(duration / time.Millisecond),
 			PluginId:   PluginID + ".secure",
