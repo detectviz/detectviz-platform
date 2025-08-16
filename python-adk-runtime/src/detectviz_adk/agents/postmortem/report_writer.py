@@ -1,6 +1,6 @@
 """
 報告撰寫子代理
-基於 adk_tutorial.ipynb 模式 - 專門負責報告產生的代理
+基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式 - 專門負責報告產生的代理
 """
 from google import adk
 from ...tools.adk_tools import generate_report, create_dashboard, update_knowledge_base

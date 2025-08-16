@@ -2,7 +2,7 @@
 
 ## 概覽
 
-本指南基於對 17 個 agents 範例的深度分析，提供完整的 Agent 開發最佳實務。涵蓋 4 種核心架構模式、Sub-Agent 共享機制，以及從設計到部署的完整工作流程。
+本指南基於對 [官方 agents 範例](https://github.com/google/adk-samples/tree/main/python/agents)的深度分析，提供完整的 Agent 開發最佳實務。涵蓋 4 種核心架構模式、Sub-Agent 共享機制，以及從設計到部署的完整工作流程。
 
 ## Agent 架構模式詳解
 

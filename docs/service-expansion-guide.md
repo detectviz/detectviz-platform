@@ -2,7 +2,7 @@
 
 ## 概覽
 
-本指南提供完整的 Service (Agent) 擴充流程，從需求分析到部署上線的詳細步驟。基於對 17 個 agents 範例的分析，確保新 Service 遵守 ADK 模組邊界和 SSOT 契約規範。
+本指南提供完整的 Service (Agent) 擴充流程，從需求分析到部署上線的詳細步驟。基於對 [官方 agents 範例](https://github.com/google/adk-samples/tree/main/python/agents)的分析，確保新 Service 遵守 ADK 模組邊界和 SSOT 契約規範。
 
 ## Service 擴充完整流程
 

@@ -1,6 +1,6 @@
 """
 ADK 會話管理
-基於 adk_tutorial.ipynb 模式 - 會話狀態和 ToolContext 管理
+基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式 - 會話狀態和 ToolContext 管理
 """
 from typing import Dict, Any, Optional
 from google.adk.sessions import InMemorySessionService

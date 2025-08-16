@@ -109,7 +109,7 @@ flowchart TD
 
 #### 靈活選擇場景
 ```bash
-🎯 可選 Go 或 Python:
+可選 Go 或 Python:
 - JSON/XML 數據處理
 - 配置檔案操作
 - 日誌分析處理

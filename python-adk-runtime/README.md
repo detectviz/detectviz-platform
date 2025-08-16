@@ -1,6 +1,6 @@
 # python-adk-runtime（ADK Runtime）
 
-以 **Google Agent Development Kit（ADK）** 為核心的 Python 執行環境。此 Runtime 完全遵循 `adk_tutorial.ipynb` 的官方模式，實現符合 ADK 標準的智慧代理系統，並與 `go-platform` 透過 **gRPC ToolBridge** 解耦互通。
+以 **Google Agent Development Kit（ADK）** 為核心的 Python 執行環境。此 Runtime 完全遵循 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 的官方模式，實現符合 ADK 標準的智慧代理系統，並與 `go-platform` 透過 **gRPC ToolBridge** 解耦互通。
 
 ---
 

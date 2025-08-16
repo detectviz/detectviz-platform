@@ -1,6 +1,6 @@
 """
 資料收集子代理
-基於 adk_tutorial.ipynb 模式 - 專門負責資料收集的代理
+基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式 - 專門負責資料收集的代理
 """
 from google import adk
 from ...tools.adk_tools import get_health_metrics

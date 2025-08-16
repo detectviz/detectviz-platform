@@ -1,6 +1,6 @@
 """
 DetectViz ADK Runtime - 符合 Google ADK 標準的智慧代理架構
-基於 adk_tutorial.ipynb 模式實作的事後檢討系統
+基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式實作的事後檢討系統
 """
 
 # 主要元件匯出

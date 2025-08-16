@@ -1,6 +1,6 @@
 """
 事後檢討執行器實作
-基於 adk_tutorial.ipynb 模式
+基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式
 """
 import asyncio
 from typing import Dict, Any, Optional

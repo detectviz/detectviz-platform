@@ -1,10 +1,10 @@
 # Python ADK Runtime 架構設計文件
 
-## 🎯 架構總覽
+## 架構總覽
 
 Python ADK Runtime 是 Detectviz 平台的 Agent 執行環境，嚴格遵守 Google Agent Development Kit (ADK) 模組邊界，提供企業級的 Multi-Agent 協作與 A2A 通訊能力。透過 gRPC 與 Go 平台無縫整合，實現混合語言架構的最佳實務。
 
-### 🏗️ 核心設計原則
+### 核心設計原則
 
 **1. ADK 模組邊界對齊**
 - 嚴格遵守 Agent/Memory/Workflow/Tools/Capabilities 模組邊界
@@ -30,7 +30,7 @@ Python ADK Runtime 是 Detectviz 平台的 Agent 執行環境，嚴格遵守 Goo
 - 完整的文檔與範例專案
 - 標準化開發工作流與測試基礎設施
 
-## 📁 目錄架構詳解
+## 目錄架構詳解
 
 ```bash
 python-adk-runtime/
@@ -309,9 +309,9 @@ python-adk-runtime/
     └── update_dependencies.py        # 依賴更新工具
 ```
 
-## 🔄 Agent 架構模式支援
+## Agent 架構模式支援
 
-基於對 17 個 agents 範例的深度分析，Python ADK Runtime 完整支援以下架構模式：
+基於對 官方 agents 範例的深度分析，Python ADK Runtime 完整支援以下架構模式：
 
 ### 1. Simple Agent Pattern (Tool-Driven)
 ```python
@@ -388,7 +388,7 @@ root_agent = LoopAgent(
 )
 ```
 
-## 🛠️ 工具與能力共享機制
+## 工具與能力共享機制
 
 ### Tools 跨 Agent 共享 (推薦)
 ```python
@@ -420,7 +420,7 @@ root_agent_b = Agent(
 )
 ```
 
-## 🔗 Go 平台整合機制
+## Go 平台整合機制
 
 ### RemoteTool gRPC 橋接
 ```python
@@ -477,7 +477,7 @@ trace_context = get_current_trace_context()
 # 傳遞給 RemoteTool 進行跨語言追蹤
 ```
 
-## 📋 模組卡 (Module Card) 管理
+## 模組卡 (Module Card) 管理
 
 ### 自動模組卡生成
 ```bash
@@ -504,7 +504,7 @@ else:
     print("✅ Module card is valid")
 ```
 
-## 🚀 開發工作流
+## 開發工作流
 
 ### 1. 快速開始 (基於範本)
 ```bash
@@ -551,7 +551,7 @@ curl http://127.0.0.1:50051/health
 # - Metrics: Agent 性能與業務指標
 ```
 
-## 🎯 實施階段規劃
+## 實施階段規劃
 
 ### Phase 1: 核心基礎架構 (4週)
 1. **配置與觀測系統**: 實現與 Go 平台完全對齊的配置載入
@@ -577,7 +577,7 @@ curl http://127.0.0.1:50051/health
 3. **工作流編排**: 實現複雜工作流與補償機制
 4. **生產部署**: 完成容器化與部署文檔
 
-## 📚 總結
+## 總結
 
 Python ADK Runtime 架構設計完全基於對 agents 範例程式碼的深度分析，確保：
 

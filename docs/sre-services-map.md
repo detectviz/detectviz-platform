@@ -2,7 +2,7 @@
 
 > 本文件是 Detectviz Platform 的**架構憲法**，定義了 AI Agent 在 SRE 全生命週期中的職責分工與協作模式。這是所有 Agent 開發的指導藍圖。
 
-## 📌 文件定位
+## 文件定位
 
 - **目標讀者**：AI 工程師、Agent 開發者、架構師
 - **更新頻率**：季度評審，重大架構變更時更新
@@ -11,7 +11,7 @@
   - 開發指南 → [`agent-development-guide.md`](./agent-development-guide.md)
   - MVP 實施 → [`mvp-implementation-spec.md`](#)
 
-## 🎯 核心設計理念
+## 核心設計理念
 
 ### Agent vs Tool 職責劃分
 
@@ -29,7 +29,7 @@ WHEN - 何時做             WITH - 用什麼做
 - **Agent 不直接碰數據**：所有數據操作必須通過 Tool
 - **Tool 不做決策**：只提供能力，不判斷是否應該執行
 
-## 🔄 SRE 生命週期總覽
+## SRE 生命週期總覽
 
 ```mermaid
 %%{init: {'theme':'forest'}}%%
@@ -95,9 +95,9 @@ graph TB
     style P3T3 fill:#FFE4B5,stroke:#FFD700
 ```
 
-## 📊 完整 Services MAP
+## 完整 Services MAP
 
-### 🛡️ Phase 1: 事前預防 (Proactive)
+### Phase 1: 事前預防 (Proactive)
 
 > **使命**：防患於未然，主動識別並消除潛在風險
 
@@ -173,7 +173,7 @@ async def evaluate_service_health(self, service: str):
 | ResourceManager | Tool | 資源查詢 | **執行**：獲取當前資源使用情況 |
 | ReportGenerator | Tool | 規劃報告 | **執行**：生成容量規劃文檔 |
 
-### ⚡ Phase 2: 事中響應 (Reactive)
+### Phase 2: 事中響應 (Reactive)
 
 > **使命**：快速響應，精準處理，最小化故障影響
 
@@ -220,7 +220,7 @@ async def triage_alert(self, alert: Alert):
 | RPAIntegrator | Tool | 自動化執行 | **執行**：運行修復腳本，執行標準操作 |
 | IncidentResolver | Tool | 事件管理 | **執行**：更新事件狀態，記錄處理過程 |
 
-### 📈 Phase 3: 事後複盤 (Post-Mortem) - MVP
+### Phase 3: 事後複盤 (Post-Mortem) - MVP
 
 > **使命**：深度學習，持續改進，避免重蹈覆轍
 
@@ -259,7 +259,7 @@ async def orchestrate_postmortem(self, incident: Incident):
     await self.generate_outputs(incident, root_cause, recommendations)
 ```
 
-## 🔧 共享工具箱 (Shared Tools)
+## 共享工具箱 (Shared Tools)
 
 這些工具在多個階段被不同的 Agent 複用，體現了 DRY 原則：
 
@@ -280,7 +280,7 @@ async def orchestrate_postmortem(self, incident: Incident):
 3. **原子性**：一個 Tool 只做一件事
 4. **可測試**：易於單元測試和模擬
 
-## 🎭 Agent 協作模式
+## Agent 協作模式
 
 ### 層級結構
 
@@ -323,7 +323,7 @@ class SRERootAgent(Agent):
         return result
 ```
 
-## 📊 決策矩陣
+## 決策矩陣
 
 ### Agent 決策類型分類
 
@@ -356,7 +356,7 @@ postmortem_orchestrator:
     repeatability: 0.2
 ```
 
-## 🚀 實施路線圖
+## 實施路線圖
 
 ### MVP (Phase 3 優先)
 
@@ -381,7 +381,7 @@ gantt
     CapacityPlannerAgent         :2024-04-08, 2w
 ```
 
-## 📋 Agent 開發檢查清單
+## Agent 開發檢查清單
 
 開發新 Agent 時，請確保：
 
@@ -403,7 +403,7 @@ gantt
 - [ ] 壓力測試決策性能
 - [ ] 驗證與其他 Agent 的協作
 
-## 🔄 持續改進機制
+## 持續改進機制
 
 ### 月度評審
 
@@ -421,14 +421,14 @@ gantt
 - 優化 Agent 協作流程
 - 升級 Tool 能力
 
-## 📚 相關文檔
+## 相關文檔
 
 - 技術實現細節 → [`spec.md`](../spec.md)
 - Agent 開發指南 → [`agent-development-guide.md`](./agent-development-guide.md)
 - MVP 實施規格 → [`mvp-implementation-spec.md`](#)
 - Python ADK 架構 → [`python-adk-runtime-arch.md`](./python-adk-runtime-arch.md)
 
-## 🎯 核心價值
+## 核心價值
 
 這份 Services MAP 確保了：
 

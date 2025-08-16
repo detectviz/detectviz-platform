@@ -15,6 +15,7 @@ Detectviz Platform 是一個 AI 原生的 SRE 平台，使用 Google ADK 框架�
 6. **contracts/samples/config.yaml** - MVP 配置範例
 7. **README.md** - 專案總覽和快速開始指南
 8. **python-adk-runtime/README.md** - Python Runtime 詳細說明
+9. **https://github.com/google/adk-python/tree/main/contributing/samples** - ADK 官方提供的 Agent 範例程式碼
 
 # 核心開發原則（必須遵守）
 

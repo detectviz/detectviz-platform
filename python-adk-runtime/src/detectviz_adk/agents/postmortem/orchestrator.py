@@ -1,6 +1,6 @@
 """
 事後檢討協調器 - 根代理
-基於 adk_tutorial.ipynb 模式 - 主要協調代理
+基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式 - 主要協調代理
 """
 from google import adk
 from .data_collector import data_collector_agent
