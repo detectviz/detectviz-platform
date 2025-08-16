@@ -1,0 +1,96 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#f9f9f9', 'primaryBorderColor':'#333', 'fontFamily':'Arial', 'fontSize':'14px'}}}%%
+
+graph TB
+    subgraph "使用者介面層"
+        UI[Grafana Dashboard]
+        API[REST/gRPC API]
+        CLI[CLI Tools]
+    end
+    
+    subgraph "智能決策層 (Python)"
+        subgraph "ADK Runtime"
+            RA[Root Agent]
+            PA[postmortem_orchestrator<br/>Root Agent (ADK)]
+            HA[HealthCheck<br/>Agent]
+            AA[AlertTriage<br/>Agent]
+        end
+        
+        subgraph "Tools"
+            RG[ReportGenerator]
+            DB[DashboardBuilder]
+            KS[KnowledgeStore]
+        end
+    end
+    
+    subgraph "高性能執行層 (Go)"
+        subgraph "Platform Core"
+            TB[ToolBridge<br/>gRPC Server]
+            PR[Plugin Registry]
+            OM[Observability<br/>Manager]
+        end
+        
+        subgraph "Plugins"
+            HAG[HealthAggregator<br/>Plugin]
+            ICP[InfluxDB<br/>Client Plugin]
+            GCP[Grafana<br/>Client Plugin]
+        end
+    end
+    
+    subgraph "數據層"
+        TS[(InfluxDB<br/>時序數據)]
+        GS[(Grafana<br/>儀表板)]
+        RS[(Redis<br/>記憶體)]
+        KB[(Knowledge Base<br/>知識庫)]
+    end
+    
+    subgraph "可觀測層"
+        AL[Alloy Collector]
+        TM[Tempo<br/>Traces]
+        LK[Loki<br/>Logs]
+        PM[Prometheus<br/>Metrics]
+        PY[Pyroscope<br/>Profiles]
+    end
+    
+    %% 連接關係
+    UI --> API
+    API --> RA
+    CLI --> TB
+    
+    RA --> PA
+    RA --> HA
+    RA --> AA
+    
+    PA --> RG
+    PA --> DB
+    PA --> KS
+    
+    RG --> TB
+    DB --> TB
+    KS --> TB
+    
+    TB --> PR
+    PR --> HAG
+    PR --> ICP
+    PR --> GCP
+    
+    HAG --> TS
+    ICP --> TS
+    GCP --> GS
+    KS --> RS
+    KS --> KB
+    
+    OM --> AL
+    AL --> TM
+    AL --> LK
+    AL --> PM
+    AL --> PY
+    
+    classDef pythonStyle fill:#3776AB,stroke:#FFF,color:#FFF,stroke-width:2px
+    classDef goStyle fill:#00ADD8,stroke:#FFF,color:#FFF,stroke-width:2px
+    classDef dataStyle fill:#FF6B6B,stroke:#FFF,color:#FFF,stroke-width:2px
+    classDef obsStyle fill:#F46800,stroke:#FFF,color:#FFF,stroke-width:2px
+    
+    class RA,PA,HA,AA,RG,DB,KS pythonStyle
+    class TB,PR,OM,HAG,ICP,GCP goStyle
+    class TS,GS,RS,KB dataStyle
+    class AL,TM,LK,PM,PY obsStyle

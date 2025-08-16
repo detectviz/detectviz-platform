@@ -17,24 +17,7 @@
 
 本平台基於 **SRE 運維三階段生命週期**設計，構建完整的智能化可靠性工程體系：
 
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '12px'}}}%%
-
-graph LR
-    subgraph "SRE 生命週期"
-        direction LR
-        P1["Phase 1: 事前預防<br/><small>HealthCheckAgent</small><br/><small>CapacityPlannerAgent</small>"]:::future
-        P2["Phase 2: 事中響應<br/><small>AlertTriageAgent</small><br/><small>IncidentResponseAgent</small>"]:::future  
-        P3["Phase 3: 事後複盤<br/><small>postmortem_orchestrator (ADK)</small><br/><small>HealthAggregator</small>"]:::mvp
-    end
-    
-    P1 -->|"預防失效"| P2
-    P2 -->|"響應完成"| P3  
-    P3 -->|"知識沉澱"| P1
-    
-    classDef mvp fill:#90EE90,stroke:#2e7d32,stroke-width:3px,color:#000
-    classDef future fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
-```
+![SRE 生命週期](./assets/SRE_Lifecycle.mmd)
 
 ### 當前 MVP 聚焦：Phase 3（事後複盤）
 
@@ -55,7 +38,7 @@ graph LR
    - 建立報告生成層（ReportGenerator）
    - 建立知識庫架構（ResponseHistoryStore）
 
-**8 週 MVP 交付目標**：
+**2 週 MVP 交付目標**：
 - 自動事故複盤分析
 - 結構化報告生成
 - 知識庫累積檢索
@@ -63,57 +46,7 @@ graph LR
 
 ### MVP 工作流程圖
 
-```mermaid
-%%{init: {'theme':'neutral'}}%%
-
-flowchart TB
-    Start([故障事件結束]) --> Input[接收複盤請求]
-    
-    Input --> Validate{請求<br/>驗證}
-    Validate -->|無效| Error[返回錯誤]
-    Validate -->|有效| Agent[啟動<br/>postmortem_orchestrator]
-    
-    Agent --> Decision1{決策:<br/>分析範圍}
-    
-    Decision1 --> Collect[並行數據收集]
-    
-    Collect --> C1[收集指標<br/>HealthAggregator]
-    Collect --> C2[收集日誌<br/>LogCollector]
-    Collect --> C3[收集事件<br/>EventFetcher]
-    
-    C1 --> Aggregate[數據聚合]
-    C2 --> Aggregate
-    C3 --> Aggregate
-    
-    Aggregate --> Decision2{決策:<br/>根因分析}
-    
-    Decision2 --> Analysis[執行分析]
-    Analysis --> RCA[根因識別]
-    Analysis --> Impact[影響評估]
-    Analysis --> Timeline[時間線重建]
-    
-    RCA --> Decision3{決策:<br/>改進建議}
-    Impact --> Decision3
-    Timeline --> Decision3
-    
-    Decision3 --> Generate[生成輸出]
-    
-    Generate --> G1[Markdown報告]
-    Generate --> G2[Grafana儀表板]
-    Generate --> G3[知識庫更新]
-    
-    G1 --> Output[返回結果]
-    G2 --> Output
-    G3 --> Output
-    
-    Output --> End([完成])
-    
-    style Agent fill:#FFD700,stroke:#FFA500,stroke-width:3px
-    style Decision1 fill:#FFE4B5,stroke:#FFD700
-    style Decision2 fill:#FFE4B5,stroke:#FFD700
-    style Decision3 fill:#FFE4B5,stroke:#FFD700
-    style RCA fill:#FF6B6B,stroke:#FF0000,color:#FFF
-```
+![MVP 工作流程](./assets/MVP_Workflow.mmd)
 
 > 詳細架構設計請參考 [`docs/sre-services-map.md`](./docs/sre-services-map.md)  
 > 技術實現規範請參考 [`spec.md`](./spec.md)
@@ -130,104 +63,7 @@ flowchart TB
 
 ## 整體架構圖
 
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#f9f9f9', 'primaryBorderColor':'#333', 'fontFamily':'Arial', 'fontSize':'14px'}}}%%
-
-graph TB
-    subgraph "使用者介面層"
-        UI[Grafana Dashboard]
-        API[REST/gRPC API]
-        CLI[CLI Tools]
-    end
-    
-    subgraph "智能決策層 (Python)"
-        subgraph "ADK Runtime"
-            RA[Root Agent]
-            PA[postmortem_orchestrator<br/>Root Agent (ADK)]
-            HA[HealthCheck<br/>Agent]
-            AA[AlertTriage<br/>Agent]
-        end
-        
-        subgraph "Tools"
-            RG[ReportGenerator]
-            DB[DashboardBuilder]
-            KS[KnowledgeStore]
-        end
-    end
-    
-    subgraph "高性能執行層 (Go)"
-        subgraph "Platform Core"
-            TB[ToolBridge<br/>gRPC Server]
-            PR[Plugin Registry]
-            OM[Observability<br/>Manager]
-        end
-        
-        subgraph "Plugins"
-            HAG[HealthAggregator<br/>Plugin]
-            ICP[InfluxDB<br/>Client Plugin]
-            GCP[Grafana<br/>Client Plugin]
-        end
-    end
-    
-    subgraph "數據層"
-        TS[(InfluxDB<br/>時序數據)]
-        GS[(Grafana<br/>儀表板)]
-        RS[(Redis<br/>記憶體)]
-        KB[(Knowledge Base<br/>知識庫)]
-    end
-    
-    subgraph "可觀測層"
-        AL[Alloy Collector]
-        TM[Tempo<br/>Traces]
-        LK[Loki<br/>Logs]
-        PM[Prometheus<br/>Metrics]
-        PY[Pyroscope<br/>Profiles]
-    end
-    
-    %% 連接關係
-    UI --> API
-    API --> RA
-    CLI --> TB
-    
-    RA --> PA
-    RA --> HA
-    RA --> AA
-    
-    PA --> RG
-    PA --> DB
-    PA --> KS
-    
-    RG --> TB
-    DB --> TB
-    KS --> TB
-    
-    TB --> PR
-    PR --> HAG
-    PR --> ICP
-    PR --> GCP
-    
-    HAG --> TS
-    ICP --> TS
-    GCP --> GS
-    KS --> RS
-    KS --> KB
-    
-    OM --> AL
-    AL --> TM
-    AL --> LK
-    AL --> PM
-    AL --> PY
-    
-    classDef pythonStyle fill:#3776AB,stroke:#FFF,color:#FFF,stroke-width:2px
-    classDef goStyle fill:#00ADD8,stroke:#FFF,color:#FFF,stroke-width:2px
-    classDef dataStyle fill:#FF6B6B,stroke:#FFF,color:#FFF,stroke-width:2px
-    classDef obsStyle fill:#F46800,stroke:#FFF,color:#FFF,stroke-width:2px
-    
-    class RA,PA,HA,AA,RG,DB,KS pythonStyle
-    class TB,PR,OM,HAG,ICP,GCP goStyle
-    class TS,GS,RS,KB dataStyle
-    class AL,TM,LK,PM,PY obsStyle
-```
+![整體架構圖](./assets/Architecture.mmd)
 
 ### 架構說明
 - **Contracts**: SSOT 契約層，包含 JSON Schemas 配置驗證和 Proto APIs 定義，透過 buf 工具生成跨語言類型安全的程式碼
@@ -262,20 +98,20 @@ graph TB
 
 ---
 
-## 快速開始（MVP 專用）
+## 快速開始
 
 ### 環境準備
 1. **閱讀核心文檔**：
    - [`docs/sre-services-map.md`](./docs/sre-services-map.md) - 理解 SRE 三階段架構
    - [`spec.md`](./spec.md) - 技術實現規範
-   - [`docs/mvp-implementation-spec.md`](./docs/mvp-implementation-spec.md) - MVP 詳細計畫
+   - [`AGENT.md`](./AGENT.md) - AI 開發守則與協作指南
 
 2. **設置環境變數**：
    ```bash
-   # 複製 MVP 配置樣板
+   # 複製配置樣板
    cp contracts/samples/config.yaml ./config.yaml
    
-   # 設置必要環境變數（事後複盤數據源）
+   # 設置必要環境變數
    export INFLUXDB_URL="http://localhost:8086"
    export INFLUXDB_ORG="detectviz"
    export INFLUXDB_BUCKET="metrics"
@@ -284,7 +120,7 @@ graph TB
    export GRAFANA_API_KEY="your-grafana-api-key"
    ```
 
-### 啟動 MVP 系統
+### 啟動系統
 
 3. **啟動可觀測性收集層**：
    ```bash
@@ -292,18 +128,18 @@ graph TB
    ./grafana-alloy/alloy run ./grafana-alloy/config.alloy
    ```
 
-4. **啟動 Go 平台層**（ToolBridge + HealthAggregator）：
+4. **啟動 Go 平台層**：
    ```bash
-   # MVP 專用啟動：包含事後複盤插件
+   # 啟動 ToolBridge 和插件系統
    go run ./go-platform/cmd/detectviz plugin serve --config ./config.yaml \
      --http-demo --http-demo-listen :7777
    
    # 等待系統就緒
    curl -sS http://127.0.0.1:8081/readyz
-   echo "✅ Go Platform Ready"
+   echo "Go Platform Ready"
    ```
 
-5. **啟動 Python ADK Runtime**（postmortem_orchestrator）：
+5. **啟動 Python ADK Runtime**：
    ```bash
    cd python-adk-runtime
    
@@ -311,16 +147,16 @@ graph TB
    export DETECTVIZ_TOOLBRIDGE_ADDR="127.0.0.1:5002"
    export DETECTVIZ_TOOLBRIDGE_INSECURE="true"
    
-   # 執行 ADK 事後檢討範例
+   # 執行 ADK 範例
    python example_usage.py
-   echo "✅ ADK postmortem_orchestrator Ready"
+   echo "ADK Runtime Ready"
    ```
 
-### 驗證 MVP 功能
+### 驗證功能
 
-6. **測試事後複盤流程**：
+6. **測試核心功能**：
    ```bash
-   # 模擬事故複盤請求
+   # 測試基本 API 響應
    curl -X POST http://127.0.0.1:8080/api/v1/postmortem \
      -H "Content-Type: application/json" \
      -d '{
@@ -336,11 +172,11 @@ graph TB
 
 7. **檢查輸出結果**：
    ```bash
-   # 查看生成的複盤報告
-   ls ./reports/postmortem-INC-2024-001-*.md
+   # 查看生成的報告
+   ls ./reports/
    
-   # 檢查知識庫更新
-   ls ./data/knowledge.db
+   # 檢查數據存儲
+   ls ./data/
    
    # 查看系統日誌
    tail -f ./var/log/detectviz/detectviz.log
@@ -354,45 +190,29 @@ graph TB
    - **Metrics**: 監控 `postmortem_duration`、`health_query_time` 等指標
    - **Profiles**: 查看 Go 插件的性能表現
 
-### MVP 成功標準
-- ✅ 可以接收事後複盤請求
-- ✅ 自動從 InfluxDB 查詢健康數據
-- ✅ 生成結構化 Markdown 報告
-- ✅ 將知識存儲到歷史庫
-- ✅ 整個流程 < 30 秒完成
+### 驗收標準
+- 可以接收 API 請求
+- 自動從數據源查詢信息
+- 生成結構化報告
+- 正確存儲處理結果
+- 整個流程響應時間合理
 
 ---
 
-## MVP 里程碑 {#mvp-milestone}
+## 開發路線圖
 
-### 8 週開發計畫
+### 當前狀態：MVP (Phase 3 - 事後複盤)
+當前專注於事後複盤系統的實現，包含：
+- postmortem_orchestrator（ADK Root Agent）
+- HealthAggregator（數據聚合器）
+- ReportGenerator（報告生成器）
+- ResponseHistoryStore（知識存儲）
 
-| 週次 | 里程碑 | 主要交付物 | 驗收標準 |
-|------|--------|------------|----------|
-| W1-2 | 基礎架構搭建 | Agent 骨架、插件框架、基本測試 | ✅ 可啟動空 Agent<br/>✅ 插件註冊成功<br/>✅ gRPC 通訊正常 |
-| W3-4 | 核心功能實現 | postmortem_orchestrator (ADK)、HealthAggregator | ✅ 基本複盤流程可運行<br/>✅ 數據查詢功能完整<br/>✅ 報告生成基本功能 |
-| W5-6 | 功能完善 | ReportGenerator、知識存儲、錯誤處理 | ✅ 完整的 MVP 功能<br/>✅ 知識庫存儲檢索<br/>✅ 容錯機制完善 |
-| W7-8 | 優化與交付 | 性能優化、文檔完善、部署指南 | ✅ 生產就緒的 MVP<br/>✅ 完整文檔<br/>✅ 部署自動化 |
+### 未來擴展方向
+- **Phase 2**: 事中響應系統
+- **Phase 1**: 事前預防系統
 
-### 交付清單
-
-**核心功能**：
-- [x] postmortem_orchestrator（ADK Root Agent 事後檢討協調器）
-- [x] HealthAggregator（健康數據聚合器）
-- [x] ReportGenerator（報告生成器）
-- [x] ResponseHistoryStore（知識存儲）
-
-**技術基礎**：
-- [x] gRPC ToolBridge（跨語言通訊）
-- [x] Contract-driven Development（契約驅動）
-- [x] OpenTelemetry 完整觀測
-- [x] Grafana Alloy 數據收集
-
-**文檔交付**：
-- [x] SRE Services MAP（架構憲法）
-- [x] MVP Implementation Spec（實施規格）
-- [x] 更新所有 README 文檔
-- [x] API 參考文檔
+詳細開發計畫請參考：[`docs/mvp-implementation-spec.md`](./docs/mvp-implementation-spec.md)
 
 ---
 
@@ -422,76 +242,7 @@ graph TB
 
 ## 技術棧架構
 
-```mermaid
-%%{init: {'theme':'base'}}%%
-
-graph TB
-    subgraph "Frontend"
-        GD[Grafana Dashboards]
-        WEB[Web UI<br/>Future]
-    end
-    
-    subgraph "API Layer"
-        REST[REST API]
-        GRPC[gRPC API]
-        WS[WebSocket<br/>Future]
-    end
-    
-    subgraph "Application Layer"
-        subgraph "Python (3.11+)"
-            ADK[Google ADK]
-            AGENTS[Multi-Agent System]
-            TOOLS[Tool Framework]
-        end
-        
-        subgraph "Go (1.24+)"
-            CORE[Platform Core]
-            PLUGINS[Plugin System]
-            BRIDGE[ToolBridge]
-        end
-    end
-    
-    subgraph "Infrastructure"
-        subgraph "Data Storage"
-            INFLUX[InfluxDB 2.x<br/>Metrics]
-            REDIS[Redis<br/>Memory]
-            PG[PostgreSQL<br/>Future]
-        end
-        
-        subgraph "Observability"
-            ALLOY[Grafana Alloy]
-            LGTM[LGTM Stack]
-            CLOUD[Grafana Cloud]
-        end
-        
-        subgraph "Container Platform"
-            K8S[Kubernetes]
-            DOCKER[Docker]
-        end
-    end
-    
-    GD --> REST
-    REST --> ADK
-    GRPC --> BRIDGE
-    
-    ADK --> AGENTS
-    AGENTS --> TOOLS
-    TOOLS --> GRPC
-    
-    BRIDGE --> PLUGINS
-    PLUGINS --> INFLUX
-    
-    AGENTS --> REDIS
-    
-    CORE --> ALLOY
-    ALLOY --> LGTM
-    ALLOY --> CLOUD
-    
-    style ADK fill:#4285F4,stroke:#1a73e8,color:#FFF
-    style CORE fill:#00ADD8,stroke:#0277BD,color:#FFF
-    style INFLUX fill:#22ADF6,stroke:#1E88E5,color:#FFF
-    style ALLOY fill:#F46800,stroke:#E65100,color:#FFF
-```
+![技術棧架構](./assets/TechStack.mmd)
 
 ---
 
@@ -506,8 +257,9 @@ graph TB
 ## 參考文檔
 
 ### 核心規範
-- [`spec.md`](./spec.md) - 平台技術規格（完整架構定義）
-- [`CLAUDE.md`](./CLAUDE.md) - AI 開發守則（協作規範）
+- [`spec.md`](./spec.md) - 平台技術規格
+- [`AGENT.md`](./AGENT.md) - AI 開發守則與協作指南
+- [`docs/sre-services-map.md`](./docs/sre-services-map.md) - 架構設計憲法
 
 ### 組件文檔
 - [`contracts/README.md`](./contracts/README.md) - SSOT 契約管理
@@ -515,9 +267,10 @@ graph TB
 - [`python-adk-runtime/README.md`](./python-adk-runtime/README.md) - Python ADK 運行時
 
 ### 開發指南
-- [`docs/ai-collaboration-guide.md`](./docs/ai-collaboration-guide.md) - AI 協作開發指南
+- [`docs/mvp-implementation-spec.md`](./docs/mvp-implementation-spec.md) - MVP 實施規格
 - [`docs/quick-reference.md`](./docs/quick-reference.md) - 快速參考
 - [`docs/agent-development-guide.md`](./docs/agent-development-guide.md) - Agent 開發指南
 
 ### 配置參考
 - [`grafana-alloy/config.alloy`](./grafana-alloy/config.alloy) - 可觀測性配置
+- [`contracts/samples/config.yaml`](./contracts/samples/config.yaml) - 配置樣本

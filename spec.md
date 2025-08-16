@@ -11,7 +11,7 @@ docs/sre-services-map.md     ←  架構憲法（業務邏輯與決策）
          ↓ 指導技術實現
     spec.md (本文件)         ←  技術規格（系統設計與實現）
          ↓ 指引 AI 協作
-    CLAUDE.md               ←  AI 開發守則（協作規範）
+    AGENT.md               ←  AI 開發守則（協作規範）
          ↓ 具體實施
     MVP Implementation      ←  實際開發工作
 ```
@@ -19,7 +19,7 @@ docs/sre-services-map.md     ←  架構憲法（業務邏輯與決策）
 **重要說明**：
 - **SRE Services MAP**：定義整體業務架構，Agent 與 Tool 的職責劃分，三階段生命週期設計
 - **本規格（spec.md）**：提供具體的技術實現方案，目錄結構，系統配置
-- **CLAUDE.md**：針對 AI 協作的具體操作守則和檢查清單
+- **AGENT.md**：針對 AI 協作的具體操作守則和檢查清單
 - **MVP 當前聚焦**：Phase 3（事後複盤）作為最小可用產品
 
 所有技術決策應首先參考 SRE Services MAP 的業務邏輯，再依本規格進行具體實現。
@@ -257,14 +257,14 @@ func (h *HealthAggregatorPlugin) Execute(ctx context.Context, req *pb.ToolReques
 - 獨立的部署和更新
 - 明確的責任邊界
 
-### 4.4 8 週實施時程表
+### 4.4 2 週實施時程表
 
-| 週次 | 階段 | 主要任務 | 交付物 |
+| 日期 | 階段 | 主要任務 | 交付物 |
 |------|------|----------|---------|
-| W1-2 | 基礎架構 | 目錄結構、基本 Agent 骨架、Go 插件框架 | 可啟動的空 Agent，插件註冊成功 |
-| W3-4 | 核心功能 | postmortem_orchestrator ADK Agent 團隊、HealthAggregator 實現 | 基本的複盤流程可運行 |
-| W5-6 | 功能完善 | ReportGenerator、知識存儲、錯誤處理 | 完整功能的 MVP |
-| W7-8 | 優化交付 | 性能優化、文檔完善、部署指南 | 生產就緒的 MVP |
+| DAY1-DAY2 | 基礎架構 | 目錄結構、基本 Agent 骨架、Go 插件框架 | 可啟動的空 Agent，插件註冊成功 |
+| DAY3-DAY4 | 核心功能 | postmortem_orchestrator ADK Agent 團隊、HealthAggregator 實現 | 基本的複盤流程可運行 |
+| DAY5-DAY8 | 功能完善 | ReportGenerator、知識存儲、錯誤處理 | 完整功能的 MVP |
+| DAY9-DAY10 | 優化交付 | 性能優化、文檔完善、部署指南 | 生產就緒的 MVP |
 
 ### 4.5 成功標準
 

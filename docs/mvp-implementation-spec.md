@@ -297,62 +297,7 @@ class ReportGenerator(BaseTool):
 
 ### 4.1 MVP 執行流程
 
-```mermaid
-sequenceDiagram
-    participant User as 使用者/系統
-    participant RootAgent as Root Agent
-    participant PMAgent as postmortem_orchestrator
-    participant HealthAgg as HealthAggregator
-    participant GoService as Go Health Service
-    participant ReportGen as ReportGenerator
-    participant Grafana as Grafana API
-    participant KB as Knowledge Base
-
-    User->>RootAgent: 發送複盤請求
-    activate RootAgent
-    RootAgent->>PMAgent: 委派任務
-    activate PMAgent
-    
-    Note over PMAgent: 規劃分析策略
-    
-    par 並行數據收集
-        PMAgent->>HealthAgg: 請求健康數據
-        activate HealthAgg
-        HealthAgg->>GoService: gRPC 查詢請求
-        activate GoService
-        GoService->>GoService: 執行 InfluxDB 查詢
-        GoService-->>HealthAgg: 返回原始數據
-        deactivate GoService
-        HealthAgg->>HealthAgg: 計算 SLI/SLO
-        HealthAgg-->>PMAgent: 返回處理後數據
-        deactivate HealthAgg
-    and
-        PMAgent->>KB: 查詢歷史事件
-        KB-->>PMAgent: 返回相關事件
-    end
-    
-    Note over PMAgent: 執行根因分析
-    
-    par 生成輸出
-        PMAgent->>ReportGen: 生成報告
-        activate ReportGen
-        ReportGen-->>PMAgent: 返回報告 URL
-        deactivate ReportGen
-    and
-        PMAgent->>ReportGen: 創建儀表板
-        activate ReportGen
-        ReportGen->>Grafana: API 創建請求
-        Grafana-->>ReportGen: 返回儀表板 URL
-        ReportGen-->>PMAgent: 返回 URL
-        deactivate ReportGen
-    end
-    
-    PMAgent->>KB: 更新知識庫
-    PMAgent-->>RootAgent: 返回複盤結果
-    deactivate PMAgent
-    RootAgent-->>User: 提供報告和儀表板連結
-    deactivate RootAgent
-```
+![MVP 執行流程](./assets/MVP_RunFlow.mmd)
 
 ## 5. 契約定義與驗證
 
@@ -539,7 +484,7 @@ service PostMortemService {
 
 ## 6. 實施計畫與里程碑
 
-### 6.1 Phase 1: 基礎建設（第 1-2 週）
+### 6.1 Phase 1: 基礎建設 (DAY1-DAY2)
 
 **目標**：建立基本框架和開發環境
 
@@ -554,7 +499,7 @@ service PostMortemService {
 - gRPC 服務能啟動並響應健康檢查
 - 單元測試框架就位
 
-### 6.2 Phase 2: 核心組件開發（第 3-4 週）
+### 6.2 Phase 2: 核心組件開發 (DAY3-DAY4)
 
 **目標**：實現 MVP 核心功能
 
@@ -569,7 +514,7 @@ service PostMortemService {
 - HealthAggregator 能執行基本查詢
 - 能生成簡單的 Markdown 報告
 
-### 6.3 Phase 3: 整合與測試（第 5-6 週）
+### 6.3 Phase 3: 整合與測試 (DAY5-DAY8)
 
 **目標**：完成系統整合和端到端測試
 
@@ -584,7 +529,7 @@ service PostMortemService {
 - 查詢性能符合 SLA（< 5 秒）
 - 端到端測試覆蓋率 > 80%
 
-### 6.4 Phase 4: 文檔與部署（第 7-8 週）
+### 6.4 Phase 4: 文檔與部署 (DAY9-DAY10)
 
 **目標**：完善文檔並準備生產部署
 

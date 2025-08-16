@@ -1,0 +1,68 @@
+%%{init: {'theme':'base'}}%%
+
+graph TB
+    subgraph "Frontend"
+        GD[Grafana Dashboards]
+        WEB[Web UI<br/>Future]
+    end
+    
+    subgraph "API Layer"
+        REST[REST API]
+        GRPC[gRPC API]
+        WS[WebSocket<br/>Future]
+    end
+    
+    subgraph "Application Layer"
+        subgraph "Python (3.11+)"
+            ADK[Google ADK]
+            AGENTS[Multi-Agent System]
+            TOOLS[Tool Framework]
+        end
+        
+        subgraph "Go (1.24+)"
+            CORE[Platform Core]
+            PLUGINS[Plugin System]
+            BRIDGE[ToolBridge]
+        end
+    end
+    
+    subgraph "Infrastructure"
+        subgraph "Data Storage"
+            INFLUX[InfluxDB 2.x<br/>Metrics]
+            REDIS[Redis<br/>Memory]
+            PG[PostgreSQL<br/>Future]
+        end
+        
+        subgraph "Observability"
+            ALLOY[Grafana Alloy]
+            LGTM[LGTM Stack]
+            CLOUD[Grafana Cloud]
+        end
+        
+        subgraph "Container Platform"
+            K8S[Kubernetes]
+            DOCKER[Docker]
+        end
+    end
+    
+    GD --> REST
+    REST --> ADK
+    GRPC --> BRIDGE
+    
+    ADK --> AGENTS
+    AGENTS --> TOOLS
+    TOOLS --> GRPC
+    
+    BRIDGE --> PLUGINS
+    PLUGINS --> INFLUX
+    
+    AGENTS --> REDIS
+    
+    CORE --> ALLOY
+    ALLOY --> LGTM
+    ALLOY --> CLOUD
+    
+    style ADK fill:#4285F4,stroke:#1a73e8,color:#FFF
+    style CORE fill:#00ADD8,stroke:#0277BD,color:#FFF
+    style INFLUX fill:#22ADF6,stroke:#1E88E5,color:#FFF
+    style ALLOY fill:#F46800,stroke:#E65100,color:#FFF

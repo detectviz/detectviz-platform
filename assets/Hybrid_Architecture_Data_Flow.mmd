@@ -1,0 +1,37 @@
+%%{init: {'theme':'base'}}%%
+
+sequenceDiagram
+    participant User as 使用者
+    participant API as API Gateway
+    participant Agent as Python Agent<br/>(決策層)
+    participant Tool as Python Tool<br/>(協調層)
+    participant Bridge as Go ToolBridge<br/>(gRPC)
+    participant Plugin as Go Plugin<br/>(執行層)
+    participant DB as InfluxDB
+
+    User->>API: POST /postmortem
+    API->>Agent: 觸發複盤分析
+    
+    Note over Agent: 決策 1: 確定分析範圍
+    Agent->>Tool: 請求健康數據
+    Tool->>Bridge: gRPC: InvokeRemoteTool
+    
+    Note over Bridge: 路由到對應插件
+    Bridge->>Plugin: Execute(HealthQuery)
+    
+    Note over Plugin: 高性能並行查詢
+    Plugin->>DB: 批量查詢指標
+    DB-->>Plugin: 返回時序數據
+    
+    Plugin-->>Bridge: 聚合結果
+    Bridge-->>Tool: gRPC Response
+    Tool-->>Agent: 處理後數據
+    
+    Note over Agent: 決策 2: 分析根因
+    Note over Agent: 決策 3: 生成建議
+    
+    Agent->>Tool: 生成報告
+    Tool-->>Agent: 報告 URL
+    
+    Agent-->>API: 複盤結果
+    API-->>User: Response

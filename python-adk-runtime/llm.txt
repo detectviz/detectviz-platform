@@ -1,6 +1,6 @@
 # python-adk-runtime — AI 維護指南（llm.txt）
 
-此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `CLAUDE.md`、`spec.md` 一致。
+此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `AGENT.md`、`spec.md` 一致。
 
 ## 範圍與原則
 - 嚴格遵守 Google ADK 標準：Agent、FunctionTool、Runner、SessionService
@@ -8,18 +8,44 @@
 - 任何跨語言介面或型別變更先改 `contracts/`（SSOT），再回此專案對齊生成碼與相依
 - 所有註解與文件使用繁體中文
 
-## 必守規範
-1. ADK 標準：使用 `FunctionTool` 包裝函式，Agent 使用 Root + Sub-Agents 架構
-2. RemoteTool：以 `grpc.aio` 連 ToolBridge；端點由 `DETECTVIZ_TOOLBRIDGE_ADDR` 指定；傳遞 `traceparent/tracestate`
-3. Session State：透過 ADK `ToolContext` 管理狀態，不使用全域變數
-4. 設定載入：`detectviz_adk/config/loader.py` 與 Go Loader 對齊搜尋序與環境覆蓋
-5. 模組卡：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`
-6. 安全：Python 端不持有雲端寫入憑證；外部副作用集中於 Go 插件（Tools）
-7. 不得修改 `contracts/gen/**` 生成碼；如需型別/欄位調整，回到 `contracts/`
+## 必守規範（與 AGENT.md 對齊）
+
+### Agent vs Tool 黃金準則
+1. **Agent 職責（決策層）**：WHY（為什麼）、WHAT（做什麼）、WHEN（何時做）
+   - 決策制定、工作流編排、知識整合、業務邏輯處理
+   - **重要限制**：Agent 不直接操作數據，所有數據查詢、API 調用、文件生成都通過 Tool
+2. **Tool 職責（執行層）**：HOW（如何做）、WHERE（在哪做）、WITH（用什麼）
+   - 具體執行、數據操作、外部系統集成
+   - **重要特性**：Tool 不包含業務邏輯，是無狀態、冪等、原子性的執行單元
+
+### 技術實現規範
+3. **ADK 標準**：使用 `FunctionTool` 包裝函式，Agent 使用 Root + Sub-Agents 架構
+4. **RemoteTool**：以 `grpc.aio` 連 ToolBridge；端點由 `DETECTVIZ_TOOLBRIDGE_ADDR` 指定；傳遞 `traceparent/tracestate`
+5. **Session State**：透過 ADK `ToolContext` 管理狀態，不使用全域變數
+6. **設定載入**：`detectviz_adk/config/loader.py` 與 Go Loader 對齊搜尋序與環境覆蓋
+7. **模組卡**：新增/擴增元件需附 `module.card.json` 並通過 `contracts/tools/validate_module_card.py`
+8. **安全**：Python 端不持有雲端寫入憑證；外部副作用集中於 Go 插件（Tools）
+9. **SSOT 契約**：不得修改 `contracts/gen/**` 生成碼；如需型別/欄位調整，回到 `contracts/`
+
+### MVP Phase 3 專用規範
+10. **事後複盤聚焦**：當前開發重點為 postmortem_orchestrator ADK Agent 團隊
+11. **混合架構決策**：業務邏輯（Python）+ 高性能查詢（Go）+ gRPC 橋接
+12. **程式碼品質**：類型標註、docstring、測試覆蓋率 > 90%、錯誤處理完善
 
 ## 允許/禁止
-- 允許：新增 ADK Agent、FunctionTool、Runner（以 RemoteTool 呼叫 Go 插件）
-- 禁止：跨越 ADK 邏輯邊界、直連雲端憑證、繞過 Loader 讀寫設定、提交大型二進位、使用非 ADK 標準的代理架構
+
+### 允許的操作
+- 新增 ADK Agent、FunctionTool、Runner（以 RemoteTool 呼叫 Go 插件）
+- 實現符合 MVP Phase 3 的事後複盤功能
+- 在 Python 端進行決策邏輯和業務流程編排
+- 使用 RemoteTool 調用 Go 端的高性能數據查詢
+
+### 嚴格禁止的操作
+- **違反職責分離**：Agent 直接執行數據查詢、文件操作、API 調用
+- **在 Python 端直接查詢外部系統**：如直接連接 InfluxDB、資料庫等
+- 跨越 ADK 邏輯邊界、直連雲端憑證、繞過 Loader 讀寫設定
+- 提交大型二進位、使用非 ADK 標準的代理架構
+- 修改已定義的 contracts/ 契約（除非經過 SSOT 更新流程）
 
 ## 變更流程
 1. 規劃：是否涉及 SSOT？若是，先改 `contracts/` 並 `buf lint && buf generate`。
@@ -38,8 +64,29 @@ python server.py   # 或對應入口
 5. PR：說明 SSOT 影響、端到端流程（RemoteTool 呼叫、trace 傳遞）、是否更新文件。
 
 ## 提交前檢查清單
+
+### SSOT 契約遵循
 - [ ] 不改動 `contracts/gen/**` 生成碼
+- [ ] 如有跨語言介面變更，已先更新 `contracts/` 並重新生成
+
+### Agent vs Tool 職責檢查
+- [ ] **Agent 職責驗證**：Agent 只做決策，不直接操作數據
+- [ ] **Tool 職責驗證**：所有數據查詢、API 調用都通過 RemoteTool
+- [ ] **混合架構檢查**：Python 端負責決策，Go 端負責執行
+
+### 技術實現檢查
 - [ ] RemoteTool 呼叫成功；trace context 具備
 - [ ] Loader 搜尋序與環境覆蓋行為正確
 - [ ] 模組卡通過驗證腳本
-- [ ] README/文件已更新
+- [ ] ADK 標準遵循：正確使用 Agent、FunctionTool、Runner
+
+### 品質保證檢查
+- [ ] 程式碼品質：類型標註、docstring 完整
+- [ ] 測試覆蓋率 > 90%，包含異常處理測試
+- [ ] 錯誤處理完善，有降級機制
+- [ ] README/文件已更新，與 AGENT.md 一致
+
+### MVP Phase 3 特定檢查
+- [ ] 功能符合事後複盤範圍，不包含 Phase 1/2 功能
+- [ ] postmortem_orchestrator ADK Agent 團隊協作正確
+- [ ] 與 Go 端 HealthAggregator 整合測試通過

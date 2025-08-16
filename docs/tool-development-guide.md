@@ -24,34 +24,8 @@
 
 ### 決策樹
 
-```mermaid
-flowchart TD
-    A[需要新 Tool] --> B{主要功能類型?}
-    
-    B -->|外部系統調用| C{性能要求高?}
-    B -->|AI/ML處理| D[選擇 Python Local Tool]
-    B -->|數據科學計算| D
-    B -->|複雜業務邏輯| E{開發速度重要?}
-    
-    C -->|是| F[選擇 Go Plugin]
-    C -->|否| G{跨Agent共享?}
-    
-    E -->|是| H[選擇 Python Local Tool]
-    E -->|否| I{安全敏感?}
-    
-    G -->|是| F
-    G -->|否| H
-    
-    I -->|是| F
-    I -->|否| H
-    
-    F --> J[RemoteTool 模式<br/>透過 gRPC 共享]
-    D --> K[Local Tool 模式<br/>Tool Registry 共享]
-    H --> L{需要跨Agent共享?}
-    
-    L -->|是| K
-    L -->|否| M[Agent 專用 Tool]
-```
+![Tool 選型決策樹](../assets/Tool_Selection_Decision_Tree.mmd)
+
 
 ### 具體選型建議
 

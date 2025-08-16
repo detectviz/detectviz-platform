@@ -1,0 +1,49 @@
+%%{init: {'theme':'neutral'}}%%
+
+flowchart TB
+    Start([故障事件結束]) --> Input[接收複盤請求]
+    
+    Input --> Validate{請求<br/>驗證}
+    Validate -->|無效| Error[返回錯誤]
+    Validate -->|有效| Agent[啟動<br/>postmortem_orchestrator]
+    
+    Agent --> Decision1{決策:<br/>分析範圍}
+    
+    Decision1 --> Collect[並行數據收集]
+    
+    Collect --> C1[收集指標<br/>HealthAggregator]
+    Collect --> C2[收集日誌<br/>LogCollector]
+    Collect --> C3[收集事件<br/>EventFetcher]
+    
+    C1 --> Aggregate[數據聚合]
+    C2 --> Aggregate
+    C3 --> Aggregate
+    
+    Aggregate --> Decision2{決策:<br/>根因分析}
+    
+    Decision2 --> Analysis[執行分析]
+    Analysis --> RCA[根因識別]
+    Analysis --> Impact[影響評估]
+    Analysis --> Timeline[時間線重建]
+    
+    RCA --> Decision3{決策:<br/>改進建議}
+    Impact --> Decision3
+    Timeline --> Decision3
+    
+    Decision3 --> Generate[生成輸出]
+    
+    Generate --> G1[Markdown報告]
+    Generate --> G2[Grafana儀表板]
+    Generate --> G3[知識庫更新]
+    
+    G1 --> Output[返回結果]
+    G2 --> Output
+    G3 --> Output
+    
+    Output --> End([完成])
+    
+    style Agent fill:#FFD700,stroke:#FFA500,stroke-width:3px
+    style Decision1 fill:#FFE4B5,stroke:#FFD700
+    style Decision2 fill:#FFE4B5,stroke:#FFD700
+    style Decision3 fill:#FFE4B5,stroke:#FFD700
+    style RCA fill:#FF6B6B,stroke:#FF0000,color:#FFF

@@ -31,69 +31,7 @@ WHEN - 何時做             WITH - 用什麼做
 
 ## SRE 生命週期總覽
 
-```mermaid
-%%{init: {'theme':'forest'}}%%
-
-graph TB
-    subgraph "Phase 1: 事前預防 (Proactive)"
-        P1A[HealthCheckAgent]
-        P1B[CapacityPlannerAgent]
-        P1C[DeploymentStrategyAgent]
-        P1T1[ResourceDiscovery]
-        P1T2[ForecastingEngine]
-        P1T3[ConfigManager]
-    end
-    
-    subgraph "Phase 2: 事中響應 (Reactive)"
-        P2A[AlertTriageAgent]
-        P2B[FirstResponderAgent]
-        P2C[CorrelationAgent]
-        P2T1[AlertEvaluator]
-        P2T2[RPAIntegrator]
-        P2T3[IncidentResolver]
-    end
-    
-    subgraph "Phase 3: 事後複盤 (Post-Mortem) - MVP"
-        P3A[postmortem_orchestrator<br/>ADK Root Agent]
-        P3T1[HealthAggregator]
-        P3T2[ReportGenerator]
-        P3T3[ResponseHistoryStore]
-    end
-    
-    subgraph "共享工具箱 (Shared Tools)"
-        ST1[HealthAggregator]
-        ST2[ReportGenerator]
-        ST3[EventDispatcher]
-        ST4[KnowledgeBase]
-    end
-    
-    P1A --> P1T1
-    P1B --> P1T2
-    P1C --> P1T3
-    
-    P2A --> P2T1
-    P2B --> P2T2
-    P2C --> P2T3
-    
-    P3A --> P3T1
-    P3A --> P3T2
-    P3A --> P3T3
-    
-    P1A --> ST1
-    P2A --> ST1
-    P3A --> ST1
-    
-    P1B --> ST2
-    P3A --> ST2
-    
-    P3T3 --> ST4
-    ST4 --> P1A
-    
-    style P3A fill:#FFD700,stroke:#FF8C00,stroke-width:3px
-    style P3T1 fill:#FFE4B5,stroke:#FFD700
-    style P3T2 fill:#FFE4B5,stroke:#FFD700
-    style P3T3 fill:#FFE4B5,stroke:#FFD700
-```
+![SRE 生命週期](../assets/SRE_Lifecycle_Overview.mmd)
 
 ## 完整 Services MAP
 
@@ -360,26 +298,8 @@ postmortem_orchestrator:
 
 ### MVP (Phase 3 優先)
 
-```mermaid
-gantt
-    title Agent 實施計劃
-    dateFormat YYYY-MM-DD
-    
-    section MVP (8週)
-    postmortem_orchestrator    :active, 2024-01-15, 2w
-    HealthAggregator Tool          :active, 2024-01-20, 1w
-    ReportGenerator Tool           :2024-01-27, 1w
-    Knowledge Store                :2024-02-03, 1w
-    Integration & Testing          :2024-02-10, 3w
-    
-    section Phase 2 (4週)
-    AlertTriageAgent              :2024-03-04, 2w
-    FirstResponderAgent           :2024-03-11, 2w
-    
-    section Phase 1 (4週)
-    HealthCheckAgent              :2024-04-01, 2w
-    CapacityPlannerAgent         :2024-04-08, 2w
-```
+![Agent 實施路線圖](../assets/Agent_Implementation_Roadmap.mmd)
+
 
 ## Agent 開發檢查清單
 
@@ -426,7 +346,6 @@ gantt
 - 技術實現細節 → [`spec.md`](../spec.md)
 - Agent 開發指南 → [`agent-development-guide.md`](./agent-development-guide.md)
 - MVP 實施規格 → [`mvp-implementation-spec.md`](#)
-- Python ADK 架構 → [`python-adk-runtime-arch.md`](./python-adk-runtime-arch.md)
 
 ## 核心價值
 
@@ -442,5 +361,5 @@ gantt
 
 *本文檔是 Detectviz Platform 的架構基石，所有 Agent 開發都應遵循此藍圖。*
 
-*最後更新：2024-01-15*
+*最後更新：2025-08-15*
 *版本：1.0.0*

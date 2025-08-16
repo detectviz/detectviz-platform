@@ -1,0 +1,61 @@
+%%{init: {'theme':'base'}}%%
+
+graph LR
+    subgraph "使用者請求"
+        REQ[事後複盤請求]
+    end
+    
+    subgraph "Agent 層 (決策大腦)"
+        subgraph "決策職責"
+            D1[為什麼分析<br/>WHY]
+            D2[分析什麼<br/>WHAT]
+            D3[何時執行<br/>WHEN]
+        end
+        
+        AGENT[postmortem_orchestrator<br/>協調器 Root Agent]
+    end
+    
+    subgraph "Tool 層 (執行手臂)"
+        subgraph "執行職責"
+            E1[如何查詢<br/>HOW]
+            E2[從哪查詢<br/>WHERE]
+            E3[用什麼查<br/>WITH]
+        end
+        
+        TOOL1[HealthAggregator<br/>數據查詢]
+        TOOL2[ReportGenerator<br/>報告生成]
+        TOOL3[DashboardBuilder<br/>儀表板創建]
+    end
+    
+    subgraph "外部系統"
+        DB[(InfluxDB)]
+        GF[Grafana API]
+        FS[File System]
+    end
+    
+    REQ --> AGENT
+    
+    AGENT --> D1
+    AGENT --> D2
+    AGENT --> D3
+    
+    D1 --> TOOL1
+    D2 --> TOOL2
+    D3 --> TOOL3
+    
+    TOOL1 --> E1
+    TOOL2 --> E2
+    TOOL3 --> E3
+    
+    E1 --> DB
+    E2 --> FS
+    E3 --> GF
+    
+    style AGENT fill:#4CAF50,stroke:#2E7D32,color:#FFF,stroke-width:3px
+    style D1 fill:#81C784,stroke:#4CAF50,color:#000
+    style D2 fill:#81C784,stroke:#4CAF50,color:#000
+    style D3 fill:#81C784,stroke:#4CAF50,color:#000
+    
+    style TOOL1 fill:#2196F3,stroke:#1565C0,color:#FFF,stroke-width:2px
+    style TOOL2 fill:#2196F3,stroke:#1565C0,color:#FFF,stroke-width:2px
+    style TOOL3 fill:#2196F3,stroke:#1565C0,color:#FFF,stroke-width:2px

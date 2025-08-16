@@ -2,33 +2,16 @@
 
 以 **Google Agent Development Kit（ADK）** 為核心的 Python 執行環境。此 Runtime 完全遵循 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 的官方模式，實現符合 ADK 標準的智慧代理系統，並與 `go-platform` 透過 **gRPC ToolBridge** 解耦互通。
 
+> **AI 開發者注意**：進行任何變更前請先閱讀 [`../AGENT.md`](../AGENT.md) 中的 AI 開發守則與協作指南。
+
 ---
 
 ## 平台定位：智能決策層
 
 本 Runtime 在 detectviz-platform 架構中扮演 **智能決策層** 角色：
 
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '12px'}}}%%
+![Platform 架構](../assets/Python_ADK_Architecture.mmd)
 
-graph TB
-    subgraph "Detectviz Platform 架構"
-        PY["Python ADK Runtime<br/><small>智能決策層</small>"]:::python
-        GO["Go Platform<br/><small>高性能執行層</small>"]:::go
-        CON["Contracts<br/><small>SSOT 契約層</small>"]:::contract
-    end
-    
-    PY <-->|"gRPC<br/>RemoteTool"| GO
-    CON -.->|"生成類型"| PY
-    CON -.->|"生成類型"| GO
-    
-    PY -->|"決策：分析策略<br/>工作流編排"| DECISION["業務邏輯<br/>AI 推理<br/>多 Agent 協作"]
-    GO -->|"執行：數據查詢<br/>外部集成"| EXECUTION["高性能處理<br/>系統集成<br/>資源管理"]
-    
-    classDef python fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
-    classDef go fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000  
-    classDef contract fill:#FFF4B3,stroke:#AA7700,stroke-width:2px,color:#000
-```
 
 ### 核心設計原則
 - **ADK 標準實作**：完全遵循 Google ADK API，使用 `google.adk.Agent`、`FunctionTool` 包裝器、`Runner` 和 `SessionService`
@@ -44,73 +27,12 @@ graph TB
 
 ### Agent vs Tool 職責分離圖
 
-```mermaid
-%%{init: {'theme':'base'}}%%
+![Agent vs Tool 職責分離圖](../assets/Agent_Tool_Responsibility.mmd)
 
-graph LR
-    subgraph "使用者請求"
-        REQ[事後複盤請求]
-    end
-    
-    subgraph "Agent 層 (決策大腦)"
-        subgraph "決策職責"
-            D1[為什麼分析<br/>WHY]
-            D2[分析什麼<br/>WHAT]
-            D3[何時執行<br/>WHEN]
-        end
-        
-        AGENT[postmortem_orchestrator<br/>協調器 Root Agent]
-    end
-    
-    subgraph "Tool 層 (執行手臂)"
-        subgraph "執行職責"
-            E1[如何查詢<br/>HOW]
-            E2[從哪查詢<br/>WHERE]
-            E3[用什麼查<br/>WITH]
-        end
-        
-        TOOL1[HealthAggregator<br/>數據查詢]
-        TOOL2[ReportGenerator<br/>報告生成]
-        TOOL3[DashboardBuilder<br/>儀表板創建]
-    end
-    
-    subgraph "外部系統"
-        DB[(InfluxDB)]
-        GF[Grafana API]
-        FS[File System]
-    end
-    
-    REQ --> AGENT
-    
-    AGENT --> D1
-    AGENT --> D2
-    AGENT --> D3
-    
-    D1 --> TOOL1
-    D2 --> TOOL2
-    D3 --> TOOL3
-    
-    TOOL1 --> E1
-    TOOL2 --> E2
-    TOOL3 --> E3
-    
-    E1 --> DB
-    E2 --> FS
-    E3 --> GF
-    
-    style AGENT fill:#4CAF50,stroke:#2E7D32,color:#FFF,stroke-width:3px
-    style D1 fill:#81C784,stroke:#4CAF50,color:#000
-    style D2 fill:#81C784,stroke:#4CAF50,color:#000
-    style D3 fill:#81C784,stroke:#4CAF50,color:#000
-    
-    style TOOL1 fill:#2196F3,stroke:#1565C0,color:#FFF,stroke-width:2px
-    style TOOL2 fill:#2196F3,stroke:#1565C0,color:#FFF,stroke-width:2px
-    style TOOL3 fill:#2196F3,stroke:#1565C0,color:#FFF,stroke-width:2px
-```
 
 ---
 
-## MVP 功能：Phase 3 事後複盤系統
+## 核心功能：ADK Agent 系統
 
 ### postmortem_orchestrator（ADK Root Agent）
 
@@ -344,45 +266,8 @@ async def _robust_tool_call(self, tool: RemoteTool, params: dict, max_retries: i
 
 ### 混合架構數據流圖
 
-```mermaid
-%%{init: {'theme':'base'}}%%
+![混合架構數據流圖](../assets/Hybrid_Architecture_Data_Flow.mmd)
 
-sequenceDiagram
-    participant User as 使用者
-    participant API as API Gateway
-    participant Agent as Python Agent<br/>(決策層)
-    participant Tool as Python Tool<br/>(協調層)
-    participant Bridge as Go ToolBridge<br/>(gRPC)
-    participant Plugin as Go Plugin<br/>(執行層)
-    participant DB as InfluxDB
-
-    User->>API: POST /postmortem
-    API->>Agent: 觸發複盤分析
-    
-    Note over Agent: 決策 1: 確定分析範圍
-    Agent->>Tool: 請求健康數據
-    Tool->>Bridge: gRPC: InvokeRemoteTool
-    
-    Note over Bridge: 路由到對應插件
-    Bridge->>Plugin: Execute(HealthQuery)
-    
-    Note over Plugin: 高性能並行查詢
-    Plugin->>DB: 批量查詢指標
-    DB-->>Plugin: 返回時序數據
-    
-    Plugin-->>Bridge: 聚合結果
-    Bridge-->>Tool: gRPC Response
-    Tool-->>Agent: 處理後數據
-    
-    Note over Agent: 決策 2: 分析根因
-    Note over Agent: 決策 3: 生成建議
-    
-    Agent->>Tool: 生成報告
-    Tool-->>Agent: 報告 URL
-    
-    Agent-->>API: 複盤結果
-    API-->>User: Response
-```
 
 ### 模組卡創建指南
 

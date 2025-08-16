@@ -1,0 +1,16 @@
+%%{init: {'theme':'base', 'themeVariables': {'fontFamily': 'arial', 'fontSize': '12px'}}}%%
+
+graph LR
+    subgraph "SRE 生命週期"
+        direction LR
+        P1["Phase 1: 事前預防<br/><small>HealthCheckAgent</small><br/><small>CapacityPlannerAgent</small>"]:::future
+        P2["Phase 2: 事中響應<br/><small>AlertTriageAgent</small><br/><small>IncidentResponseAgent</small>"]:::future  
+        P3["Phase 3: 事後複盤<br/><small>postmortem_orchestrator (ADK)</small><br/><small>HealthAggregator</small>"]:::mvp
+    end
+    
+    P1 -->|"預防失效"| P2
+    P2 -->|"響應完成"| P3  
+    P3 -->|"知識沉澱"| P1
+    
+    classDef mvp fill:#90EE90,stroke:#2e7d32,stroke-width:3px,color:#000
+    classDef future fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000

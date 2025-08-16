@@ -1,0 +1,61 @@
+%%{init: {'theme':'forest'}}%%
+
+graph TB
+    subgraph "Phase 1: 事前預防 (Proactive)"
+        P1A[HealthCheckAgent]
+        P1B[CapacityPlannerAgent]
+        P1C[DeploymentStrategyAgent]
+        P1T1[ResourceDiscovery]
+        P1T2[ForecastingEngine]
+        P1T3[ConfigManager]
+    end
+    
+    subgraph "Phase 2: 事中響應 (Reactive)"
+        P2A[AlertTriageAgent]
+        P2B[FirstResponderAgent]
+        P2C[CorrelationAgent]
+        P2T1[AlertEvaluator]
+        P2T2[RPAIntegrator]
+        P2T3[IncidentResolver]
+    end
+    
+    subgraph "Phase 3: 事後複盤 (Post-Mortem) - MVP"
+        P3A[postmortem_orchestrator<br/>ADK Root Agent]
+        P3T1[HealthAggregator]
+        P3T2[ReportGenerator]
+        P3T3[ResponseHistoryStore]
+    end
+    
+    subgraph "共享工具箱 (Shared Tools)"
+        ST1[HealthAggregator]
+        ST2[ReportGenerator]
+        ST3[EventDispatcher]
+        ST4[KnowledgeBase]
+    end
+    
+    P1A --> P1T1
+    P1B --> P1T2
+    P1C --> P1T3
+    
+    P2A --> P2T1
+    P2B --> P2T2
+    P2C --> P2T3
+    
+    P3A --> P3T1
+    P3A --> P3T2
+    P3A --> P3T3
+    
+    P1A --> ST1
+    P2A --> ST1
+    P3A --> ST1
+    
+    P1B --> ST2
+    P3A --> ST2
+    
+    P3T3 --> ST4
+    ST4 --> P1A
+    
+    style P3A fill:#FFD700,stroke:#FF8C00,stroke-width:3px
+    style P3T1 fill:#FFE4B5,stroke:#FFD700
+    style P3T2 fill:#FFE4B5,stroke:#FFD700
+    style P3T3 fill:#FFE4B5,stroke:#FFD700

@@ -2,6 +2,8 @@
 
 最小化的平台核心，提供跨語言可用的 gRPC **ToolBridge**、可插拔 **Plugin Host**、統一 **Observability** 與 **健康檢查／優雅關機**。本模組與 `python-adk-runtime` 僅以 gRPC/HTTP 通訊，嚴格解耦並對齊 `contracts/` 的 SSOT 契約。
 
+> **AI 開發者注意**：進行任何變更前請先閱讀 [`../AGENT.md`](../AGENT.md) 中的 AI 開發守則與協作指南。
+
 ---
 
 ## 平台職責
@@ -202,5 +204,12 @@ go build -o ./bin/detectviz ./go-platform/cmd/detectviz
 
 ---
 
-## 維護指南
-- 請參考：`go-platform/llm.txt`（AI 維護規範與提交前檢查清單）
+## 開發與維護
+
+### AI 協作開發
+- **開發守則**：請參考 [`../AGENT.md`](../AGENT.md) 中的完整 AI 開發守則
+- **提交前檢查**：請參考 `go-platform/llm.txt`（技術特定檢查清單）
+- **契約變更**：任何 gRPC 介面變更需先在 `../contracts/` 進行
+
+### 故障排查
+詳細故障排查指南請參考：[`../AGENT.md - 常見錯誤與排查`](../AGENT.md#常見錯誤與排查)

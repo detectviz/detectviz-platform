@@ -8,10 +8,12 @@
 - 樣本與規格（`contracts/samples/`, `contracts/specs/`）
 - 生成與工具（`contracts/gen/`, `buf.yaml`, `buf.gen.yaml`, `tools/`）
 
-## 原則
-1. SSOT：proto/schema 是唯一事實來源；禁止在下游手改型別或生成碼。
-2. 相容性：避免破壞性變更；若需，請標註版本並提供遷移指南。
-3. 驗證先行：任何變更需先 `buf lint && buf generate`，並執行提供的驗證腳本（如 `make validate`、`validate_module_card.py`）。
+## 原則（與 AGENT.md 對齊）
+1. **SSOT 契約優先**：proto/schema 是唯一事實來源；禁止在下游手改型別或生成碼
+2. **相容性維護**：避免破壞性變更；若需，請標註版本並提供遷移指南
+3. **驗證先行**：任何變更需先 `buf lint && buf generate`，並執行提供的驗證腳本
+4. **Agent vs Tool 介面一致性**：確保 gRPC 契約支持職責分離設計
+5. **MVP Phase 3 聚焦**：當前重點支持事後複盤系統的契約需求
 
 ## 標準流程
 1. 規劃：描述需求與影響面（Go/Python/Docs/部署）。
@@ -32,12 +34,27 @@ make validate-cards      # 模組卡驗證（若提供）
 - 欄位命名採一致風格（snake_case），避免縮寫不明確。
 
 ## 驗證清單（提交前）
+
+### SSOT 契約檢查
 - [ ] `buf lint` 通過（無 Lint 錯誤）
 - [ ] `buf generate` 成功（生成碼更新）
 - [ ] `make validate`、`make validate-cards` 通過（如提供）
 - [ ] `gen/metadata/version.json` 更新（若有）
-- [ ] 影響面已記錄並通知下游同步
-- [ ] `spec.md`/README/文件站已更新
+
+### Agent vs Tool 契約檢查
+- [ ] **gRPC 介面支持職責分離**：ToolBridge 介面符合執行層需求
+- [ ] **無業務邏輯洩漏**：proto 定義不包含業務決策邏輯
+- [ ] **跨語言類型安全**：Go 和 Python 生成碼類型一致
+
+### MVP Phase 3 特定檢查
+- [ ] 事後複盤相關 proto/schema 定義完整
+- [ ] HealthAggregator 插件契約正確
+- [ ] 模組卡 schema 支援 MVP 組件分類
+
+### 影響面同步檢查
+- [ ] 影響面已記錄並通知下游同步（Go/Python 專案）
+- [ ] `spec.md`/README/文件站已更新，與 AGENT.md 保持一致
+- [ ] 破壞性變更已標註版本和遷移指南
 
 ## 破壞性變更（需審慎）
 - 必須：
