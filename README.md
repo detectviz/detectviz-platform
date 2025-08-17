@@ -251,9 +251,9 @@
 ## 參考文檔
 
 ### 核心規範
-- [`spec.md`](./spec.md) - 平台技術規格
+- [`sre-services-map.md`](./sre-services-map.md) - 理解 SRE 三階段架構
+- [`spec.md`](./spec.md) - 技術實現規範
 - [`AGENT.md`](./AGENT.md) - AI 開發守則與協作指南
-- [`sre-services-map.md`](./sre-services-map.md) - 架構設計憲法
 
 ### 組件文檔
 - [`contracts/README.md`](./contracts/README.md) - SSOT 契約管理
