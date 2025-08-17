@@ -1,6 +1,5 @@
 # Detectviz Platform
 
-[![Status: MVP Development](https://img.shields.io/badge/status-MVP%20Development-orange)](./docs/mvp-implementation-spec.md)
 [![Current Focus: Phase 3](https://img.shields.io/badge/focus-Phase%203%20Postmortem-blue)](./sre-services-map.md)
 [![8-Week Timeline](https://img.shields.io/badge/timeline-8%20weeks-green)](#mvp-milestone)
 [![SSOT: contracts](https://img.shields.io/badge/SSOT-contracts-0A84FF)](./contracts)
@@ -212,8 +211,6 @@
 - **Phase 2**: 事中響應系統
 - **Phase 1**: 事前預防系統
 
-詳細開發計畫請參考：[`docs/mvp-implementation-spec.md`](./docs/mvp-implementation-spec.md)
-
 ---
 
 ## 設定搜尋優先序與環境覆蓋
@@ -261,7 +258,6 @@
 - [`python-adk-runtime/README.md`](./python-adk-runtime/README.md) - Python ADK 運行時
 
 ### 開發指南
-- [`docs/mvp-implementation-spec.md`](./docs/mvp-implementation-spec.md) - MVP 實施規格
 - [`docs/quick-reference.md`](./docs/quick-reference.md) - 快速參考
 - [`docs/agent-development-guide.md`](./docs/agent-development-guide.md) - Agent 開發指南
 
