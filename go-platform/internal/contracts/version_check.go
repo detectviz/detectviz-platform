@@ -167,7 +167,7 @@ func validateProtoFileIntegrity() error {
 		return nil
 	}
 
-	zap.L().Debug("Proto file integrity check passed", 
+	zap.L().Debug("Proto file integrity check passed",
 		zap.String("proto_hash", metadata.ProtoHash[:16]+"..."))
 	return nil
 }
@@ -188,7 +188,7 @@ func validateRequiredServices() error {
 	for _, service := range requiredServices {
 		servicePath := filepath.Join(goGenPath, service)
 		if _, err := os.Stat(servicePath); os.IsNotExist(err) {
-			zap.L().Warn("Required service file not found", 
+			zap.L().Warn("Required service file not found",
 				zap.String("service", service),
 				zap.String("path", servicePath))
 			// Don't fail hard for optional services

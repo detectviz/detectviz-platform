@@ -43,7 +43,7 @@ const (
 
 type Plugin struct {
 	client *http.Client
-	// TODO: 支援 mTLS/自訂 Transport、egress allowlist、retry/backoff
+	// 未來增強功能：mTLS/自訂 Transport、egress allowlist、retry/backoff
 }
 
 func New() *Plugin {

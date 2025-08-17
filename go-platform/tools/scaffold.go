@@ -153,8 +153,8 @@ func (p *Plugin) Invoke(ctx context.Context, req *pb.InvokeRequest) (*pb.InvokeR
 		zap.String("plugin_id", "%s"),
 		zap.Any("payload", req.Payload))
 
-	// TODO: Implement your plugin logic here
-	// This is a basic echo implementation
+	// 實作插件邏輯
+	// 這是一個基本的範例實作
 	result := req.Payload
 	if result == nil {
 		var err error
@@ -292,7 +292,7 @@ go test ./internal/pluginhost/... -tags=integration
 `,
 		strings.Title(strings.ReplaceAll(name, "_", " ")),
 		category, name, pluginID, category,
-		name, category, name, name, pluginID, name, category, name, pluginID)
+		name, category, name, name, pluginID, name, category, name)
 }
 
 func renderPluginTest(packageName string) string {

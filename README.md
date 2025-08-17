@@ -33,9 +33,10 @@
    - 數據分析為主
 
 3. **為後續階段奠基**：
-   - 建立數據查詢層（HealthAggregator）
+   - 建立優化的數據查詢層（HealthAggregator with 負載保護）
    - 建立報告生成層（ReportGenerator）
    - 建立知識庫架構（ResponseHistoryStore）
+   - 建立生產級插件管理系統（健康狀態管理、熔斷機制）
 
 **2 週 MVP 交付目標**：
 - 自動事故複盤分析

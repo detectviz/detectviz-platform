@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config represents the platform configuration structure (SSOT-aligned, no backward-compat fields)
+// Config represents the platform configuration structure (SSOT-aligned)
 // observability 對齊 otel_init.go 的讀取模式：
 //   observability:
 //     mode: lgtm_local|grafana_cloud|gcp

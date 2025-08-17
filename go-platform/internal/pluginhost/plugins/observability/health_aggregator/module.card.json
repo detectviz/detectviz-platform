@@ -16,7 +16,10 @@
   "configuration": {
     "provider": {
       "type": "string",
-      "enum": ["prometheus", "memory"],
+      "enum": [
+        "prometheus",
+        "memory"
+      ],
       "default": "prometheus",
       "description": "Metrics provider type"
     },
@@ -70,7 +73,16 @@
           },
           "aggregation": {
             "type": "string",
-            "enum": ["avg", "max", "min", "sum", "count", "p50", "p95", "p99"],
+            "enum": [
+              "avg",
+              "max",
+              "min",
+              "sum",
+              "count",
+              "p50",
+              "p95",
+              "p99"
+            ],
             "description": "Default aggregation"
           }
         }
@@ -78,8 +90,7 @@
     }
   },
   "dependencies": [
-    "metrics.provider",
-    "framework.plugin"
+    "metrics.provider"
   ],
   "permissions": [
     "net"
@@ -112,7 +123,9 @@
       "request": {
         "service_name": "api-gateway",
         "time_range": "1h",
-        "metrics": ["cpu_usage"]
+        "metrics": [
+          "cpu_usage"
+        ]
       }
     },
     {
@@ -120,7 +133,11 @@
       "request": {
         "service_name": "database",
         "time_range": "24h",
-        "metrics": ["cpu_usage", "memory_usage", "disk_usage"],
+        "metrics": [
+          "cpu_usage",
+          "memory_usage",
+          "disk_usage"
+        ],
         "filters": {
           "environment": "production"
         }

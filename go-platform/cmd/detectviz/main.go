@@ -196,7 +196,7 @@ type ServeFlags struct {
 func parseServeFlags() (*ServeFlags, error) {
 	fs := flag.NewFlagSet("plugin serve", flag.ExitOnError)
 
-	// 支援環境變數覆寫（對齊 CLAUDE.md 規範）
+	// 支援環境變數覆寫
 	defaultListen := getenvDefault("DETECTVIZ__GRPC__LISTEN", ":6606")
 	defaultCfg := getenvDefault("DETECTVIZ_CONFIG_FILE", "./config.yaml")
 	defaultHTTPDemo := getenvDefault("DETECTVIZ_HTTP_DEMO", "0") == "1"

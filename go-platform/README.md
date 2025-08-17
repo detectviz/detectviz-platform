@@ -8,7 +8,7 @@
 
 ## 平台職責
 - **ToolBridge（gRPC）**：供 Python/ADK 的 `RemoteTool` 呼叫 Go 插件（工具執行）。
-- **Plugin Host**：插件註冊、生命週期與執行；支援嚴格註冊（禁止覆蓋）與資源監控。
+- **Plugin Host**：優化的插件註冊中心，支援健康狀態管理、負載保護、熔斷機制與 Prometheus 監控。
 - **契約版本檢查**：啟動時自動驗證 proto 生成碼版本一致性，確保 SSOT 合規。
 - **安全邊界**：內建 allowlist/denylist、payload 大小限制、超時控制等安全機制。
 - **Observability**：OpenTelemetry 統一匯出（Logs/Traces/Metrics），預設透過 Alloy 導至本地 Grafana 或 Grafana Cloud。
@@ -24,6 +24,8 @@
 - `internal/observability/`：OpenTelemetry 初始化與結構化日誌
 - `internal/health/`：HTTP 健康檢查服務（/livez、/readyz）
 - `internal/pluginhost/`：插件宿主（registry、runtime、ToolBridge 伺服端）
+  - `registry.go`：優化的插件註冊中心，支援健康狀態管理和負載保護
+  - `metrics.go`：Prometheus 監控整合
   - `plugins/gateway/http_request/`：HTTP 請求插件（含安全邊界）
   - `plugins/observability/health_aggregator/`：健康指標聚合插件
   - `resource_monitor.go`：插件級資源使用監控

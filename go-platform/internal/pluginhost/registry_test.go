@@ -30,10 +30,11 @@ func (m *mockHandler) Close() error {
 	return m.closeErr
 }
 
-// Mock handler without close method
+// Mock handler without close method (升級為 ClosableHandler)
 type basicMockHandler struct {
 	id      string
 	invoked bool
+	closed  bool
 }
 
 func (m *basicMockHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
@@ -41,28 +42,33 @@ func (m *basicMockHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (*
 	return &v1.InvokeResponse{}, nil
 }
 
+func (m *basicMockHandler) Close() error {
+	m.closed = true
+	return nil
+}
+
 func TestRegistry_NewRegistry(t *testing.T) {
 	r := NewRegistry()
 	assert.NotNil(t, r)
-	assert.Equal(t, 0, r.Size())
-	assert.Empty(t, r.List())
+	assert.Equal(t, 0, r.GetPluginCount())
+	assert.Empty(t, r.GetPluginNames())
 }
 
-func TestRegistry_RegisterStrict(t *testing.T) {
+func TestRegistry_Register(t *testing.T) {
 	r := NewRegistry()
 	handler1 := &mockHandler{id: "handler1"}
 	handler2 := &mockHandler{id: "handler2"}
 
 	// First registration should succeed
-	err := r.RegisterStrict("tool1", handler1)
+	err := r.Register("tool1", handler1)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, r.Size())
+	assert.Equal(t, 1, r.GetPluginCount())
 
 	// Duplicate registration should fail
-	err = r.RegisterStrict("tool1", handler2)
+	err = r.Register("tool1", handler2)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, ErrHandlerExists)
-	assert.Equal(t, 1, r.Size())
+	assert.Contains(t, err.Error(), "插件已註冊")
+	assert.Equal(t, 1, r.GetPluginCount())
 
 	// Verify original handler is still registered
 	h, ok := r.Lookup("tool1")
@@ -76,12 +82,14 @@ func TestRegistry_RegisterOrReplace(t *testing.T) {
 	handler2 := &mockHandler{id: "handler2"}
 
 	// Initial registration
-	r.RegisterOrReplace("tool1", handler1)
-	assert.Equal(t, 1, r.Size())
+	err := r.RegisterOrReplace("tool1", handler1)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, r.GetPluginCount())
 
 	// Replacement should close old handler and register new one
-	r.RegisterOrReplace("tool1", handler2)
-	assert.Equal(t, 1, r.Size())
+	err = r.RegisterOrReplace("tool1", handler2)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, r.GetPluginCount())
 	assert.True(t, handler1.closed, "Old handler should be closed")
 
 	// Verify new handler is registered
@@ -96,9 +104,11 @@ func TestRegistry_RegisterOrReplace_CloseError(t *testing.T) {
 	handler1 := &mockHandler{id: "handler1", closeErr: closeError}
 	handler2 := &mockHandler{id: "handler2"}
 
-	r.RegisterOrReplace("tool1", handler1)
+	err := r.RegisterOrReplace("tool1", handler1)
+	assert.NoError(t, err)
 	// This should log a warning but still succeed
-	r.RegisterOrReplace("tool1", handler2)
+	err = r.RegisterOrReplace("tool1", handler2)
+	assert.NoError(t, err)
 
 	assert.True(t, handler1.closed)
 	h, ok := r.Lookup("tool1")
@@ -108,12 +118,15 @@ func TestRegistry_RegisterOrReplace_CloseError(t *testing.T) {
 
 func TestRegistry_RegisterOrReplace_BasicHandler(t *testing.T) {
 	r := NewRegistry()
-	handler1 := &basicMockHandler{id: "handler1"} // No Close method
+	handler1 := &basicMockHandler{id: "handler1"} // Now implements Close method
 	handler2 := &mockHandler{id: "handler2"}
 
-	r.RegisterOrReplace("tool1", handler1)
-	// This should work even though handler1 doesn't implement Close
-	r.RegisterOrReplace("tool1", handler2)
+	err := r.RegisterOrReplace("tool1", handler1)
+	assert.NoError(t, err)
+	// This should work
+	err = r.RegisterOrReplace("tool1", handler2)
+	assert.NoError(t, err)
+	assert.True(t, handler1.closed)
 
 	h, ok := r.Lookup("tool1")
 	assert.True(t, ok)
@@ -130,7 +143,8 @@ func TestRegistry_Lookup(t *testing.T) {
 	assert.Nil(t, h)
 
 	// Register and lookup
-	r.RegisterOrReplace("tool1", handler)
+	err := r.RegisterOrReplace("tool1", handler)
+	assert.NoError(t, err)
 	h, ok = r.Lookup("tool1")
 	assert.True(t, ok)
 	assert.Same(t, handler, h)
@@ -141,15 +155,17 @@ func TestRegistry_Unregister(t *testing.T) {
 	handler := &mockHandler{id: "handler"}
 
 	// Unregister non-existent handler
-	removed := r.Unregister("nonexistent")
-	assert.False(t, removed)
+	err := r.Unregister("nonexistent")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "插件不存在")
 
 	// Register, then unregister
-	r.RegisterOrReplace("tool1", handler)
-	removed = r.Unregister("tool1")
-	assert.True(t, removed)
+	err = r.RegisterOrReplace("tool1", handler)
+	assert.NoError(t, err)
+	err = r.Unregister("tool1")
+	assert.NoError(t, err)
 	assert.True(t, handler.closed)
-	assert.Equal(t, 0, r.Size())
+	assert.Equal(t, 0, r.GetPluginCount())
 
 	// Verify handler is gone
 	h, ok := r.Lookup("tool1")
@@ -157,23 +173,25 @@ func TestRegistry_Unregister(t *testing.T) {
 	assert.Nil(t, h)
 }
 
-func TestRegistry_List(t *testing.T) {
+func TestRegistry_GetPluginNames(t *testing.T) {
 	r := NewRegistry()
 	handler1 := &mockHandler{id: "handler1"}
 	handler2 := &mockHandler{id: "handler2"}
 
 	// Empty registry
-	list := r.List()
-	assert.Empty(t, list)
+	names := r.GetPluginNames()
+	assert.Empty(t, names)
 
 	// Add handlers
-	r.RegisterOrReplace("tool1", handler1)
-	r.RegisterOrReplace("tool2", handler2)
+	err := r.RegisterOrReplace("tool1", handler1)
+	assert.NoError(t, err)
+	err = r.RegisterOrReplace("tool2", handler2)
+	assert.NoError(t, err)
 
-	list = r.List()
-	assert.Len(t, list, 2)
-	assert.Contains(t, list, "tool1")
-	assert.Contains(t, list, "tool2")
+	names = r.GetPluginNames()
+	assert.Len(t, names, 2)
+	assert.Contains(t, names, "tool1")
+	assert.Contains(t, names, "tool2")
 }
 
 func TestRegistry_Shutdown(t *testing.T) {
@@ -182,21 +200,20 @@ func TestRegistry_Shutdown(t *testing.T) {
 	handler2 := &mockHandler{id: "handler2"}
 	handler3 := &mockHandler{id: "handler3", closeErr: errors.New("close error")}
 
-	r.RegisterOrReplace("tool1", handler1)
-	r.RegisterOrReplace("tool2", handler2)
-	r.RegisterOrReplace("tool3", handler3)
+	err := r.RegisterOrReplace("tool1", handler1)
+	assert.NoError(t, err)
+	err = r.RegisterOrReplace("tool2", handler2)
+	assert.NoError(t, err)
+	err = r.RegisterOrReplace("tool3", handler3)
+	assert.NoError(t, err)
 
-	err := r.Shutdown()
+	r.Shutdown() // Shutdown doesn't return error in new implementation
 
-	// Should return error from handler3, but still close all handlers
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "close error")
-	assert.Contains(t, err.Error(), "tool3")
-
+	// All handlers should be closed
 	assert.True(t, handler1.closed)
 	assert.True(t, handler2.closed)
 	assert.True(t, handler3.closed)
-	assert.Equal(t, 0, r.Size())
+	assert.Equal(t, 0, r.GetPluginCount())
 }
 
 func TestRegistry_ConcurrentAccess(t *testing.T) {
@@ -216,7 +233,8 @@ func TestRegistry_ConcurrentAccess(t *testing.T) {
 				handler := &mockHandler{id: fmt.Sprintf("handler_%d_%d", id, j)}
 
 				// 註冊處理器
-				r.RegisterOrReplace(toolID, handler)
+				err := r.RegisterOrReplace(toolID, handler)
+				assert.NoError(t, err)
 
 				// 立即查詢應該成功
 				h, ok := r.Lookup(toolID)
@@ -226,7 +244,7 @@ func TestRegistry_ConcurrentAccess(t *testing.T) {
 				// 偶爾取消註冊（但不是剛註冊的）
 				if j > 0 && j%10 == 0 {
 					oldToolID := fmt.Sprintf("tool_%d_%d", id, j-5) // 取消註冊較舊的
-					r.Unregister(oldToolID)
+					_ = r.Unregister(oldToolID)                     // 忽略錯誤，因為可能已經被取消註冊
 				}
 			}
 		}(i)
@@ -244,24 +262,25 @@ func TestRegistry_GracefulShutdownIntegration(t *testing.T) {
 	handlers := make([]*mockHandler, 5)
 	for i := 0; i < 5; i++ {
 		handlers[i] = &mockHandler{id: "handler" + string(rune('1'+i))}
-		r.RegisterOrReplace("tool"+string(rune('1'+i)), handlers[i])
+		err := r.RegisterOrReplace("tool"+string(rune('1'+i)), handlers[i])
+		assert.NoError(t, err)
 	}
 
-	assert.Equal(t, 5, r.Size())
+	assert.Equal(t, 5, r.GetPluginCount())
 
 	// Simulate graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	done := make(chan error, 1)
+	done := make(chan bool, 1)
 	go func() {
-		done <- r.Shutdown()
+		r.Shutdown()
+		done <- true
 	}()
 
 	select {
-	case err := <-done:
-		assert.NoError(t, err)
-		assert.Equal(t, 0, r.Size())
+	case <-done:
+		assert.Equal(t, 0, r.GetPluginCount())
 
 		// Verify all handlers were closed
 		for _, h := range handlers {
@@ -276,21 +295,21 @@ func TestRegistry_GracefulShutdownIntegration(t *testing.T) {
 // Benchmark tests
 func BenchmarkRegistry_Register(b *testing.B) {
 	r := NewRegistry()
-	handlers := make([]Handler, b.N)
+	handlers := make([]*basicMockHandler, b.N)
 	for i := 0; i < b.N; i++ {
 		handlers[i] = &basicMockHandler{id: "handler"}
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r.RegisterOrReplace("tool", handlers[i])
+		_ = r.RegisterOrReplace("tool", handlers[i])
 	}
 }
 
 func BenchmarkRegistry_Lookup(b *testing.B) {
 	r := NewRegistry()
 	handler := &basicMockHandler{id: "handler"}
-	r.RegisterOrReplace("tool", handler)
+	_ = r.RegisterOrReplace("tool", handler)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -301,7 +320,7 @@ func BenchmarkRegistry_Lookup(b *testing.B) {
 func BenchmarkRegistry_ConcurrentLookup(b *testing.B) {
 	r := NewRegistry()
 	handler := &basicMockHandler{id: "handler"}
-	r.RegisterOrReplace("tool", handler)
+	_ = r.RegisterOrReplace("tool", handler)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

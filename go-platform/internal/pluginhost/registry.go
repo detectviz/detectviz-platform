@@ -2,300 +2,484 @@ package pluginhost
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
 	"go.uber.org/zap"
 )
 
-// Handler 為每個 tool_id 的處理器介面
+// 插件健康狀態枚舉
+type PluginHealth int
+
+const (
+	HealthUnknown      PluginHealth = iota // 0: 未知狀態
+	HealthOk                               // 1: 正常運行
+	HealthDegraded                         // 2: 部分功能可用
+	HealthCritical                         // 3: 嚴重錯誤
+	HealthShuttingDown                     // 4: 關閉中
+)
+
+// String 實作 Stringer 介面
+func (h PluginHealth) String() string {
+	switch h {
+	case HealthUnknown:
+		return "未知"
+	case HealthOk:
+		return "正常"
+	case HealthDegraded:
+		return "降級"
+	case HealthCritical:
+		return "異常"
+	case HealthShuttingDown:
+		return "關閉中"
+	default:
+		return "無效狀態"
+	}
+}
+
+// Handler 為每個插件的處理器介面
 type Handler interface {
 	Invoke(ctx context.Context, req *v1.InvokeRequest) (*v1.InvokeResponse, error)
 }
 
-// 可選：具備釋放資源能力的處理器
-// 若插件內部持有連線池/檔案/背景 goroutine，請實作 Close() 以便 Registry 在卸載或替換時釋放資源。
+// ClosableHandler 支援資源釋放的處理器
 type ClosableHandler interface {
 	Handler
 	Close() error
 }
 
-// Registry 維護 tool_id → Handler 的映射（並發安全），支援資源監控
+// HealthAwareHandler 支援健康檢查的處理器
+type HealthAwareHandler interface {
+	ClosableHandler
+	HealthCheck() error
+}
+
+// PluginWrapper 插件封裝結構（包含健康狀態和負載追蹤）
+type PluginWrapper struct {
+	handler ClosableHandler
+	name    string
+
+	// 原子操作變數（無需鎖）
+	health    atomic.Value // 存儲 PluginHealth
+	load      int32        // 當前負載計數器
+	lastCheck atomic.Value // 存儲 time.Time，最後檢查時間戳
+}
+
+// NewPluginWrapper 創建新的插件包裝器
+func NewPluginWrapper(name string, handler ClosableHandler) *PluginWrapper {
+	wrapper := &PluginWrapper{
+		handler: handler,
+		name:    name,
+	}
+	wrapper.health.Store(HealthUnknown)
+	wrapper.lastCheck.Store(time.Now())
+	return wrapper
+}
+
+// GetHealth 取得健康狀態
+func (pw *PluginWrapper) GetHealth() PluginHealth {
+	return pw.health.Load().(PluginHealth)
+}
+
+// SetHealth 設定健康狀態
+func (pw *PluginWrapper) SetHealth(health PluginHealth) {
+	pw.health.Store(health)
+	pw.lastCheck.Store(time.Now())
+}
+
+// GetLoad 取得當前負載
+func (pw *PluginWrapper) GetLoad() int32 {
+	return atomic.LoadInt32(&pw.load)
+}
+
+// GetLastCheck 取得最後檢查時間
+func (pw *PluginWrapper) GetLastCheck() time.Time {
+	return pw.lastCheck.Load().(time.Time)
+}
+
+// Registry 插件註冊中心（核心數據結構）
 type Registry struct {
-	rwmu            sync.RWMutex
-	byToolID        map[string]Handler
-	resourceMonitor *ResourceMonitor // 可選的資源監控器
+	mu      sync.RWMutex              // 讀寫鎖保護 plugins map
+	plugins map[string]*PluginWrapper // 插件映射表
+
+	// 健康檢查控制
+	healthTicker   *time.Ticker
+	shutdownSignal chan struct{}
+	wg             sync.WaitGroup // 確保協程完成
+
+	// 配置參數
+	maxLoad        int32         // 最大負載閾值
+	healthInterval time.Duration // 健康檢查間隔
+	logger         *zap.Logger   // 日誌記錄器
 }
 
+// RegistryConfig 註冊中心配置
+type RegistryConfig struct {
+	MaxLoad        int32         `yaml:"max_load" json:"max_load"`               // 最大負載，預設 100
+	HealthInterval time.Duration `yaml:"health_interval" json:"health_interval"` // 健康檢查間隔，預設 30s
+}
+
+// DefaultRegistryConfig 預設配置
+func DefaultRegistryConfig() *RegistryConfig {
+	return &RegistryConfig{
+		MaxLoad:        100,
+		HealthInterval: 30 * time.Second,
+	}
+}
+
+// NewRegistry 創建新註冊中心
 func NewRegistry() *Registry {
-	return &Registry{byToolID: map[string]Handler{}}
+	return NewRegistryWithConfig(DefaultRegistryConfig())
 }
 
-// NewRegistryWithMonitoring 創建帶資源監控的註冊表
-func NewRegistryWithMonitoring(monitorInterval time.Duration) (*Registry, error) {
-	monitor, err := NewResourceMonitor(monitorInterval)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create resource monitor: %w", err)
+// NewRegistryWithConfig 使用配置創建註冊中心
+func NewRegistryWithConfig(config *RegistryConfig) *Registry {
+	if config == nil {
+		config = DefaultRegistryConfig()
 	}
 
 	return &Registry{
-		byToolID:        map[string]Handler{},
-		resourceMonitor: monitor,
-	}, nil
+		plugins:        make(map[string]*PluginWrapper),
+		shutdownSignal: make(chan struct{}),
+		maxLoad:        config.MaxLoad,
+		healthInterval: config.HealthInterval,
+		logger:         zap.L(),
+	}
 }
 
-// ErrHandlerExists 代表在嚴格模式下該 toolID 已存在
-var ErrHandlerExists = errors.New("handler already registered")
+// Register 註冊插件（執行緒安全）
+func (r *Registry) Register(name string, handler ClosableHandler) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-// RegisterStrict 嚴格註冊：若 toolID 已存在則直接回報錯誤，不覆蓋、也不關閉舊 handler。
-// 適用於不允許同名覆蓋的場景，可避免無意間的替換造成語義混亂。
-func (r *Registry) RegisterStrict(toolID string, h Handler) error {
-	r.rwmu.Lock()
-	defer r.rwmu.Unlock()
-
-	if _, ok := r.byToolID[toolID]; ok {
-		return fmt.Errorf("%w: tool_id=%s", ErrHandlerExists, toolID)
+	if _, exists := r.plugins[name]; exists {
+		return fmt.Errorf("插件已註冊: %s", name)
 	}
 
-	// 如果啟用監控，包裝處理器
-	actualHandler := r.wrapWithMonitoring(toolID, h)
-	r.byToolID[toolID] = actualHandler
+	wrapper := NewPluginWrapper(name, handler)
+	r.plugins[name] = wrapper
 
-	zap.L().Info("Handler registered (strict)",
-		zap.String("tool_id", toolID),
-		zap.Bool("monitoring_enabled", r.resourceMonitor != nil))
+	r.logger.Info("插件註冊成功",
+		zap.String("name", name),
+		zap.String("type", fmt.Sprintf("%T", handler)))
 	return nil
 }
 
-// Register 登錄或覆蓋指定 toolID 的處理器（寫鎖）
-// - 若同一 toolID 已存在，會嘗試關閉舊的 handler 以避免資源洩漏，然後再覆蓋。
-func (r *Registry) Register(toolID string, h Handler) {
-	r.rwmu.Lock()
-	defer r.rwmu.Unlock()
+// RegisterOrReplace 註冊或替換插件
+func (r *Registry) RegisterOrReplace(name string, handler ClosableHandler) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-	if old, ok := r.byToolID[toolID]; ok && old != h {
-		if err := closeIfPossible(old); err != nil {
-			zap.L().Warn("Failed to close previous handler on re-register",
-				zap.String("tool_id", toolID), zap.Error(err))
+	// 如果存在舊插件，先關閉
+	if oldWrapper, exists := r.plugins[name]; exists {
+		oldWrapper.SetHealth(HealthShuttingDown)
+		if err := oldWrapper.handler.Close(); err != nil {
+			r.logger.Warn("關閉舊插件失敗",
+				zap.String("name", name),
+				zap.Error(err))
 		}
 	}
 
-	// 如果啟用監控，包裝處理器
-	actualHandler := r.wrapWithMonitoring(toolID, h)
-	r.byToolID[toolID] = actualHandler
+	wrapper := NewPluginWrapper(name, handler)
+	r.plugins[name] = wrapper
 
-	zap.L().Info("Handler registered",
-		zap.String("tool_id", toolID),
-		zap.Bool("monitoring_enabled", r.resourceMonitor != nil))
+	r.logger.Info("插件註冊或替換成功",
+		zap.String("name", name),
+		zap.String("type", fmt.Sprintf("%T", handler)))
+	return nil
 }
 
-// RegisterOrReplace 與 Register 相同語意；提供更語義化的名稱以利閱讀。
-func (r *Registry) RegisterOrReplace(toolID string, h Handler) {
-	r.Register(toolID, h)
-}
+// Unregister 取消註冊插件
+func (r *Registry) Unregister(name string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-// Lookup 讀取指定 toolID 的處理器（讀鎖）
-func (r *Registry) Lookup(toolID string) (Handler, bool) {
-	r.rwmu.RLock()
-	h, ok := r.byToolID[toolID]
-	r.rwmu.RUnlock()
-	return h, ok
-}
-
-// Unregister 解除登錄，並嘗試釋放資源（寫鎖）
-// 回傳是否存在且已移除。
-func (r *Registry) Unregister(toolID string) bool {
-	r.rwmu.Lock()
-	old, ok := r.byToolID[toolID]
-	if ok {
-		delete(r.byToolID, toolID)
-	}
-	r.rwmu.Unlock()
-
-	if ok {
-		if err := closeIfPossible(old); err != nil {
-			zap.L().Warn("Failed to close handler on unregister", zap.String("tool_id", toolID), zap.Error(err))
-		} else {
-			zap.L().Info("Handler unregistered", zap.String("tool_id", toolID))
-		}
-	}
-	return ok
-}
-
-// List 取得目前已註冊的所有 toolID 快照（讀鎖）
-func (r *Registry) List() []string {
-	r.rwmu.RLock()
-	ids := make([]string, 0, len(r.byToolID))
-	for id := range r.byToolID {
-		ids = append(ids, id)
-	}
-	r.rwmu.RUnlock()
-	return ids
-}
-
-// Size 目前註冊數量（讀鎖）
-func (r *Registry) Size() int {
-	r.rwmu.RLock()
-	n := len(r.byToolID)
-	r.rwmu.RUnlock()
-	return n
-}
-
-// Shutdown 關閉所有可關閉的 handler 並清空註冊表（寫鎖 + 批次釋放）
-func (r *Registry) Shutdown() error {
-	r.rwmu.Lock()
-	defer r.rwmu.Unlock()
-
-	var errs error
-	for id, h := range r.byToolID {
-		if err := closeIfPossible(h); err != nil {
-			errs = errors.Join(errs, fmt.Errorf("tool_id=%s: %w", id, err))
-		}
-		delete(r.byToolID, id)
-	}
-
-	// 關閉資源監控器
-	if r.resourceMonitor != nil {
-		r.resourceMonitor.Stop()
-	}
-
-	if errs != nil {
-		zap.L().Warn("Registry shutdown with errors", zap.Error(errs))
-	} else {
-		zap.L().Info("Registry shutdown complete")
-	}
-	return errs
-}
-
-// closeIfPossible 嘗試呼叫 Close()；支援 ClosableHandler 或 io.Closer
-func closeIfPossible(h Handler) error {
-	switch x := h.(type) {
-	case ClosableHandler:
-		return x.Close()
-	case io.Closer:
-		return x.Close()
-	default:
-		return nil
-	}
-}
-
-// wrapWithMonitoring 根據監控配置包裝處理器
-func (r *Registry) wrapWithMonitoring(toolID string, h Handler) Handler {
-	if r.resourceMonitor == nil {
-		return h // 沒有監控器，直接回傳原始處理器
-	}
-
-	// 檢查處理器是否支援資源感知
-	if resourceAware, ok := h.(ResourceAwareHandler); ok {
-		// 使用增強型監控包裝器
-		return NewEnhancedMonitoredHandler(toolID, resourceAware, r.resourceMonitor)
-	} else {
-		// 使用基本監控包裝器
-		return NewMonitoredHandler(toolID, h, r.resourceMonitor)
-	}
-}
-
-// GetResourceMonitor 獲取資源監控器實例
-func (r *Registry) GetResourceMonitor() *ResourceMonitor {
-	r.rwmu.RLock()
-	defer r.rwmu.RUnlock()
-	return r.resourceMonitor
-}
-
-// GetPluginMetrics 獲取指定插件的監控指標
-func (r *Registry) GetPluginMetrics(toolID string) *PluginResourceMetrics {
-	if r.resourceMonitor == nil {
-		return nil
-	}
-	return r.resourceMonitor.GetPluginMetrics(toolID)
-}
-
-// GetAllPluginMetrics 獲取所有插件的監控指標
-func (r *Registry) GetAllPluginMetrics() map[string]*PluginResourceMetrics {
-	if r.resourceMonitor == nil {
-		return nil
-	}
-	return r.resourceMonitor.GetAllMetrics()
-}
-
-// GetMonitoringHealthStatus 獲取監控系統健康狀態
-func (r *Registry) GetMonitoringHealthStatus() map[string]interface{} {
-	if r.resourceMonitor == nil {
-		return map[string]interface{}{
-			"monitoring_enabled": false,
-			"message":            "資源監控未啟用",
-		}
-	}
-
-	health := r.resourceMonitor.GetHealthStatus()
-	health["monitoring_enabled"] = true
-	return health
-}
-
-// SetPluginResourceLimits 為指定插件設置資源限制
-func (r *Registry) SetPluginResourceLimits(toolID string, maxMemoryBytes int64, maxGoroutines int32, maxConnections int32) error {
-	r.rwmu.RLock()
-	handler, exists := r.byToolID[toolID]
-	r.rwmu.RUnlock()
-
+	wrapper, exists := r.plugins[name]
 	if !exists {
-		return fmt.Errorf("plugin not found: %s", toolID)
+		return fmt.Errorf("插件不存在: %s", name)
 	}
 
-	// 嘗試找到增強監控處理器
-	if enhancedHandler, ok := handler.(*EnhancedMonitoredHandler); ok {
-		return enhancedHandler.SetResourceLimits(maxMemoryBytes, maxGoroutines, maxConnections)
+	wrapper.SetHealth(HealthShuttingDown)
+	if err := wrapper.handler.Close(); err != nil {
+		r.logger.Warn("關閉插件失敗",
+			zap.String("name", name),
+			zap.Error(err))
 	}
 
-	// 嘗試直接訪問資源感知處理器（可能是原始處理器）
-	if monitoredHandler, ok := handler.(*MonitoredHandler); ok {
-		if resourceAwareHandler, ok := monitoredHandler.handler.(ResourceAwareHandler); ok {
-			return resourceAwareHandler.SetResourceLimits(maxMemoryBytes, maxGoroutines, maxConnections)
-		}
-	}
-
-	return fmt.Errorf("plugin %s does not support resource limits", toolID)
+	delete(r.plugins, name)
+	r.logger.Info("插件取消註冊成功", zap.String("name", name))
+	return nil
 }
 
-// GetPluginDetailedMetrics 獲取插件的詳細監控指標
-func (r *Registry) GetPluginDetailedMetrics(toolID string) map[string]interface{} {
-	r.rwmu.RLock()
-	handler, exists := r.byToolID[toolID]
-	r.rwmu.RUnlock()
-
-	if !exists {
-		return nil
+// StartHealthChecks 啟動健康檢查協程
+func (r *Registry) StartHealthChecks() {
+	if r.healthTicker != nil {
+		return // 已經啟動
 	}
 
-	// 嘗試獲取增強監控處理器的詳細指標
-	if enhancedHandler, ok := handler.(*EnhancedMonitoredHandler); ok {
-		return enhancedHandler.GetDetailedMetrics()
-	}
+	r.healthTicker = time.NewTicker(r.healthInterval)
+	r.wg.Add(1)
 
-	// 回退到基本監控指標
-	if r.resourceMonitor != nil {
-		basicMetrics := r.resourceMonitor.GetPluginMetrics(toolID)
-		if basicMetrics != nil {
-			return map[string]interface{}{
-				"plugin_id":           toolID,
-				"total_requests":      basicMetrics.TotalRequests,
-				"active_requests":     basicMetrics.ActiveRequests,
-				"total_errors":        basicMetrics.TotalErrors,
-				"avg_response_time":   basicMetrics.AvgResponseTimeMs,
-				"requests_per_second": basicMetrics.RequestsPerSecond,
-				"error_rate_percent":  basicMetrics.ErrorRate,
-				"memory_usage_bytes":  basicMetrics.MemoryUsageBytes,
-				"goroutine_count":     basicMetrics.GoroutineCount,
-				"connection_count":    basicMetrics.ConnectionCount,
-				"uptime_ms":           time.Now().UnixMilli() - basicMetrics.StartTime,
-				"last_update":         basicMetrics.LastUpdateTime,
+	go func() {
+		defer r.wg.Done()
+		r.logger.Info("健康檢查協程啟動",
+			zap.Duration("interval", r.healthInterval))
+
+		for {
+			select {
+			case <-r.healthTicker.C:
+				r.performHealthChecks()
+			case <-r.shutdownSignal:
+				r.logger.Info("健康檢查協程終止")
+				return
 			}
 		}
+	}()
+}
+
+// performHealthChecks 執行全量健康檢查
+func (r *Registry) performHealthChecks() {
+	r.mu.RLock()
+	pluginCount := len(r.plugins)
+	plugins := make([]*PluginWrapper, 0, pluginCount)
+	for _, wrapper := range r.plugins {
+		plugins = append(plugins, wrapper)
+	}
+	r.mu.RUnlock()
+
+	var wg sync.WaitGroup
+	for _, wrapper := range plugins {
+		wg.Add(1)
+		go func(w *PluginWrapper) {
+			defer wg.Done()
+			r.checkPluginHealth(w)
+		}(wrapper)
+	}
+	wg.Wait()
+
+	r.logger.Debug("健康檢查完成", zap.Int("checked_plugins", pluginCount))
+}
+
+// checkPluginHealth 檢查單個插件的健康狀態
+func (r *Registry) checkPluginHealth(wrapper *PluginWrapper) {
+	// 跳過正在關閉的插件
+	if wrapper.GetHealth() == HealthShuttingDown {
+		return
 	}
 
+	start := time.Now()
+	var err error
+
+	// 如果插件支援健康檢查，使用自定義邏輯
+	if healthAware, ok := wrapper.handler.(HealthAwareHandler); ok {
+		err = healthAware.HealthCheck()
+	} else {
+		// 否則使用簡單的調用測試
+		err = r.simpleHealthCheck(wrapper)
+	}
+
+	duration := time.Since(start)
+
+	// 更新健康狀態
+	var newHealth PluginHealth
+	switch {
+	case err != nil:
+		newHealth = HealthCritical
+		r.logger.Warn("插件健康檢查失敗",
+			zap.String("name", wrapper.name),
+			zap.Error(err),
+			zap.Duration("duration", duration))
+	case duration > 100*time.Millisecond:
+		newHealth = HealthDegraded
+		r.logger.Debug("插件回應緩慢",
+			zap.String("name", wrapper.name),
+			zap.Duration("duration", duration))
+	default:
+		newHealth = HealthOk
+	}
+
+	wrapper.SetHealth(newHealth)
+}
+
+// simpleHealthCheck 簡單的健康檢查（針對不支援 HealthAwareHandler 的插件）
+func (r *Registry) simpleHealthCheck(wrapper *PluginWrapper) error {
+	// 這裡可以實作基本的插件狀態檢查
+	// 例如檢查是否還能正常回應等
 	return nil
+}
+
+// Invoke 調用插件（含熔斷和負載保護）
+func (r *Registry) Invoke(ctx context.Context, pluginName string, req *v1.InvokeRequest) (*v1.InvokeResponse, error) {
+	// 讀取階段（使用讀鎖）
+	r.mu.RLock()
+	wrapper, exists := r.plugins[pluginName]
+	r.mu.RUnlock()
+
+	if !exists {
+		return nil, fmt.Errorf("插件未找到: %s", pluginName)
+	}
+
+	// 健康狀態檢查（熔斷機制）
+	health := wrapper.GetHealth()
+	if health == HealthCritical || health == HealthShuttingDown {
+		return nil, fmt.Errorf("插件不可用 (%s): %s", health, pluginName)
+	}
+
+	// 負載保護（避免單一插件過載）
+	currentLoad := atomic.AddInt32(&wrapper.load, 1)
+	defer atomic.AddInt32(&wrapper.load, -1)
+
+	if currentLoad > r.maxLoad {
+		return nil, fmt.Errorf("插件過載 (%d/%d): %s", currentLoad, r.maxLoad, pluginName)
+	}
+
+	// 執行插件邏輯
+	start := time.Now()
+	resp, err := wrapper.handler.Invoke(ctx, req)
+	duration := time.Since(start)
+
+	// 記錄執行統計
+	if err != nil {
+		r.logger.Warn("插件調用失敗",
+			zap.String("name", pluginName),
+			zap.Error(err),
+			zap.Duration("duration", duration),
+			zap.Int32("load", currentLoad))
+	} else {
+		r.logger.Debug("插件調用成功",
+			zap.String("name", pluginName),
+			zap.Duration("duration", duration),
+			zap.Int32("load", currentLoad))
+	}
+
+	return resp, err
+}
+
+// Lookup 查找插件處理器（保持相容性）
+func (r *Registry) Lookup(pluginName string) (Handler, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if wrapper, exists := r.plugins[pluginName]; exists {
+		return wrapper.handler, true
+	}
+	return nil, false
+}
+
+// GetPluginStatus 獲取插件狀態（用於監控）
+func (r *Registry) GetPluginStatus() map[string]interface{} {
+	status := make(map[string]interface{})
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	for name, wrapper := range r.plugins {
+		status[name] = map[string]interface{}{
+			"health":     wrapper.GetHealth(),
+			"health_str": wrapper.GetHealth().String(),
+			"load":       wrapper.GetLoad(),
+			"last_check": wrapper.GetLastCheck(),
+		}
+	}
+	return status
+}
+
+// GetPluginNames 獲取所有插件名稱
+func (r *Registry) GetPluginNames() []string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	names := make([]string, 0, len(r.plugins))
+	for name := range r.plugins {
+		names = append(names, name)
+	}
+	return names
+}
+
+// GetPluginCount 獲取插件數量
+func (r *Registry) GetPluginCount() int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.plugins)
+}
+
+// Shutdown 優雅關閉流程
+func (r *Registry) Shutdown() {
+	r.logger.Info("啟動插件註冊中心關閉程序")
+
+	// 1. 停止健康檢查
+	close(r.shutdownSignal)
+	if r.healthTicker != nil {
+		r.healthTicker.Stop()
+	}
+
+	// 2. 標記所有插件為關閉中
+	r.mu.RLock()
+	shutdownCount := len(r.plugins)
+	for _, wrapper := range r.plugins {
+		wrapper.SetHealth(HealthShuttingDown)
+	}
+	r.mu.RUnlock()
+
+	r.logger.Info("標記插件關閉中", zap.Int("count", shutdownCount))
+
+	// 3. 等待進行中請求完成
+	r.logger.Info("等待進行中請求完成...")
+	waitDuration := 2 * time.Second
+
+	// 檢查是否還有負載
+	ticker := time.NewTicker(100 * time.Millisecond)
+	timeout := time.After(waitDuration)
+
+checkLoop:
+	for {
+		select {
+		case <-ticker.C:
+			hasLoad := false
+			r.mu.RLock()
+			for _, wrapper := range r.plugins {
+				if wrapper.GetLoad() > 0 {
+					hasLoad = true
+					break
+				}
+			}
+			r.mu.RUnlock()
+
+			if !hasLoad {
+				break checkLoop
+			}
+		case <-timeout:
+			r.logger.Warn("等待超時，強制關閉")
+			break checkLoop
+		}
+	}
+	ticker.Stop()
+
+	// 4. 關閉所有插件
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var closeErrors []error
+	for name, wrapper := range r.plugins {
+		r.logger.Debug("關閉插件", zap.String("name", name))
+		if err := wrapper.handler.Close(); err != nil {
+			closeErrors = append(closeErrors, fmt.Errorf("關閉插件 %s 失敗: %w", name, err))
+		}
+	}
+
+	if len(closeErrors) > 0 {
+		for _, err := range closeErrors {
+			r.logger.Warn("插件關閉錯誤", zap.Error(err))
+		}
+	}
+
+	// 清空插件表
+	r.plugins = make(map[string]*PluginWrapper)
+
+	// 5. 等待協程退出
+	r.wg.Wait()
+	r.logger.Info("插件註冊中心安全關閉完成")
 }

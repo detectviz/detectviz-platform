@@ -11,7 +11,8 @@ import (
 func UnaryMetaInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			_ = md // TODO: 驗證/記錄 md 欄位
+			// 未來可擴展：驗證或記錄 metadata 欄位
+			_ = md
 		}
 		return handler(ctx, req)
 	}

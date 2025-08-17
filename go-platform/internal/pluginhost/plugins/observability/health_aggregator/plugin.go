@@ -322,3 +322,22 @@ func (p *Plugin) buildResponse(response *HealthQueryResponse) (*pb.InvokeRespons
 		Result: result,
 	}, nil
 }
+
+// HealthCheck 實作 HealthAwareHandler 介面 - 健康檢查
+func (p *Plugin) HealthCheck() error {
+	// 檢查 provider 是否可用
+	if p.provider == nil {
+		return fmt.Errorf("metrics provider 未初始化")
+	}
+
+	// 檢查快取大小是否過大
+	p.mu.RLock()
+	cacheSize := len(p.metricsCache)
+	p.mu.RUnlock()
+
+	if cacheSize > 1000 {
+		return fmt.Errorf("快取過大: %d entries", cacheSize)
+	}
+
+	return nil
+}

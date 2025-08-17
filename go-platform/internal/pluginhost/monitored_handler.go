@@ -62,7 +62,7 @@ func (mh *MonitoredHandler) Invoke(ctx context.Context, req *v1.InvokeRequest) (
 	// 計算增量（相對於基線）
 	goroutineDelta := int32(currentGoroutines - mh.goroutineBase)
 	memoryDelta := int64(memStats.Alloc - mh.memoryBase)
-	activeConns := int32(0) // TODO: 如果插件支援連接計數，可以添加
+	activeConns := int32(0) // 如果插件支援連接計數，可以在此添加實作
 
 	// 更新資源監控
 	mh.monitor.UpdateResourceUsage(mh.pluginID, memoryDelta, goroutineDelta, activeConns)
