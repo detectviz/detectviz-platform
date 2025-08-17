@@ -152,6 +152,29 @@ Python 端呼叫方式（示意）：
   - 位置：`internal/pluginhost/plugins/<category>/<name>/module.card.json`
   - 驗證：`cd contracts && make validate-cards`
 
+### 可靠性與負載保護 (Reliability and Load Protection)
+
+Plugin Host 內建多種機制以確保系統穩定性與資源隔離：
+
+- **Prometheus 指標提供者熔斷 (Circuit Breaker)**：
+  - **目的**：當後端 Prometheus 服務不穩定或超載時，自動「熔斷」，暫停發送查詢，避免連鎖故障。
+  - **機制**：採用狀態機（關閉 `Closed` → 開啟 `Open` → 半開 `Half-Open`）管理。
+    - `Closed`：正常狀態，允許查詢。
+    - `Open`：連續查詢失敗達到閾值後進入此狀態，所有查詢會立即失敗，直到恢復超時。
+    - `Half-Open`：超時後進入，允許少量測試查詢。若成功則轉換回 `Closed`，若失敗則再次進入 `Open`。
+  - **設定 (`config.yaml`)**：
+    ```yaml
+    metrics_provider:
+      prometheus:
+        circuit_breaker:
+          enabled: true           # 是否啟用
+          failure_threshold: 5    # 連續失敗幾次後開啟熔斷
+          recovery_timeout: 30s   # 開啟後多久嘗試恢復 (進入半開狀態)
+    ```
+
+- **並發控制 (Concurrency Limiter)**：限制對 Prometheus 的同時查詢數量，防止其過載。
+- **查詢快取 (Query Caching)**：快取重複的指標查詢結果，降低延遲並減少後端負載。
+
 ---
 
 ## 插件開發
