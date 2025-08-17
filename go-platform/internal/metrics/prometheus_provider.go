@@ -16,6 +16,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// CircuitBreakerConfig 電路斷路器配置
+type CircuitBreakerConfig struct {
+	Enabled          bool          `yaml:"enabled" json:"enabled"`
+	FailureThreshold int64         `yaml:"failure_threshold" json:"failure_threshold"`
+	RecoveryTimeout  time.Duration `yaml:"recovery_timeout" json:"recovery_timeout"`
+}
+
 // PrometheusConfig Prometheus Provider 配置
 type PrometheusConfig struct {
 	// Prometheus 服務器地址
@@ -54,12 +61,40 @@ type PrometheusConfig struct {
 	Concurrency struct {
 		MaxConcurrent int `yaml:"max_concurrent" json:"max_concurrent"`
 	} `yaml:"concurrency" json:"concurrency"`
+
+	// 電路斷路器配置
+	CircuitBreaker CircuitBreakerConfig `yaml:"circuit_breaker" json:"circuit_breaker"`
 }
 
 // CachedResult 快取的查詢結果
 type CachedResult struct {
 	Result    *QueryResult
 	Timestamp time.Time
+}
+
+// CircuitBreakerState 表示電路斷路器的狀態
+type CircuitBreakerState int
+
+const (
+	// StateClosed 關閉狀態，請求正常通過
+	StateClosed CircuitBreakerState = iota
+	// StateOpen 開啟狀態，請求被阻斷
+	StateOpen
+	// StateHalfOpen 半開狀態，嘗試性地允許部分請求通過
+	StateHalfOpen
+)
+
+func (s CircuitBreakerState) String() string {
+	switch s {
+	case StateClosed:
+		return "closed"
+	case StateOpen:
+		return "open"
+	case StateHalfOpen:
+		return "half-open"
+	default:
+		return "unknown"
+	}
 }
 
 // PrometheusProvider Prometheus 指標提供者
@@ -74,6 +109,12 @@ type PrometheusProvider struct {
 
 	// 並發控制
 	concurrencyLimiter chan struct{}
+
+	// 電路斷路器
+	cbState       CircuitBreakerState
+	cbFailures    int64
+	cbLastFailure time.Time
+	cbMu          sync.Mutex
 }
 
 // NewPrometheusProvider 創建 Prometheus Provider
@@ -101,6 +142,16 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 	}
 	if config.Concurrency.MaxConcurrent == 0 {
 		config.Concurrency.MaxConcurrent = 10
+	}
+
+	// 設置電路斷路器默認值
+	if config.CircuitBreaker.Enabled {
+		if config.CircuitBreaker.FailureThreshold == 0 {
+			config.CircuitBreaker.FailureThreshold = 5
+		}
+		if config.CircuitBreaker.RecoveryTimeout == 0 {
+			config.CircuitBreaker.RecoveryTimeout = 30 * time.Second
+		}
 	}
 
 	// 創建 HTTP 客戶端
@@ -147,6 +198,7 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 		logger:             logger,
 		cache:              make(map[string]*CachedResult),
 		concurrencyLimiter: make(chan struct{}, config.Concurrency.MaxConcurrent),
+		cbState:            StateClosed,
 	}
 
 	// 啟動快取清理 goroutine
@@ -157,8 +209,31 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 	return provider, nil
 }
 
-// Query 執行單一指標查詢
+// Query 執行單一指標查詢，包含電路斷路器邏輯
 func (p *PrometheusProvider) Query(ctx context.Context, query MetricQuery) (*QueryResult, error) {
+	if !p.config.CircuitBreaker.Enabled {
+		return p.executeQuery(ctx, query)
+	}
+
+	// 檢查電路斷路器狀態
+	err := p.checkCircuitBreaker()
+	if err != nil {
+		return nil, err
+	}
+
+	// 執行查詢並更新斷路器狀態
+	result, err := p.executeQuery(ctx, query)
+	if err != nil {
+		p.handleFailure(err)
+		return nil, err
+	}
+
+	p.handleSuccess()
+	return result, nil
+}
+
+// executeQuery 執行實際的查詢邏輯
+func (p *PrometheusProvider) executeQuery(ctx context.Context, query MetricQuery) (*QueryResult, error) {
 	// 檢查快取
 	if p.config.Cache.Enabled {
 		if cached := p.getCachedResult(query); cached != nil {
@@ -210,6 +285,79 @@ func (p *PrometheusProvider) Query(ctx context.Context, query MetricQuery) (*Que
 	}
 
 	return queryResult, nil
+}
+
+// checkCircuitBreaker 檢查電路斷路器狀態
+func (p *PrometheusProvider) checkCircuitBreaker() error {
+	p.cbMu.Lock()
+	defer p.cbMu.Unlock()
+
+	switch p.cbState {
+	case StateOpen:
+		// 如果在開啟狀態，檢查是否可以轉換到半開狀態
+		if time.Since(p.cbLastFailure) > p.config.CircuitBreaker.RecoveryTimeout {
+			p.logger.Info("recovery timeout elapsed, transitioning to half-open state",
+				zap.Duration("recoveryTimeout", p.config.CircuitBreaker.RecoveryTimeout))
+			p.cbState = StateHalfOpen
+			p.cbFailures = 0 // 重置失敗計數器以進行半開測試
+			return nil
+		}
+		// 否則，保持開啟並返回錯誤
+		return fmt.Errorf("circuit breaker is open for metric provider")
+	case StateHalfOpen:
+		// 在半開狀態下，只允許一個請求通過
+		p.logger.Debug("circuit breaker is half-open, allowing one request")
+		return nil
+	case StateClosed:
+		// 關閉狀態，允許請求
+		return nil
+	}
+	return nil
+}
+
+// handleFailure 處理失敗的請求
+func (p *PrometheusProvider) handleFailure(err error) {
+	p.cbMu.Lock()
+	defer p.cbMu.Unlock()
+
+	// 忽略 context canceled 錯誤
+	if err == context.Canceled || err == context.DeadlineExceeded {
+		return
+	}
+
+	switch p.cbState {
+	case StateClosed:
+		p.cbFailures++
+		if p.cbFailures >= p.config.CircuitBreaker.FailureThreshold {
+			p.logger.Error("failure threshold reached, opening circuit breaker",
+				zap.Int64("failures", p.cbFailures),
+				zap.Int64("threshold", p.config.CircuitBreaker.FailureThreshold))
+			p.cbState = StateOpen
+			p.cbLastFailure = time.Now()
+		}
+	case StateHalfOpen:
+		p.logger.Warn("request failed in half-open state, re-opening circuit breaker")
+		p.cbState = StateOpen
+		p.cbLastFailure = time.Now()
+	}
+}
+
+// handleSuccess 處理成功的請求
+func (p *PrometheusProvider) handleSuccess() {
+	p.cbMu.Lock()
+	defer p.cbMu.Unlock()
+
+	switch p.cbState {
+	case StateHalfOpen:
+		p.logger.Info("request succeeded in half-open state, closing circuit breaker")
+		p.cbState = StateClosed
+		p.cbFailures = 0
+	case StateClosed:
+		// 如果之前有失敗，重置計數器
+		if p.cbFailures > 0 {
+			p.cbFailures = 0
+		}
+	}
 }
 
 // BatchQuery 並行執行多個查詢
