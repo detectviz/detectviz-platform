@@ -76,7 +76,7 @@
 
 ## 目錄導覽
 - `contracts/`：SSOT 契約與樣本
-  - `proto/`：gRPC 介面（`adk_bridge.proto`）
+  - `proto/`：gRPC 介面
   - `schemas/`：`config.schema.json`、`module.card.schema.json`、`plugin.schema.json`
   - `samples/`：組態樣本（建議複製到專案根 `./config.yaml`）
   - `tools/`：合規檢查與卡片驗證
@@ -89,7 +89,7 @@
   - `internal/pluginhost/`：Registry、插件目錄、資源監控、安全邊界
   - `internal/observability/`：zap 與 OpenTelemetry 初始化（含 `pprof`）
   - `internal/health/`：`/livez`、`/readyz` 健康服務
-  - `internal/pluginnew/`：插件腳手架生成工具
+  - `internal/tools/`：插件腳手架生成工具
 - `python-adk-runtime/`：ADK Runtime 與 RemoteTool
   - `src/detectviz_adk/`：runtime/memory/tools/capabilities（含 `remote_tool.py`）
   - `templates/`：Agent、Tool、Capability 樣板
