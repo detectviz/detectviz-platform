@@ -37,8 +37,9 @@ go.work.sum
 var/
 grafana-alloy/alloy
 data-alloy/
-reference/
+references/
 .claude/
+.kiro/
 *note.md
 detectviz
 
