@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package detectviz.contracts.v1;
 option go_package = "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;v1";
+option java_multiple_files = true;
+option java_package = "io.detectviz.contracts.v1";
+option java_outer_classname = "AdkBridgeProto";
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";

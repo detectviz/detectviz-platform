@@ -1,14 +1,3 @@
-.PHONY: gen lint breaking
-
-gen:
-	buf generate
-
-lint:
-	buf lint
-
-breaking:
-	buf breaking --against '.git#branch=main'
-
 # Version control and consistency settings
 BUF_VERSION := v1.47.2
 PROTOC_GEN_GO_VERSION := v1.34.2
@@ -57,6 +46,19 @@ lint: check-versions
 breaking: check-versions
 	buf breaking --against '.git#branch=main'
 
+## Generate a new module card with validation
+generate-module-card:
+	@echo "Generating new module card..."
+	@if [ -z "$(NAME)" ] || [ -z "$(ROLE)" ] || [ -z "$(CATEGORY)" ] || [ -z "$(DESC)" ]; then \
+		echo "Usage: make generate-module-card NAME=<name> ROLE=<role> CATEGORY=<category> DESC='<description>' [OUTPUT=<path>]"; \
+		echo "Valid roles: agent.coordinator, agent.tool_exec, tool, capability, plugin.gateway, memory.backend, security.module, observability.module, storage.module"; \
+		echo "Valid categories: collector.input, transform.processor, aggregate.aggregator, sink.output, gateway, llm, retriever, workflow, a2a, capability, memory.backend, security.authn, security.authz, observability.exporter, observability.processor, storage.blob, storage.kv, storage.vector"; \
+		exit 1; \
+	fi
+	@OUTPUT_PATH=$${OUTPUT:-$(NAME)_module.card.json}; \
+	python3 tools/generate_module_card.py "$(NAME)" "$(ROLE)" "$(CATEGORY)" "$(DESC)" "$$OUTPUT_PATH"; \
+	python3 tools/validate_module_card.py "$$OUTPUT_PATH"
+
 ## Validate all module.card.json across the repo using contracts/tools/validate_module_card.py
 validate-cards:
 	@echo "Validating Module Cards..."
@@ -67,9 +69,18 @@ validate-cards:
 	else \
 	  for f in $$FILES; do \
 	    echo " - $$f"; \
-	    python3 tools/validate_module_card.py "$$f"; \
+	    python3 tools/validate_module_card.py "$$f" || exit 1; \
 	  done; \
 	fi
+
+## Fix common module card issues automatically
+fix-module-cards:
+	@echo "Fixing common module card issues..."
+	@FILES=$$(find .. -type f -name 'module.card.json'); \
+	for f in $$FILES; do \
+		echo "Checking $$f..."; \
+		python3 tools/fix_module_card.py "$$f"; \
+	done
 
 ## Full validation: proto lint + module cards
 validate: lint validate-cards
@@ -78,18 +89,38 @@ validate: lint validate-cards
 validate-with-versions: check-versions validate
 	@echo "✓ All validations passed with version verification"
 
+## Health check for proto files
+health-check-proto:
+	@echo "Checking proto files health..."
+	@find proto -name "*.proto" -exec python3 tools/proto_health_check.py {} \; | grep -E "(❌|✅)" || true
+
+## Auto-fix common proto issues
+fix-proto:
+	@echo "Auto-fixing proto issues..."
+	@echo "⚠️  This is a future enhancement - currently only validates"
+	@$(MAKE) health-check-proto
+
+## Full proto maintenance workflow
+maintain-proto: health-check-proto lint
+	@echo "✅ Proto maintenance completed"
+
 help:
 	@echo "Detectviz Contracts Build System"
 	@echo "Version Management & Code Generation Targets:"
 	@echo ""
-	@echo "  install-tools    Install required tools with pinned versions"
-	@echo "  check-versions   Verify tool versions for consistency"
-	@echo "  gen              Generate stubs via buf (with version verification)"
-	@echo "  lint             Lint proto via buf"
-	@echo "  breaking         Check API breaking changes against main"
-	@echo "  validate-cards   Validate all module.card.json across repo"
-	@echo "  validate         Run lint + validate-cards"
-	@echo "  validate-with-versions  Full validation with version checks"
+	@echo "  install-tools       Install required tools with pinned versions"
+	@echo "  check-versions      Verify tool versions for consistency"
+	@echo "  gen                 Generate stubs via buf (with version verification)"
+	@echo "  lint                Lint proto via buf"
+	@echo "  breaking            Check API breaking changes against main"
+	@echo "  validate-cards      Validate all module.card.json across repo"
+	@echo "  generate-module-card Generate new module card with validation"
+	@echo "  fix-module-cards    Fix common module card issues automatically"
+	@echo "  health-check-proto  Check proto files for common issues"
+	@echo "  fix-proto           Auto-fix common proto issues"
+	@echo "  maintain-proto      Full proto maintenance workflow"
+	@echo "  validate            Run lint + validate-cards"
+	@echo "  validate-with-versions Full validation with version checks"
 	@echo ""
 	@echo "Pinned Versions:"
 	@echo "  buf: $(BUF_VERSION)"

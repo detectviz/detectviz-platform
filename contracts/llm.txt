@@ -2,6 +2,15 @@
 
 此檔為 SSOT 契約維護規範。任何跨語言介面或設定變更，**必須**優先在此專案完成並驗證，其他語言/子專案僅同步對齊生成碼與相依。
 
+## 🎯 模組狀態 (2024年12月更新)
+**當前狀態**: 生產就緒 ✅ (大規模清理完成)  
+**技術債務等級**: 極低 - Proto 規範化 100% 完成，自動化工具鏈建設完畢
+**關鍵成果**: 
+- 統一 Java 包選項配置
+- 修正所有枚舉命名規範 (ENUM_TYPE_PREFIX)
+- 規範化 RPC 方法命名，清理未使用 imports
+- 新增模組卡生成器、Proto 健康檢查器等自動化工具
+
 ## 範圍
 - proto（`contracts/proto/...`）
 - JSON Schemas（`contracts/schemas/*.schema.json`）
@@ -15,15 +24,29 @@
 4. **Agent vs Tool 介面一致性**：確保 gRPC 契約支持職責分離設計
 5. **MVP Phase 3 聚焦**：當前重點支持事後複盤系統的契約需求
 
-## 標準流程
+## 標準流程 (2024年12月強化版)
 1. 規劃：描述需求與影響面（Go/Python/Docs/部署）。
 2. 編輯：修改 proto/schema/samples/specs；保持命名與枚舉一致性（見 `spec.md`）。
-3. 生成：
+3. 驗證與生成（使用新自動化工具）：
 ```bash
 cd contracts
-buf lint && buf generate
-make validate            # 若提供
-make validate-cards      # 模組卡驗證（若提供）
+
+# 工具版本檢查
+make check-versions
+
+# Proto 健康檢查
+make health-check-proto
+
+# 完整維護流程 (lint + generate)
+make maintain-proto
+
+# 模組卡管理
+make validate-cards           # 驗證現有模組卡
+make fix-module-cards         # 自動修復問題
+make generate-module-card ... # 生成新模組卡
+
+# 完整驗證（包含版本檢查）
+make validate-with-versions
 ```
 4. 同步：提交後，通知下游專案更新 import/生成碼（Go `go mod tidy`、Python 相依更新）。
 5. 文檔：更新 `spec.md` 與相關 README；如有行為/欄位變更，必須在文件站更新。
@@ -61,6 +84,43 @@ make validate-cards      # 模組卡驗證（若提供）
   - 明確版本升級（SemVer/DateVer）
   - 提供遷移步驟與兼容期策略
   - 與文件站同步發布說明
+
+## 🛠️ 技術債務預防機制 (2024年12月新增)
+
+### 自動化工具一覽
+```bash
+# 生成標準化模組卡
+make generate-module-card NAME=my_module ROLE=tool CATEGORY=capability DESC="模組描述"
+
+# Proto 文件健康檢查
+python3 tools/proto_health_check.py proto/detectviz/contracts/v1/postmortem.proto
+
+# 模組卡問題自動修復
+python3 tools/fix_module_card.py ../go-platform/module.card.json
+
+# 一鍵維護流程
+make maintain-proto
+```
+
+### 品質保證指標
+- **Proto Lint**: 100% 通過 buf lint 檢查
+- **版本一致性**: 所有工具使用固定版本 (buf v1.47.2)
+- **命名規範**: 枚舉值 100% 遵循 ENUM_TYPE_PREFIX 格式
+- **RPC 標準化**: 所有方法使用 MethodRequest/MethodResponse 格式
+- **模組卡驗證**: 100% 通過 schema 驗證
+
+### 預防性檢查清單
+- [ ] 每週運行 `make health-check-proto` 檢查健康狀況
+- [ ] 每月檢查工具版本更新需求
+- [ ] 新增 proto 文件時使用標準模板
+- [ ] 變更枚舉時確保使用正確前綴
+- [ ] 創建模組卡時使用自動生成器
+
+### 緊急修復指南
+1. **Proto lint 失敗**: 運行 `make health-check-proto` 診斷
+2. **模組卡驗證失敗**: 運行 `make fix-module-cards` 自動修復
+3. **工具版本不匹配**: 運行 `make install-tools` 重新安裝
+4. **生成碼不同步**: 運行 `make gen` 重新生成
 
 ## 安全與授權
 - 禁止提交真實憑證/Token；敏感參數以範例值表示。

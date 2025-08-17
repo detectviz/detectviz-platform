@@ -120,7 +120,7 @@ class RemoteTool(BaseTool):
         s = Struct()
         s.update(payload)
 
-        req = pb.ToolInvokeRequest(
+        req = pb.InvokeRequest(
             tool_id=self.tool_id,
             tool_version=self.tool_version,
             payload=s,
@@ -132,7 +132,7 @@ class RemoteTool(BaseTool):
         md = self._build_metadata(payload)
 
         try:
-            res: pb.ToolInvokeReply = await self._stub.Invoke(
+            res: pb.InvokeResponse = await self._stub.Invoke(
                 req,
                 metadata=md,  # type: ignore[arg-type]
                 timeout=self.timeout_ms / 1000.0,

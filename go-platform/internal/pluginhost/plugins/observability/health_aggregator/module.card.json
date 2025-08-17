@@ -1,147 +1,38 @@
 {
+  "specVersion": "1.1.0",
+  "kind": "plugin",
+  "id": "detectviz.health_aggregator",
   "name": "health_aggregator",
   "version": "1.0.0",
-  "type": "plugin",
-  "role": "plugin.observability",
-  "category": "observability",
+  "role": "observability.module",
+  "category": "observability.processor",
+  "responsibility": "Aggregates health metrics from various sources using configurable providers",
   "description": "Aggregates health metrics from various sources using configurable providers",
   "capabilities": [
     "metrics_query",
     "batch_query",
     "aggregation",
-    "caching",
-    "prometheus_support",
-    "memory_provider"
+    "caching"
   ],
-  "configuration": {
-    "provider": {
-      "type": "string",
-      "enum": [
-        "prometheus",
-        "memory"
-      ],
-      "default": "prometheus",
-      "description": "Metrics provider type"
-    },
-    "query": {
-      "parallel_queries": {
-        "type": "integer",
-        "default": 10,
-        "min": 1,
-        "max": 50,
-        "description": "Maximum number of parallel queries"
-      },
-      "timeout": {
-        "type": "string",
-        "default": "30s",
-        "description": "Query timeout duration"
-      },
-      "default_step": {
-        "type": "string",
-        "default": "1m",
-        "description": "Default step for range queries"
-      }
-    },
-    "cache": {
-      "enabled": {
-        "type": "boolean",
-        "default": true,
-        "description": "Enable query result caching"
-      },
-      "duration": {
-        "type": "string",
-        "default": "5m",
-        "description": "Cache duration"
-      }
-    },
-    "metrics": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Metric name"
-          },
-          "query": {
-            "type": "string",
-            "description": "PromQL query"
-          },
-          "labels": {
-            "type": "object",
-            "description": "Default labels"
-          },
-          "aggregation": {
-            "type": "string",
-            "enum": [
-              "avg",
-              "max",
-              "min",
-              "sum",
-              "count",
-              "p50",
-              "p95",
-              "p99"
-            ],
-            "description": "Default aggregation"
-          }
-        }
-      }
-    }
-  },
-  "dependencies": [
-    "metrics.provider"
-  ],
-  "permissions": [
-    "net"
-  ],
+  "dependencies": [],
+  "permissions": ["net"],
   "resources": {
     "cpu": "100m",
-    "memory": "128Mi",
-    "max_concurrent_queries": 50
+    "memory": "128Mi"
   },
   "observability": {
+    "metrics": [
+      "plugin_runs_total",
+      "plugin_duration_seconds_bucket",
+      "health_aggregator_queries_total",
+      "health_aggregator_query_duration_seconds"
+    ],
     "spans": [
       "health_aggregator.query",
-      "health_aggregator.batch_query",
-      "health_aggregator.cache_hit"
-    ],
-    "metrics": [
-      "health_aggregator_queries_total",
-      "health_aggregator_query_duration_seconds",
-      "health_aggregator_cache_hits_total",
-      "health_aggregator_cache_misses_total"
+      "health_aggregator.batch_query"
     ],
     "logs_required": true
   },
   "author": "Detectviz Platform Team",
-  "license": "MIT",
-  "documentation": "https://github.com/detectviz/platform/docs/plugins/health_aggregator",
-  "examples": [
-    {
-      "name": "Basic CPU query",
-      "request": {
-        "service_name": "api-gateway",
-        "time_range": "1h",
-        "metrics": [
-          "cpu_usage"
-        ]
-      }
-    },
-    {
-      "name": "Multi-metric query",
-      "request": {
-        "service_name": "database",
-        "time_range": "24h",
-        "metrics": [
-          "cpu_usage",
-          "memory_usage",
-          "disk_usage"
-        ],
-        "filters": {
-          "environment": "production"
-        }
-      }
-    }
-  ]
+  "license": "MIT"
 }

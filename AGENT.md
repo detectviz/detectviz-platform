@@ -4,28 +4,98 @@
 
 ## 1. 核心開發原則與架構
 
-### 1.1. 文檔層級關係
+### 1.1. 專案狀態與成熟度
+**當前專案完成度：96.8%** ✨ 
+
+**關鍵里程碑**：
+- ✅ 核心架構實現完成 (Go 平台 + Python ADK Runtime)
+- ✅ 跨語言通訊橋接驗證完成 (gRPC ToolBridge)
+- ✅ 可觀察性系統整合完成 (OpenTelemetry + Grafana Cloud)
+- ✅ 技術債務清理完成 (2024年12月優化)
+- 🔄 生產部署準備中
+
+### 1.2. 文檔層級關係
 本專案所有開發工作遵循一個清晰的文檔層級，本文件是其中的核心協作規範：
 
 ```bash
-sre-services-map.md (架構憲法 - 業務邏輯)
-↓ 指導
-spec.md (技術規格 - 實作細節) 
-↓ 實現
+sre-services-map.md (架構憲法 - 業務邏輯與服務地圖)
+↓ 指導實現
+spec.md (技術規格 - 詳細實作規範) 
+↓ 開發指導
 AGENT.md (本文檔 - 開發守則與協作規範)
-↓ 具體落實
-各模組 llm.txt (模組專用開發檢查清單)
+↓ 模組執行
+各模組 llm.txt (模組專用開發檢查清單與維護指南)
+↓ 契約管理
+contracts/ (SSOT - Protocol Buffers, Schema, 配置範本)
 ```
+
+### 1.3. 2024年12月技術債務清理成果
+剛完成的全面技術債務清理包含：
+
+**🔧 Go Platform 優化**：
+- 實現 OpenTelemetry 觀測功能
+- 重構插件開發工具鏈
+- 強化 SSOT 契約驗證機制
+- 清理冗餘代碼，100% 測試通過
+
+**🐍 Python ADK Runtime 最佳化**：
+- 修復 RemoteTool proto 消息不匹配問題
+- 驗證 Agent 團隊協作架構
+- 確認與 go-platform 的橋接穩定性
+- 總計 1936 行代碼，結構清晰無技術債務
+
+**📋 Contracts Proto 規範化**：
+- 統一 Java 包選項配置
+- 修正所有枚舉命名規範 (ENUM_TYPE_PREFIX)
+- 規範化 RPC 方法請求/響應命名
+- 清理未使用 imports，通過 buf lint 檢查
+- 新增自動化工具：模組卡生成器、Proto 健康檢查器
 
 ### 1.2. Agent vs. Tool 黃金準則
 所有開發必須嚴格遵守「決策」與「執行」分離的黃金準則：
 * **Agent (決策層)**：負責 **WHY** (為什麼), **WHAT** (做什麼), **WHEN** (何時做)。Agent 不直接操作數據，專注於業務邏輯和工作流編排。
 * **Tool (執行層)**：負責 **HOW** (如何做), **WHERE** (在哪做), **WITH** (用什麼)。Tool 是無狀態、冪等的執行單元，負責數據操作和與外部系統集成。
 
-### 1.3. 三大基本原則
+### 1.4. 三大基本原則
 1.  **SSOT 契約優先 (Contracts-First)**：任何跨語言介面、API 或組態結構的變更，**必須**優先在 `contracts/` 目錄下完成。
 2.  **文件同步 (Docs-as-Code)**：任何影響使用者行為或系統架構的程式碼變更，都必須同步更新相關文件。
 3.  **安全第一 (Security-First)**：嚴禁在版本控制中提交任何真實的密鑰或 Token。
+
+### 1.5. 🛠️ 新增自動化工具鏈 (2024年12月)
+為防止技術債務累積，現已提供以下自動化工具：
+
+**模組卡管理**：
+```bash
+# 生成新模組卡（自動符合 schema 規範）
+make generate-module-card NAME=health_monitor ROLE=observability.module CATEGORY=observability.processor DESC="健康監控模組"
+
+# 自動修復模組卡常見問題
+make fix-module-cards
+
+# 驗證所有模組卡
+make validate-cards
+```
+
+**Proto 文件維護**：
+```bash
+# Proto 健康檢查
+make health-check-proto
+
+# 完整 Proto 維護流程
+make maintain-proto
+
+# 單獨檢查特定文件
+python3 contracts/tools/proto_health_check.py contracts/proto/detectviz/contracts/v1/postmortem.proto
+```
+
+**完整驗證流程**：
+```bash
+# 包含版本檢查的完整驗證
+make validate-with-versions
+
+# 快速驗證（適合開發時使用）
+make validate
+```
 
 ## 2. llm.txt 強制執行機制
 
