@@ -347,10 +347,10 @@ registry.register_tool("my_new_tool", MyNewTool())
 #### Go Plugin  
 ```bash
 # 1. 生成插件骨架
-detectviz plugin new capability.gateway/my_plugin
+detectviz plugin new gateway/my_plugin
 
 # 2. 實作插件邏輯
-# internal/pluginhost/plugins/capability.gateway/my_plugin/plugin.go
+# internal/pluginhost/plugins/gateway/my_plugin/plugin.go
 
 # 3. 註冊插件
 # 在 registry.go 中註冊

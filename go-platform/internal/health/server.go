@@ -42,13 +42,13 @@ func NewServer(addr string) *Server {
 	mux.HandleFunc("/contracts", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		contractInfo := contracts.GetContractInfo()
-		
+
 		if contractInfo["status"] == "error" {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
 			w.WriteHeader(http.StatusOK)
 		}
-		
+
 		if err := json.NewEncoder(w).Encode(contractInfo); err != nil {
 			zap.L().Error("Failed to encode contract info", zap.Error(err))
 		}

@@ -6,8 +6,8 @@
 
 本規格作為技術實現指南，與其他架構文件形成層級關係：
 
-```
-docs/sre-services-map.md     ←  架構憲法（業務邏輯與決策）
+```bash
+sre-services-map.md     ←  架構憲法（業務邏輯與決策）
          ↓ 指導技術實現
     spec.md (本文件)         ←  技術規格（系統設計與實現）
          ↓ 指引 AI 協作
@@ -36,87 +36,121 @@ docs/sre-services-map.md     ←  架構憲法（業務邏輯與決策）
 
 * * *
 
-## 2. 目錄結構（統一倉庫）
+## 2. 目錄結構（統一倉庫）`detectviz-platform`
+
+### **SSOT 契約（Single Source of Truth）**
 
 ```bash
-detectviz-platform/                 # 統一平台倉庫
-├── contracts/                      # SSOT 契約
-│   ├── proto/detectviz/contracts/v1/
-│   │   ├── adk_bridge.proto        # ToolBridge / Health APIs
-│   │   └── postmortem.proto        # 🎯 MVP: 事後複盤服務定義
-│   ├── schemas/
-│   │   ├── config.schema.json      # 平台組態規範
-│   │   ├── module.card.schema.json # 模組卡規範
-│   │   ├── plugin.schema.json      # 插件規範  
-│   │   └── postmortem-request.schema.json  # 🎯 MVP: 事後複盤請求規範
-│   ├── gen/                        # 生成碼目錄
-│   │   ├── go/detectviz/contracts/v1/
-│   │   ├── python/detectviz/contracts/v1/
-│   │   └── metadata/version.json   # 版本元數據
-│   ├── samples/                    # 範例配置
-│   │   └── config.yaml             # 🎯 MVP: 包含事後複盤配置
-│   ├── specs/                      # 技術規格
-│   ├── tools/                      # 驗證工具
-│   ├── buf.yaml                    # buf 工作區
-│   ├── buf.gen.yaml               # 生成配置
-│   └── Makefile                   # 版本控制與生成
+contracts/                              
+├── proto/detectviz/contracts/v1/
+│   ├── adk_bridge.proto                # ToolBridge / Health APIs
+│   └── postmortem.proto                # MVP: 事後複盤服務定義
+├── schemas/
+│   ├── config.schema.json              # 平台組態規範
+│   ├── module.card.schema.json         # 模組卡規範
+│   ├── plugin.schema.json              # 插件規範  
+│   └── postmortem-request.schema.json  # MVP: 事後複盤請求規範
+├── gen/                                # 生成碼目錄
+│   ├── go/detectviz/contracts/v1/
+│   ├── python/detectviz/contracts/v1/
+│   └── metadata/version.json           # 版本元數據
+├── samples/                            # 範例配置
+│   ├── .env.template                   # 環境變數範例
+│   ├── config.yaml                     # MVP: 包含事後複盤配置
+│   ├── module.card.json                # 模組卡範例
+│   └── plugin.yaml                     # 插件範例
+├── specs/                              # 技術規格
+├── tools/                              # 驗證工具
+├── buf.yaml                            # buf 工作區
+├── buf.gen.yaml                        # 生成配置
+├── llm.txt                             # 模組專用開發檢查清單
+└── Makefile                            # 版本控制與生成
+```
+
+### **頂層文件結構**
+
+```bash
+.
+├── README.md                     # 頂層 README
+├── AGENT.md                      # AI 開發守則（協作規範）
+├── TODO.md                       # 實際開發工作
+├── sre-services-map.md           # 架構憲法：SRE 三階段設計
+└── spec.md                       # 技術規格（系統設計與實現）
+```
+
+### **docs** , **.github/workflows** , **grafana-alloy** 
+
+```bash
+├── assets/
+├── docs/                           # 文檔目錄
+│   ├── agent-development-guide.md
+│   ├── mvp-manual-testing-guide.md
+│   ├── quick-reference.md
+│   └── tool-development-guide.md
+├── .github/workflows/              # CI/CD 流程
+│   └── contracts-validation.yml    # 契約驗證與安全掃描
+└── grafana-alloy/                  # 可觀測性收集配置
+    └── config.alloy
+```
+
+### **go-platform**
+
+```bash
+go-platform/                           # Go 平台核心
+├── cmd/detectviz/main.go              # 主程式入口
+├── tools/scaffold.go                  # 開發工具
+└── internal/
+    ├── configx/                       # 配置管理
+    ├── contracts/                     # SSOT 契約驗證
+    ├── health/                        # 健康檢查
+    ├── metrics/                       # 統一指標抽象層
+    ├── observability/                 # 日誌與 OTel 初始化
+    └── pluginhost/                    # 插件託管
+        ├── bridge_server.go
+        ├── interceptors.go
+        ├── monitored_handler.go       # 監控包裝器
+        ├── observability.go
+        ├── registry.go                # 插件註冊（並發安全）
+        ├── resource_monitor.go        # 資源監控       
+        ├── runtime.go                 # 插件運行時
+        ├── security.go                # 安全邊界
+        ├── register/                  # 插件註冊
+        │   └── all.go                 # 註冊所有插件
+        └── plugins/                   # 插件實作目錄 ⭐
+            ├── gateway/
+            │   └── http_request/      # HTTP 呼叫器
+            └── observability/         # 可觀測性插件
+                └── health_aggregator/ # 健康數據聚合器
+```
+
+### *python-adk-runtime*
+
+```bash
+├── README.md
+├── llm.txt
+├── requirements.txt
+├── example_usage.py
+├── web_server.py
+├── test_adk_integration.py
+├── test_simple_adk.py
 │
-├── docs/                           # 📖 文檔目錄
-│   ├── sre-services-map.md         # 🎯 架構憲法：SRE 三階段設計
-│   └── mvp-implementation-spec.md  # 🎯 MVP: 8週實施計畫
-
-├── go-platform/                   # Go 平台核心
-│   ├── cmd/detectviz/main.go      # CLI 入口
-│   ├── internal/
-│   │   ├── configx/               # 配置載入與驗證
-│   │   ├── contracts/             # 契約版本檢查
-│   │   ├── health/                # 健康檢查服務
-│   │   ├── observability/         # 日誌與 OTel 初始化
-│   │   ├── pluginhost/           # 插件託管
-│   │   │   ├── plugins/          # 插件實作目錄
-│   │   │   │   ├── capability.gateway/http_request/
-│   │   │   │   │   ├── plugin.go
-│   │   │   │   │   ├── security.go      # 安全邊界
-│   │   │   │   │   └── secure_plugin.go # 安全增強版
-│   │   │   │   └── observability/      # 🎯 MVP: 可觀測性插件
-│   │   │   │       └── health_aggregator/ # 🎯 MVP: 健康數據聚合器
-│   │   │   │           ├── plugin.go
-│   │   │   │           ├── module.card.json
-│   │   │   │           └── README.md
-│   │   │   ├── registry.go           # 插件註冊（並發安全）
-│   │   │   ├── resource_monitor.go   # 資源監控
-│   │   │   └── monitored_handler.go  # 監控包裝器
-│   │   └── pluginnew/             # 腳手架生成
-│   └── go.mod
-
-├── python-adk-runtime/            # Python ADK Runtime
-│   ├── src/detectviz_adk/
-│   │   ├── config/                # 配置載入（與 Go 對齊）
-│   │   ├── agents/                # 🎯 MVP: Agent 實作
-│   │   │   └── postmortem/        # 🎯 MVP: 事後檢討 Agent 團隊
-│   │   │       ├── orchestrator.py      # Root Agent
-│   │   │       ├── data_collector.py    # Sub Agent
-│   │   │       ├── analyzer.py          # Sub Agent
-│   │   │       ├── report_writer.py     # Sub Agent
-│   │   │       ├── module.card.json
-│   │   │       └── tests/
-│   │   ├── tools/                 # 工具抽象層
-│   │   │   ├── remote_tool.py     # RemoteTool gRPC 客戶端
-│   │   │   ├── data/              # 🎯 MVP: 數據工具
-│   │   │   │   └── health_aggregator.py
-│   │   │   └── reporting/         # 🎯 MVP: 報告工具
-│   │   │       └── report_generator.py
-│   │   ├── memory/                # 記憶體管理
-│   │   │   └── stores/            # 🎯 MVP: 知識存儲
-│   │   │       └── response_history_store.py
-│   │   └── services/              # gRPC 服務實作
-│   ├── templates/                 # ADK 樣板
-│   └── requirements.txt
-
-├── .github/workflows/             # CI/CD 流程
-│   └── contracts-validation.yml   # 契約驗證與安全掃描
-├── grafana-alloy/config.alloy     # 可觀測性收集配置
-└── config.yaml                    # 預設平台配置
+└── src/detectviz_adk/
+    ├── config/                      # 配置載入（與 Go 對齊）
+    │   └── loader.py
+    ├── memory/                      # 記憶體管理
+    │   └── stores/                  # 知識存儲
+    │       └── response_history_store.py
+    ├── agents/                      # MVP: Agent 實作
+    │   └── postmortem/              # MVP: 事後檢討 Agent 團隊
+    │       ├── orchestrator.py      # Root Agent
+    │       ├── data_collector.py    # Sub Agent
+    │       ├── analyzer.py          # Sub Agent
+    │       └── report_writer.py     # Sub Agent
+    └── tools/                       # 工具抽象層
+        ├── __init__.py 
+        ├── adk_tools.py
+        ├── memory_tools.py
+        └── remote_tool.py
 ```
 
 * * *
@@ -317,7 +351,7 @@ CLI 參數說明：
 
 - 目錄：`internal/pluginhost/plugins/<category>/<name>/plugin.go`。
 - 介面：`Invoke(ctx, *pb.ToolInvokeRequest) (*pb.ToolInvokeReply, error)`；支援同步回傳。
-- 最小範例：`capability.gateway/http_request`（HTTP 呼叫器，具備完整安全邊界）。
+- 最小範例：`gateway/http_request`（HTTP 呼叫器，具備完整安全邊界）。
 - 插件生命週期：`Invoke -> Close`（可選）；支援 ResourceAwareHandler 進行資源監控。
 - 安全機制：內建 allowlist/denylist、payload 大小限制、超時控制等安全檢查。
 

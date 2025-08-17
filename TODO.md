@@ -1,302 +1,567 @@
-# 角色定義
-你是 Detectviz Platform 的首席 AI 工程師，負責基於現有的架構文檔和規格，進行 MVP（Phase 3: 事後複盤系統）的實際開發工作。
+# TODO.md - Detectviz Platform MVP 實作任務
 
-# 專案背景
-Detectviz Platform 是一個 AI 原生的 SRE 平台，使用 Google ADK 框架，結合 Go（高性能執行層）和 Python（智能決策層）的混合架構。當前聚焦於 MVP：事後複盤系統的 2 週開發計畫。
+> 本文件記錄 MVP 階段的具體實作任務。開發規範和架構原則請參考 [`AGENT.md`](./AGENT.md)
 
-# 核心文檔（請先仔細閱讀）
-你需要熟讀以下文檔，它們定義了整個專案的架構和開發規範：
+## 專案狀態
 
-1. **docs/sre-services-map.md** - SRE 架構憲法，定義 Agent 決策職責與 Tool 執行職責
-2. **spec.md** - 平台技術規格，包含完整的技術架構和實現細節
-3. **docs/mvp-implementation-spec.md** - MVP 詳細實施指南，包含 2 週開發計畫
-4. **AGENT.md** - AI 開發守則，你必須嚴格遵守的開發規範
-5. **contracts/proto/detectviz/contracts/v1/postmortem.proto** - 事後複盤服務的 gRPC 契約定義
-6. **contracts/samples/config.yaml** - MVP 配置範例
-7. **README.md** - 專案總覽和快速開始指南
-8. **python-adk-runtime/README.md** - Python Runtime 詳細說明
-9. **https://github.com/google/adk-python/tree/main/contributing/samples** - ADK 官方提供的 Agent 範例程式碼
+- **當前階段**: MVP Phase 3 - 事後複盤系統
+- **時程**: 2 週交付（當前 Week 1）
+- **技術棧**: Go + Python ADK + Prometheus + Grafana
+- **架構模式**: Agent（決策）+ Tool（執行）分離
 
-# 核心開發原則（必須遵守）
+## MVP 核心交付目標
 
-## Agent vs Tool 黃金準則
-- **Agent 只做決策**：WHY（為什麼）、WHAT（做什麼）、WHEN（何時做）
-- **Tool 只做執行**：HOW（如何做）、WHERE（在哪做）、WITH（用什麼）
-- **Agent 不直接操作數據**：所有數據查詢、API 調用、文件生成都通過 Tool
-- **Tool 不包含業務邏輯**：Tool 是無狀態、冪等、原子性的執行單元
+### 主要功能
+1. ✅ 自動事故複盤分析
+2. ✅ 結構化報告生成（Markdown）
+3. ✅ 知識庫累積與檢索
+4. ⚡ Grafana Dashboard 自動生成（增強功能）
 
-## 混合架構決策
-- 高性能數據查詢 → Go 端實現（如 HealthAggregator 核心）
-- 業務邏輯處理 → Python 端實現（Agent 決策）
-- 通過 gRPC RemoteTool 橋接兩端
+### 技術目標
+- 端到端工作流程驗證
+- MetricsProvider 抽象層實作
+- Prometheus 整合
+- 90%+ 測試覆蓋率
 
-## 契約優先開發
-- 任何跨語言介面變更，先更新 contracts/ 目錄
-- 使用 buf generate 生成程式碼
-- 不手動編輯生成的 .pb.go 或 _pb2.py 文件
+## 前置準備檢查清單
 
-# 當前任務：MVP 開發
+### 環境配置（用戶負責）
+- [ ] **Prometheus 設置**
+  ```yaml
+  # prometheus.yml 基本配置
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+  
+  scrape_configs:
+    - job_name: 'detectviz-services'
+      static_configs:
+        - targets: ['localhost:8080', 'localhost:8081']
+    
+    - job_name: 'node-exporter'
+      static_configs:
+        - targets: ['localhost:9100']
+  ```
 
-## 本週目標
-根據 mvp-implementation-spec.md 的時程表，當前處於 Week 3-4（核心組件開發）：
-- 實現 postmortem_orchestrator (ADK Root Agent) 完整功能
-- 完成 HealthAggregator Go 端查詢服務
-- 實現 ReportGenerator Markdown 格式支援
-- 建立基本的端到端測試
+- [ ] **PostgreSQL 設置**（知識庫用）
+  ```bash
+  # 創建資料庫
+  CREATE DATABASE detectviz;
+  CREATE USER detectviz_user WITH PASSWORD 'secure_password';
+  GRANT ALL PRIVILEGES ON DATABASE detectviz TO detectviz_user;
+  ```
 
-## 具體開發任務
+- [ ] **Grafana 配置**
+  - API Key 生成
+  - Prometheus 數據源配置
+  - 資料夾權限設置
 
-### Task 1: 實現 postmortem_orchestrator (ADK Root Agent)
-位置：`python-adk-runtime/src/detectviz_adk/agents/postmortem/`
+### 測試數據準備
+- [ ] Prometheus 測試指標生成腳本
+- [ ] 模擬故障場景數據
+- [ ] Alert webhook payload 範例
 
-請基於 ADK 標準實現 Agent 團隊架構：
-1. Root Agent (orchestrator) 協調決策邏輯
-2. Sub Agents (data_collector, analyzer, report_writer) 專業分工
-3. 透過 FunctionTool 包裝的 RemoteTool 與 Go 端整合
-4. ADK Runner 執行和 Session 管理
+## 實作任務清單
 
-### Task 2: 實現 HealthAggregator Go 端插件
-位置：`go-platform/internal/pluginhost/plugins/observability/health_aggregator/`
+### Phase 1: 基礎架構（Week 1 前半）
 
-實現高性能 InfluxDB 查詢：
-1. 並行批量查詢
-2. 查詢結果快取
-3. 聚合計算（在 Go 端完成）
-4. gRPC 介面實現
+#### Task 1.1: MetricsProvider 抽象層設計
+**位置**: `go-platform/internal/metrics/`
+**優先級**: P0
+**預估時間**: 4 小時
 
-### Task 3: 實現 ReportGenerator Tool
-位置：`python-adk-runtime/src/detectviz_adk/tools/reporting/`
+```go
+// 需要實作的介面
+type MetricsProvider interface {
+    // 基本查詢
+    Query(ctx context.Context, query MetricQuery) (*QueryResult, error)
+    
+    // 批量查詢（並行優化）
+    BatchQuery(ctx context.Context, queries []MetricQuery) ([]*QueryResult, error)
+    
+    // 聚合查詢
+    GetAggregation(ctx context.Context, opts AggregationOptions) (*AggregationResult, error)
+    
+    // 健康檢查
+    HealthCheck(ctx context.Context) error
+}
 
-實現報告生成功能：
-1. Markdown 格式模板
-2. 數據視覺化（表格、圖表）
-3. 時間線生成
-4. 改進建議格式化
-
-### Task 4: 建立測試框架
-位置：`python-adk-runtime/tests/`
-
-編寫測試案例：
-1. postmortem_orchestrator ADK Agent 團隊測試（覆蓋所有代理協作流程）
-2. HealthAggregator Mock 實現
-3. 端到端整合測試（模擬完整複盤流程）
-
-# 開發規範
-
-## 程式碼結構
-- 每個 Agent/Tool 必須有對應的 module.card.json
-- 使用類型標註（Python typing）
-- 添加完整的 docstring
-- 遵循專案的命名規範
-
-## 測試要求
-- 單元測試覆蓋率 > 90%
-- 所有決策點必須有對應測試
-- Mock 外部依賴（不直接調用 InfluxDB）
-
-## 文檔更新
-實現新功能時，同步更新：
-- 模組的 README.md
-- API 文檔
-- 使用範例
-
-# 工作流程
-
-1. **開始開發前**
-   - 仔細閱讀相關文檔章節
-   - 確認理解 Agent 的決策職責
-   - 設計決策樹或決策矩陣
-
-2. **開發過程中**
-   - 嚴格遵守 Agent/Tool 職責分離
-   - 使用 RemoteTool 調用 Go 服務
-   - 添加適當的日誌和監控點
-
-3. **完成開發後**
-   - 運行測試確保覆蓋率
-   - 更新相關文檔
-   - 提交程式碼審查
-
-# 輸出要求
-
-## 程式碼品質
-- 可讀性高，邏輯清晰
-- 錯誤處理完善
-- 性能優化（特別是 Go 端）
-
-## 文檔完整性
-- 每個函數都有 docstring
-- 複雜邏輯有內聯註釋
-- 更新 CHANGELOG
-
-## 測試完備性
-- 正向測試案例
-- 異常處理測試
-- 性能基準測試
-
-# 範例：正確的 Agent 實現
-
-```python
-# ADK Root Agent 實作範例
-from google import adk
-from detectviz_adk.tools.adk_tools import get_health_metrics, generate_report
-
-postmortem_orchestrator = adk.Agent(
-    name="postmortem_orchestrator",
-    model="gemini-2.0-flash",
-    instruction="""你是事後檢討協調器，負責管理整個檢討流程。
-
-你有以下子代理可以委派任務：
-1. 'data_collector': 收集事故相關資料和指標
-2. 'root_cause_analyzer': 分析根本原因和相關性
-3. 'report_writer': 產生完整報告和文件
-
-重要：你不直接使用工具，而是透過委派給專門的子代理來完成任務。""",
-    description="協調事後檢討流程的主代理",
-    tools=[],  # Root Agent 不直接使用工具
-    sub_agents=[data_collector_agent, root_cause_analyzer, report_writer]
-)
-
-# 使用 PostmortemRunner 執行
-runner = PostmortemRunner()
-result = await runner.execute_postmortem(incident_request)
+type MetricQuery struct {
+    Metric      string
+    Labels      map[string]string
+    TimeRange   TimeRange
+    Step        time.Duration
+    Aggregation string // avg, max, min, sum, count
+}
 ```
 
-# 模組 llm.txt 執行確保機制
-
-## 強制執行程序
-作為首席 AI 工程師，你必須確保每次開發都嚴格遵循各模組的 llm.txt 檢查清單：
-
-### 開發前檢查（強制）
-1. **識別涉及模組**：明確本次開發會涉及哪些模組
-2. **熟讀檢查清單**：完整閱讀對應模組的 llm.txt 文件
-3. **制定執行計畫**：明確哪些檢查項目適用於本次開發
-
-### 開發中檢查（強制）
-1. **里程碑檢查**：每完成一個功能點，檢查是否符合 llm.txt 要求
-2. **規範遵循**：實時確認是否違反模組的必守規範
-3. **品質標準**：確保代碼品質符合模組標準
-
-### 提交前檢查（強制）
-1. **100% 完成度**：對應模組 llm.txt 的所有檢查項目必須 100% 完成
-2. **跨模組整合**：如果涉及多個模組，確保整合功能正常
-3. **文檔同步**：確保相關文檔已按模組要求更新
-
-## 各模組重點檢查項目
-
-### python-adk-runtime/llm.txt
-- **Agent vs Tool 職責分離**：Agent 不能直接操作數據
-- **ADK 標準遵循**：正確使用 Agent、FunctionTool、Runner
-- **RemoteTool 使用**：所有外部調用通過 RemoteTool
-- **測試覆蓋率**：> 90%
-
-### go-platform/llm.txt  
-- **執行層職責**：專注高性能執行，不包含業務邏輯
-- **ToolBridge 功能**：正確提供 gRPC 介面
-- **無狀態設計**：插件是無狀態、冪等、原子性的
-- **安全邊界**：allowlist/denylist、超時、payload 限制
-
-### contracts/llm.txt
-- **SSOT 契約維護**：不修改生成碼，先更新契約
-- **介面一致性**：支持職責分離設計
-- **跨語言類型安全**：Go 和 Python 生成碼一致
-
-## 執行驗證機制
-
-### 自我檢查報告格式
-```markdown
-## 模組 llm.txt 執行報告
-
-### 涉及模組
-- [ ] contracts (如果有契約變更)
-- [ ] go-platform (如果有 Go 端開發)  
-- [ ] python-adk-runtime (如果有 Python 端開發)
-
-### 檢查清單完成度
-- contracts/llm.txt: X/Y 項完成
-- go-platform/llm.txt: X/Y 項完成
-- python-adk-runtime/llm.txt: X/Y 項完成
-
-### 重點驗證項目
-- [ ] Agent vs Tool 職責分離嚴格遵循
-- [ ] 無違反必守規範的情況
-- [ ] 品質標準符合要求
-- [ ] 文檔更新完成
-
-### 問題與解決
-- 遇到的問題：{描述}
-- 解決方案：{描述}
-- 對 llm.txt 的改進建議：{描述}
-```
-
-### 失敗處理機制
-如果檢查清單未 100% 完成：
-1. **停止提交**：立即停止所有提交動作
-2. **檢討原因**：分析為什麼無法完成檢查清單
-3. **補充完成**：針對缺失項目進行補充開發
-4. **重新驗證**：確保 100% 完成後再提交
-
-# 注意事項
-
-1. **不要違反 Agent/Tool 職責分離**
-2. **不要在 Python 端直接查詢 InfluxDB**（應通過 Go 端）
-3. **不要忽略錯誤處理**
-4. **不要跳過測試直接提交**
-5. **不要修改已定義的契約**（除非經過討論）
-6. **不要忽略任何模組的 llm.txt 檢查清單**
-
-# 問題處理
-
-如果遇到以下情況，請先查閱文檔：
-- 不確定某個功能應該在 Agent 還是 Tool 實現 → 查看 sre-services-map.md
-- 不清楚技術實現細節 → 查看 spec.md
-- 不了解開發規範 → 查看 AGENT.md
-- 需要參考配置 → 查看 contracts/samples/config.yaml
-
-# 後續需要更新的文件清單
-
-## 實作層級文件（開發中同步更新）
-
-### 契約與配置
-- [ ] **contracts/README.md** - 新增 `postmortem.proto` 說明和 gRPC 服務文檔
-- [ ] **go-platform/README.md** - 新增 HealthAggregator 插件說明和配置指南
-
-### 開發指南
-- [ ] **docs/agent-development-guide.md** - postmortem_orchestrator ADK Agent 開發範例和最佳實踐
-- [ ] **docs/quick-reference.md** - MVP 相關指令和事後複盤 API 參考
-
-### 專用指南（新建）
-- [ ] **docs/mvp-guide.md** - MVP 快速開始指南、使用手冊和故障排查
-- [ ] **python-adk-runtime/agents/postmortem/README.md** - postmortem_orchestrator ADK Agent 團隊詳細說明
-
-### 工具與部署
-- [ ] **Makefile** - 統一構建腳本
-- [ ] **docker-compose.yml** - 本地開發環境
-- [ ] **.env.template** - 環境變數模板
-- [ ] **.github/workflows/ci.yml** - CI/CD 配置
-
-## 文檔更新優先級
-
-**P0（開發必需）**：
-- contracts/README.md（API 文檔）
-- docs/mvp-guide.md（使用指南）
-
-**P1（團隊協作）**：
-- go-platform/README.md（插件開發）
-- docs/agent-development-guide.md（開發規範）
-
-**P2（完善性）**：
-- docs/quick-reference.md（便利性）
+**具體步驟**:
+1. 創建 `provider.go` 定義介面
+2. 創建 `types.go` 定義數據結構
+3. 創建 `factory.go` 實作 Provider 工廠模式
+4. 編寫介面測試用例
 
 ---
 
-# 期望成果
+#### Task 1.2: Prometheus Provider 實作
+**位置**: `go-platform/internal/metrics/prometheus/`
+**優先級**: P0
+**預估時間**: 8 小時
 
-在接下來的開發中，你應該：
-1. 產出高品質、可維護的程式碼
-2. 嚴格遵守架構設計原則
-3. 確保 MVP 能在 2 週內順利交付
-4. 為未來擴展預留良好的介面
-5. **同步更新相關文檔**，特別是 P0 級別的文件
+**實作內容**:
+```go
+// prometheus_provider.go
+type PrometheusProvider struct {
+    client     v1.API
+    httpClient *http.Client
+    cache      *cache.Cache
+    config     PrometheusConfig
+}
 
-請基於以上指導，開始進行 MVP 的開發工作。記住：你是首席 AI 工程師，需要展現專業的架構思維和工程實踐。
+func (p *PrometheusProvider) Query(ctx context.Context, query MetricQuery) (*QueryResult, error) {
+    // 1. 構建 PromQL 查詢
+    promQL := p.buildPromQL(query)
+    
+    // 2. 檢查快取
+    if cached := p.cache.Get(promQL); cached != nil {
+        return cached.(*QueryResult), nil
+    }
+    
+    // 3. 執行查詢
+    result, warnings, err := p.client.Query(ctx, promQL, query.TimeRange.End)
+    
+    // 4. 轉換結果格式
+    queryResult := p.convertResult(result)
+    
+    // 5. 寫入快取
+    p.cache.Set(promQL, queryResult, 5*time.Minute)
+    
+    return queryResult, nil
+}
+```
+
+**子任務**:
+- [ ] Prometheus Go client 整合
+- [ ] PromQL 查詢構建器
+- [ ] 結果格式轉換
+- [ ] 查詢快取實作
+- [ ] 並行批量查詢優化
+- [ ] 錯誤處理和重試機制
+
+---
+
+#### Task 1.3: HealthAggregator 插件改造
+**位置**: `go-platform/internal/pluginhost/plugins/observability/health_aggregator/`
+**優先級**: P0
+**預估時間**: 6 小時
+
+**改造內容**:
+1. 移除 InfluxDB 直接依賴
+2. 改用 MetricsProvider 介面
+3. 支援 Provider 動態切換
+4. 保持向後兼容的 gRPC 介面
+
+```go
+// plugin.go
+type HealthAggregatorPlugin struct {
+    provider metrics.MetricsProvider
+    config   PluginConfig
+}
+
+func (p *HealthAggregatorPlugin) Invoke(ctx context.Context, req *pb.InvokeRequest) (*pb.InvokeResponse, error) {
+    // 解析請求參數
+    params := ParseHealthQueryParams(req.Payload)
+    
+    // 使用 MetricsProvider 查詢
+    queries := p.buildMetricQueries(params)
+    results, err := p.provider.BatchQuery(ctx, queries)
+    
+    // 聚合處理
+    aggregated := p.aggregate(results, params.AggregationType)
+    
+    // 返回結果
+    return &pb.InvokeResponse{
+        Payload: p.marshalResults(aggregated),
+    }, nil
+}
+```
+
+---
+
+### Phase 2: Python ADK 整合（Week 1 後半）
+
+#### Task 2.1: RemoteTool 調用優化
+**位置**: `python-adk-runtime/src/detectviz_adk/tools/`
+**優先級**: P0
+**預估時間**: 4 小時
+
+**優化內容**:
+- [ ] 移除所有模擬邏輯
+- [ ] 實作健全的錯誤處理
+- [ ] 添加重試機制
+- [ ] 實作請求超時控制
+
+```python
+# adk_tools.py
+async def get_health_metrics_func(
+    ctx: ToolContext,
+    service_name: str,
+    time_range: str,
+    metrics: List[str]
+) -> Dict[str, Any]:
+    """從 Prometheus 獲取健康指標（通過 Go HealthAggregator）"""
+    
+    # 構建請求
+    request = {
+        "service_name": service_name,
+        "time_range": time_range,
+        "metrics": metrics,
+        "provider": "prometheus"  # 明確指定使用 Prometheus
+    }
+    
+    # 調用 RemoteTool
+    try:
+        result = await ctx.remote_tool.invoke(
+            plugin_id="observability.health_aggregator",
+            payload=request,
+            timeout=30.0
+        )
+        
+        # 解析並驗證結果
+        return parse_health_metrics(result)
+        
+    except TimeoutError:
+        logger.error(f"Health metrics query timeout for {service_name}")
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get health metrics: {e}")
+        raise
+```
+
+---
+
+#### Task 2.2: Agent 狀態管理強化
+**位置**: `python-adk-runtime/src/detectviz_adk/agents/postmortem/`
+**優先級**: P0
+**預估時間**: 6 小時
+
+**實作內容**:
+- [ ] Session State 管理優化
+- [ ] Agent 間數據傳遞機制
+- [ ] 狀態持久化（Redis）
+- [ ] 狀態恢復機制
+
+```python
+# state_manager.py
+class PostmortemStateManager:
+    """管理複盤分析的狀態"""
+    
+    def __init__(self, redis_client: Redis):
+        self.redis = redis_client
+        self.session_id = None
+    
+    async def save_metrics(self, metrics: Dict[str, Any]):
+        """保存收集到的指標數據"""
+        key = f"postmortem:{self.session_id}:metrics"
+        await self.redis.setex(
+            key, 
+            3600,  # 1 小時過期
+            json.dumps(metrics)
+        )
+    
+    async def get_metrics(self) -> Dict[str, Any]:
+        """獲取指標數據"""
+        key = f"postmortem:{self.session_id}:metrics"
+        data = await self.redis.get(key)
+        return json.loads(data) if data else {}
+    
+    async def save_analysis(self, analysis: Dict[str, Any]):
+        """保存分析結果"""
+        key = f"postmortem:{self.session_id}:analysis"
+        await self.redis.setex(
+            key,
+            3600,
+            json.dumps(analysis)
+        )
+```
+
+---
+
+### Phase 3: 報告生成與知識庫（Week 2 前半）
+
+#### Task 3.1: Markdown 報告模板系統
+**位置**: `python-adk-runtime/templates/`
+**優先級**: P0
+**預估時間**: 4 小時
+
+**實作內容**:
+- [ ] 創建 Jinja2 模板
+- [ ] 實作模板渲染引擎
+- [ ] 支援多語言（中文/英文）
+- [ ] 圖表和表格生成
+
+```python
+# templates/postmortem_report.md.j2
+# 事故複盤報告
+
+## 執行摘要
+- **事件 ID**: {{ incident.id }}
+- **發生時間**: {{ incident.start_time }}
+- **恢復時間**: {{ incident.end_time }}
+- **持續時間**: {{ incident.duration }}
+- **影響等級**: {{ incident.severity }}
+
+## 事件時間線
+{% for event in timeline %}
+- **{{ event.time }}**: {{ event.description }}
+{% endfor %}
+
+## 根因分析
+### 直接原因
+{{ analysis.direct_cause }}
+
+### 根本原因
+{{ analysis.root_cause }}
+
+### 貢獻因素
+{% for factor in analysis.contributing_factors %}
+- {{ factor }}
+{% endfor %}
+
+## 影響評估
+- **受影響用戶**: {{ impact.affected_users }}
+- **業務影響**: {{ impact.business_impact }}
+- **SLA 違反**: {{ impact.sla_violation }}
+
+## 改進建議
+{% for recommendation in recommendations %}
+### {{ recommendation.title }}
+- **優先級**: {{ recommendation.priority }}
+- **負責人**: {{ recommendation.owner }}
+- **截止日期**: {{ recommendation.deadline }}
+- **行動項目**: {{ recommendation.action }}
+{% endfor %}
+
+## 學習重點
+{% for lesson in lessons_learned %}
+- {{ lesson }}
+{% endfor %}
+```
+
+---
+
+#### Task 3.2: 知識庫 Provider 架構
+**位置**: `go-platform/internal/pluginhost/plugins/knowledge/`
+**優先級**: P0
+**預估時間**: 8 小時
+
+**架構設計**:
+```go
+// provider/interface.go
+type KnowledgeProvider interface {
+    // 儲存事件
+    StoreIncident(ctx context.Context, incident *Incident) error
+    
+    // 儲存教訓
+    StoreLessons(ctx context.Context, lessons []*Lesson) error
+    
+    // 檢索相似事件
+    FindSimilarIncidents(ctx context.Context, query SimilarityQuery) ([]*Incident, error)
+    
+    // 獲取歷史教訓
+    GetLessonsLearned(ctx context.Context, filter LessonFilter) ([]*Lesson, error)
+    
+    // 更新事件狀態
+    UpdateIncidentStatus(ctx context.Context, id string, status IncidentStatus) error
+}
+
+// PostgreSQL Provider 實作
+type PostgreSQLProvider struct {
+    db     *sql.DB
+    config PostgreSQLConfig
+}
+
+// Memory Provider (測試用)
+type MemoryProvider struct {
+    incidents map[string]*Incident
+    lessons   map[string]*Lesson
+    mu        sync.RWMutex
+}
+```
+
+**子任務**:
+- [ ] Provider 介面定義
+- [ ] PostgreSQL Provider 實作
+- [ ] Memory Provider 實作
+- [ ] 資料庫 Schema 設計
+- [ ] 相似性匹配算法
+- [ ] 單元測試和整合測試
+
+---
+
+### Phase 4: Dashboard 自動生成（Week 2 後半）
+
+#### Task 4.1: Grafana Dashboard Builder
+**位置**: `go-platform/internal/pluginhost/plugins/reporting/dashboard_builder/`
+**優先級**: P1
+**預估時間**: 6 小時
+
+**實作內容**:
+```go
+type DashboardBuilder struct {
+    grafanaClient *grafana.Client
+    templates     map[string]*DashboardTemplate
+}
+
+func (b *DashboardBuilder) CreatePostmortemDashboard(
+    ctx context.Context,
+    incident *Incident,
+    metrics []MetricData,
+) (*Dashboard, error) {
+    // 1. 選擇模板
+    template := b.selectTemplate(incident.Type)
+    
+    // 2. 生成 Panel 配置
+    panels := b.generatePanels(metrics, incident.TimeRange)
+    
+    // 3. 創建 Dashboard
+    dashboard := &Dashboard{
+        Title:  fmt.Sprintf("Postmortem: %s", incident.ID),
+        Panels: panels,
+        Tags:   []string{"postmortem", "automated"},
+    }
+    
+    // 4. 上傳到 Grafana
+    return b.grafanaClient.CreateDashboard(ctx, dashboard)
+}
+```
+
+---
+
+### Phase 5: 測試與驗證（持續進行）
+
+#### Task 5.1: 單元測試完善
+**優先級**: P0
+**預估時間**: 持續
+
+**測試覆蓋**:
+- [ ] MetricsProvider 介面測試
+- [ ] Prometheus Provider 測試
+- [ ] Agent 決策邏輯測試
+- [ ] 報告生成測試
+- [ ] 知識庫操作測試
+
+#### Task 5.2: 端到端整合測試
+**優先級**: P0
+**預估時間**: 4 小時
+
+**測試場景**:
+```python
+# tests/e2e/test_postmortem_flow.py
+async def test_complete_postmortem_flow():
+    """測試完整的事後複盤流程"""
+    
+    # 1. 準備測試數據
+    incident = create_test_incident()
+    
+    # 2. 觸發複盤分析
+    result = await postmortem_orchestrator.analyze(incident)
+    
+    # 3. 驗證各階段輸出
+    assert result.metrics_collected
+    assert result.root_cause_identified
+    assert result.report_generated
+    assert result.knowledge_stored
+    assert result.dashboard_created
+    
+    # 4. 驗證報告質量
+    report = result.report
+    assert "根因分析" in report
+    assert "改進建議" in report
+    assert len(result.recommendations) >= 3
+```
+
+---
+
+## 進度追蹤
+
+### Week 1 (當前)
+- [ ] Day 1-2: MetricsProvider 架構 + Prometheus Provider
+- [ ] Day 3-4: HealthAggregator 改造 + Python 整合
+- [ ] Day 5: 第一階段測試
+
+### Week 2
+- [ ] Day 6-7: 報告生成 + 知識庫
+- [ ] Day 8-9: Dashboard 自動生成
+- [ ] Day 10: 端到端測試 + 文檔
+
+## 快速開始
+
+### 1. 環境設置
+```bash
+# 啟動 Prometheus
+docker run -d \
+  -p 9090:9090 \
+  -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml \
+  prom/prometheus
+
+# 啟動 PostgreSQL
+docker run -d \
+  -p 5432:5432 \
+  -e POSTGRES_DB=detectviz \
+  -e POSTGRES_USER=detectviz \
+  -e POSTGRES_PASSWORD=secure_password \
+  postgres:15
+
+# 啟動 Redis（狀態管理）
+docker run -d -p 6379:6379 redis:7
+```
+
+### 2. 依賴安裝
+```bash
+# Go 依賴
+cd go-platform
+go mod download
+
+# Python 依賴
+cd python-adk-runtime
+pip install -r requirements.txt
+```
+
+### 3. 執行測試
+```bash
+# Go 測試
+make test-go
+
+# Python 測試
+make test-python
+
+# 端到端測試
+make test-e2e
+```
+
+## 交付標準
+
+### 必須完成
+- ✅ Prometheus 數據查詢功能
+- ✅ 完整的複盤報告生成
+- ✅ 基本知識庫功能
+- ✅ 90% 測試覆蓋率
+
+### 加分項
+- ⚡ Dashboard 自動生成
+- ⚡ 多語言報告支援
+- ⚡ 性能優化（<3s 報告生成）
+
+## 問題追蹤
+
+遇到問題時的處理流程：
+1. 查閱 [`AGENT.md`](./AGENT.md) 確認是否違反架構原則
+2. 查看 [`docs/troubleshooting.md`](./docs/troubleshooting.md)
+3. 在 GitHub Issues 中搜尋相關問題
+4. 創建新 Issue 並標記優先級
+
+---
+
+*最後更新: 2025-08-17*
+*版本: 1.0.0*

@@ -20,6 +20,6 @@ bin/detectviz plugin serve --listen :6606 --config ./configs/config.yaml
 
 ## 產生插件骨架（範例）
 ```bash
-bin/detectviz plugin new capability.gateway/http_echo
-# 會建立：go-platform/internal/pluginhost/plugins/capability.gateway/http_echo/{plugin.go,module.card.json,README.md,tests/...}
+bin/detectviz plugin new gateway/http_echo
+# 會建立：go-platform/internal/pluginhost/plugins/gateway/http_echo/{plugin.go,module.card.json,README.md,tests/...}
 ```

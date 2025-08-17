@@ -19,13 +19,16 @@
 ## 目錄結構
 - `cmd/detectviz/`：平台啟動器（CLI）
 - `internal/configx/`：設定載入與驗證（統一優先序 + 環境變數覆蓋）
-- `internal/contracts/`：契約版本檢查與一致性驗證
-- `internal/observability/`：OTel 初始化與 zap 日誌
+- `internal/contracts/`：契約版本檢查與一致性驗證（SSOT 合規）
+- `internal/metrics/`：統一指標查詢抽象層（支援 Prometheus、Memory、預留 Mimir）
+- `internal/observability/`：OpenTelemetry 初始化與結構化日誌
 - `internal/health/`：HTTP 健康檢查服務（/livez、/readyz）
 - `internal/pluginhost/`：插件宿主（registry、runtime、ToolBridge 伺服端）
-  - `plugins/capability.gateway/http_request/`：內建範例插件（含安全邊界）
+  - `plugins/gateway/http_request/`：HTTP 請求插件（含安全邊界）
+  - `plugins/observability/health_aggregator/`：健康指標聚合插件
   - `resource_monitor.go`：插件級資源使用監控
   - `monitored_handler.go`：監控處理器包裝
+- `tools/`：開發工具（插件腳手架、代碼生成器）
 
 ---
 
@@ -137,12 +140,50 @@ Python 端呼叫方式（示意）：
   - `RegisterStrict(toolID, handler)`：**嚴格模式**，同名即回錯，不覆蓋
   - `RegisterOrReplace(toolID, handler)`：允許熱替換（會關閉舊 handler）
 - 內建插件：
-  - `capability.gateway/http_request` → 工具 ID：`detectviz.tools.http_request`
+  - `gateway/http_request` → 工具 ID：`detectviz.tools.http_request`
     - 支援 `method/url/headers/query/body/json/form/timeout_ms/max_response_bytes`
     - 以 `otelhttp` 攔截器自動產生外呼 span
+  - `observability/health_aggregator` → 工具 ID：`observability.health_aggregator`
+    - 整合 MetricsProvider 抽象層，支援多種監控數據源
+    - 提供指標查詢、聚合、快取和統計計算功能
 - 模組卡（Module Card）：
-  - 位置：`internal/pluginhost/plugins/capability.gateway/http_request/module.card.json`
+  - 位置：`internal/pluginhost/plugins/<category>/<name>/module.card.json`
   - 驗證：`cd contracts && make validate-cards`
+
+---
+
+## 插件開發
+
+### 創建新插件
+使用內建腳手架工具快速創建插件骨架：
+
+```bash
+# 在 go-platform 目錄下執行
+go run tools/scaffold.go <category>/<name>
+
+# 範例：創建健康檢查插件
+go run tools/scaffold.go observability/system_health
+
+# 範例：創建 API 調用插件
+go run tools/scaffold.go gateway/api_client
+```
+
+### 支援的插件類別
+- `gateway`：能力閘道插件（HTTP 請求、API 調用）
+- `observability`：可觀測性插件（健康檢查、指標聚合）
+- `collector.input`：數據收集插件（日誌收集、指標採集）
+- `transform.processor`：數據處理插件（數據轉換、過濾）
+- `sink.output`：數據輸出插件（數據庫寫入、消息發送）
+
+### 插件開發流程
+1. **生成腳手架**：`go run tools/scaffold.go <category>/<name>`
+2. **實作邏輯**：編輯 `plugin.go` 實作 `Invoke` 方法
+3. **配置模組**：更新 `module.card.json` 設定
+4. **註冊插件**：在 `internal/pluginhost/plugins/register/all.go` 中註冊
+5. **編寫測試**：完善單元測試和整合測試
+6. **更新文檔**：補充 README 和使用範例
+
+詳細開發指南請參考：[`tools/README.md`](tools/README.md)
 
 ---
 

@@ -1,7 +1,7 @@
 # plugins（插件實作）
 
 分類與 `module.card.json.category` 對齊：
-- `capability.gateway`：以 gRPC 暴露能力給 ADK Tool 遠端調用
+- `gateway`：以 gRPC 暴露能力給 ADK Tool 遠端調用
 - `collector.input`：資料來源介接（Events/HTTP Pull 等）
 - `transform.processor`：遮罩/正規化/聚合
 - `sink.output`：寫入外部系統（OnCall/Kafka/Webhook）

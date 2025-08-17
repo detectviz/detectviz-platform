@@ -1,4 +1,4 @@
-// Package metrics provides a unified interface for querying metrics from various sources
+// Package metrics 提供統一的指標查詢介面，支援多種資料來源
 package metrics
 
 import (
@@ -7,57 +7,57 @@ import (
 	"time"
 )
 
-// MetricsProvider defines the interface for querying metrics from various sources
+// MetricsProvider 定義從各種來源查詢指標的統一介面
 type MetricsProvider interface {
-	// Query executes a single metric query and returns the result
+	// Query 執行單一指標查詢並返回結果
 	Query(ctx context.Context, query MetricQuery) (*QueryResult, error)
 
-	// BatchQuery executes multiple queries in parallel for efficiency
+	// BatchQuery 並行執行多個查詢以提高效率
 	BatchQuery(ctx context.Context, queries []MetricQuery) ([]*QueryResult, error)
 
-	// GetAggregation performs aggregation queries on metrics
+	// GetAggregation 對指標執行聚合查詢
 	GetAggregation(ctx context.Context, opts AggregationOptions) (*AggregationResult, error)
 
-	// HealthCheck verifies the metrics provider is accessible and functional
+	// HealthCheck 驗證指標提供者是否可訪問且功能正常
 	HealthCheck(ctx context.Context) error
 
-	// Close releases any resources held by the provider
+	// Close 釋放提供者持有的任何資源
 	Close() error
 }
 
-// LongTermMetricsProvider extends MetricsProvider with long-term storage capabilities
-// This interface is reserved for future Mimir implementation
+// LongTermMetricsProvider 擴展 MetricsProvider，支援長期儲存功能
+// 此介面預留給未來的 Mimir 實作
 type LongTermMetricsProvider interface {
 	MetricsProvider
 
-	// QueryHistorical queries historical data beyond normal retention
+	// QueryHistorical 查詢超出正常保留期的歷史數據
 	QueryHistorical(ctx context.Context, query HistoricalQuery) (*HistoricalResult, error)
 
-	// QueryDownsampled queries downsampled data for better performance on long ranges
+	// QueryDownsampled 查詢降採樣數據，在長時間範圍內獲得更好的性能
 	QueryDownsampled(ctx context.Context, query DownsampledQuery) (*QueryResult, error)
 
-	// QueryTenant queries metrics for a specific tenant (multi-tenancy support)
+	// QueryTenant 查詢特定租戶的指標（多租戶支援）
 	QueryTenant(ctx context.Context, tenantID string, query MetricQuery) (*QueryResult, error)
 }
 
-// MetricQuery represents a query for metrics
+// MetricQuery 表示指標查詢
 type MetricQuery struct {
-	// Metric name (e.g., "cpu_usage", "http_request_duration_seconds")
+	// 指標名稱（例如："cpu_usage", "http_request_duration_seconds"）
 	Metric string `json:"metric"`
 
-	// Labels for filtering (e.g., {"service": "api", "env": "prod"})
+	// 用於過濾的標籤（例如：{"service": "api", "env": "prod"}）
 	Labels map[string]string `json:"labels"`
 
-	// Time range for the query
+	// 查詢的時間範圍
 	TimeRange TimeRange `json:"time_range"`
 
-	// Step duration for range queries (e.g., 1m, 5m, 1h)
+	// 範圍查詢的步長（例如：1m, 5m, 1h）
 	Step time.Duration `json:"step"`
 
-	// Aggregation function (avg, max, min, sum, count, p50, p95, p99)
+	// 聚合函數（avg, max, min, sum, count, p50, p95, p99）
 	Aggregation string `json:"aggregation,omitempty"`
 
-	// Additional provider-specific options
+	// 額外的提供者特定選項
 	Options map[string]interface{} `json:"options,omitempty"`
 }
 
@@ -99,26 +99,26 @@ type DataPoint struct {
 
 // QueryStats contains statistics about query execution
 type QueryStats struct {
-	Duration      time.Duration `json:"duration"`
-	SamplesScanned int64        `json:"samples_scanned"`
-	SeriesScanned  int64        `json:"series_scanned"`
+	Duration       time.Duration `json:"duration"`
+	SamplesScanned int64         `json:"samples_scanned"`
+	SeriesScanned  int64         `json:"series_scanned"`
 }
 
-// AggregationOptions defines options for aggregation queries
+// AggregationOptions 定義聚合查詢的選項
 type AggregationOptions struct {
-	// Metrics to aggregate
+	// 要聚合的指標
 	Metrics []string `json:"metrics"`
 
-	// Time range for aggregation
+	// 聚合的時間範圍
 	TimeRange TimeRange `json:"time_range"`
 
-	// Aggregation function
+	// 聚合函數
 	Function AggregationFunc `json:"function"`
 
-	// Group by labels
+	// 按標籤分組
 	GroupBy []string `json:"group_by,omitempty"`
 
-	// Additional filters
+	// 額外的篩選條件
 	Filters map[string]string `json:"filters,omitempty"`
 }
 
@@ -166,10 +166,10 @@ type AggregatedValue struct {
 // HistoricalQuery represents a query for historical data (future Mimir support)
 type HistoricalQuery struct {
 	MetricQuery
-	
+
 	// Downsampling resolution for long-term data
 	Resolution time.Duration `json:"resolution"`
-	
+
 	// Whether to include raw samples
 	IncludeRaw bool `json:"include_raw"`
 }
@@ -177,7 +177,7 @@ type HistoricalQuery struct {
 // HistoricalResult represents the result of a historical query
 type HistoricalResult struct {
 	QueryResult
-	
+
 	// Data retention information
 	RetentionInfo *RetentionInfo `json:"retention_info"`
 }
@@ -186,10 +186,10 @@ type HistoricalResult struct {
 type RetentionInfo struct {
 	// Oldest available data point
 	OldestDataPoint time.Time `json:"oldest_data_point"`
-	
+
 	// Retention policy applied
 	RetentionPolicy string `json:"retention_policy"`
-	
+
 	// Data completeness percentage
 	Completeness float64 `json:"completeness"`
 }
@@ -197,10 +197,10 @@ type RetentionInfo struct {
 // DownsampledQuery represents a query for downsampled data
 type DownsampledQuery struct {
 	MetricQuery
-	
+
 	// Downsampling method (avg, max, min)
 	Method string `json:"method"`
-	
+
 	// Target resolution
 	Resolution time.Duration `json:"resolution"`
 }

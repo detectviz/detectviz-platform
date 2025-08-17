@@ -1,4 +1,4 @@
-# capability.gateway/http_request
+# gateway/http_request
 
 以 HTTP/HTTPS 對外呼叫 API（GET/POST/PUT/DELETE）。
 - 入參（payload）：`method`、`url`、`headers`（map）、`body`（string）

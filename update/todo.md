@@ -252,11 +252,11 @@ After:
 
 ---
 
-讓我先查看 `docs/sre-services-map.md` 的當前內容，評估是否需要更新。是的，`docs/sre-services-map.md` 需要更新！讓我創建更新版本，反映 Prometheus 的改變並加強其他部分：
+讓我先查看 `sre-services-map.md` 的當前內容，評估是否需要更新。是的，`sre-services-map.md` 需要更新！讓我創建更新版本，反映 Prometheus 的改變並加強其他部分：
 
 ---
 
-了解！讓我更新 `docs/sre-services-map.md`，加入 Mimir 作為長期儲存的規劃：完成了！我已經更新了 `docs/sre-services-map.md`，加入了 Grafana Mimir 作為長期存儲的規劃。
+了解！讓我更新 `sre-services-map.md`，加入 Mimir 作為長期儲存的規劃：完成了！我已經更新了 `sre-services-map.md`，加入了 Grafana Mimir 作為長期存儲的規劃。
 
 ## 📝 更新總結
 
@@ -324,7 +324,7 @@ Phase 3 (如需要)
 
 1. ✅ **TODO.md** - 重寫為純實作任務
 2. ✅ **AGENT.md** - 整合所有開發規範
-3. ✅ **docs/sre-services-map.md** - 更新為 Prometheus + Mimir 規劃
+3. ✅ **sre-services-map.md** - 更新為 Prometheus + Mimir 規劃
 4. ✅ **contracts/samples/config.yaml** - 完整的 Prometheus 配置
 5. ✅ **.env.template** - 更新環境變數
 
@@ -341,7 +341,7 @@ Phase 3 (如需要)
 ### 文檔更新
 1. **TODO.md** - 純實作任務清單
 2. **AGENT.md** - 完整開發規範
-3. **docs/sre-services-map.md** - Prometheus + Mimir 架構
+3. **sre-services-map.md** - Prometheus + Mimir 架構
 4. **config.yaml** - Prometheus 配置
 5. **.env.template** - 環境變數模板
 

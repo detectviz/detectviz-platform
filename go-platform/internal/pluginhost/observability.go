@@ -1,10 +1,22 @@
 package pluginhost
 
-import "context"
+import (
+	"context"
 
-// StartSpan 為保留位，後續可換成 OpenTelemetry 具體實作。
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
+)
+
+// StartSpan 創建 pluginhost 相關的追蹤 span
 func StartSpan(ctx context.Context, name string) (context.Context, func()) {
-	// TODO: 導入 OTel Tracer，回傳 span 與結束函式
-	f := func() {}
-	return ctx, f
+	tracer := otel.Tracer("go-platform/pluginhost")
+	
+	spanCtx, span := tracer.Start(ctx, name,
+		trace.WithSpanKind(trace.SpanKindInternal))
+	
+	endFunc := func() {
+		span.End()
+	}
+	
+	return spanCtx, endFunc
 }

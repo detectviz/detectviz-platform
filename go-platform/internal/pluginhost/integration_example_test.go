@@ -7,7 +7,7 @@ import (
 	"time"
 
 	v1 "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
-	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/capability.gateway/http_request"
+	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/gateway/http_request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	structpb "google.golang.org/protobuf/types/known/structpb"

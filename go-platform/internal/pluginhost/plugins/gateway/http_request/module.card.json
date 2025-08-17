@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "responsibility": "Provides a secure gateway to make HTTP requests as a remote tool.",
   "language": "go",
-  "entrypoint": "./internal/pluginhost/plugins/capability.gateway/http_request/plugin.go",
+  "entrypoint": "./internal/pluginhost/plugins/gateway/http_request/plugin.go",
   "category": "gateway",
   "contracts": {
     "min_proto": "0.1.0"

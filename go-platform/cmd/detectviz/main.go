@@ -24,7 +24,7 @@ import (
 	"github.com/detectviz/detectviz-platform/go-platform/internal/observability"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost"
 	register "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/register"
-	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginnew"
+	"github.com/detectviz/detectviz-platform/go-platform/tools"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -111,7 +111,7 @@ func handlePluginCommands() {
 			fmt.Println("用法: detectviz plugin new <category>/<name>")
 			os.Exit(2)
 		}
-		if err := pluginnew.Scaffold(os.Args[3]); err != nil {
+		if err := tools.ScaffoldPlugin(os.Args[3]); err != nil {
 			fmt.Printf("創建插件骨架失敗: %v\n", err)
 			os.Exit(1)
 		}

@@ -268,10 +268,10 @@ agent_b = Agent(
 cd go-platform
 
 # 生成 Plugin 骨架
-./detectviz plugin new capability.gateway/email_sender
+./detectviz plugin new gateway/email_sender
 
 # 自動生成檔案結構:
-# internal/pluginhost/plugins/capability.gateway/email_sender/
+# internal/pluginhost/plugins/gateway/email_sender/
 # ├── plugin.go                # 主要實作邏輯
 # ├── plugin_test.go           # 單元測試
 # ├── module.card.json         # 模組卡定義
@@ -281,7 +281,7 @@ cd go-platform
 
 ### 步驟 2: 實作 Plugin 主邏輯
 
-**檔案：`internal/pluginhost/plugins/capability.gateway/email_sender/plugin.go`**
+**檔案：`internal/pluginhost/plugins/gateway/email_sender/plugin.go`**
 
 ```go
 package email_sender
@@ -569,7 +569,7 @@ func (p *EmailSenderPlugin) Close() error {
 
 ### 步驟 3: 安全增強模組
 
-**檔案：`internal/pluginhost/plugins/capability.gateway/email_sender/security.go`**
+**檔案：`internal/pluginhost/plugins/gateway/email_sender/security.go`**
 
 ```go
 package email_sender
@@ -806,7 +806,7 @@ func (p *EmailSenderPlugin) scanText(text, fieldName string) error {
 
 ### 步驟 4: 完整測試套件
 
-**檔案：`internal/pluginhost/plugins/capability.gateway/email_sender/plugin_test.go`**
+**檔案：`internal/pluginhost/plugins/gateway/email_sender/plugin_test.go`**
 
 ```go
 package email_sender
@@ -1004,7 +1004,7 @@ func BenchmarkEmailSenderPlugin_Invoke(b *testing.B) {
 
 ### 步驟 5: 模組卡與註冊
 
-**檔案：`internal/pluginhost/plugins/capability.gateway/email_sender/module.card.json`**
+**檔案：`internal/pluginhost/plugins/gateway/email_sender/module.card.json`**
 
 ```json
 {
@@ -1132,7 +1132,7 @@ func BenchmarkEmailSenderPlugin_Invoke(b *testing.B) {
 package pluginhost
 
 import (
-    emailSender "detectviz.com/go-platform/internal/pluginhost/plugins/capability.gateway/email_sender"
+    emailSender "detectviz.com/go-platform/internal/pluginhost/plugins/gateway/email_sender"
 )
 
 func (r *Registry) registerBuiltinPlugins() {

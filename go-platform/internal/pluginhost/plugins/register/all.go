@@ -2,11 +2,13 @@ package register
 
 import (
 	pluginhost "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost"
-	httprequest "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/capability.gateway/http_request"
+	httprequest "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/gateway/http_request"
+	healthagg "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/observability/health_aggregator"
 )
 
-// RegisterAll registers built-in/commonly used plugins into the Registry.
+// RegisterAll 註冊內建插件到 Registry
 func RegisterAll(reg *pluginhost.Registry) error {
-	reg.Register("capability.gateway/http_request", httprequest.New())
+	reg.Register("gateway/http_request", httprequest.New())
+	reg.Register("observability/health_aggregator", healthagg.New())
 	return nil
 }

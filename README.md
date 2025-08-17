@@ -1,7 +1,7 @@
 # Detectviz Platform
 
 [![Status: MVP Development](https://img.shields.io/badge/status-MVP%20Development-orange)](./docs/mvp-implementation-spec.md)
-[![Current Focus: Phase 3](https://img.shields.io/badge/focus-Phase%203%20Postmortem-blue)](./docs/sre-services-map.md)
+[![Current Focus: Phase 3](https://img.shields.io/badge/focus-Phase%203%20Postmortem-blue)](./sre-services-map.md)
 [![8-Week Timeline](https://img.shields.io/badge/timeline-8%20weeks-green)](#mvp-milestone)
 [![SSOT: contracts](https://img.shields.io/badge/SSOT-contracts-0A84FF)](./contracts)
 [![Go 1.24](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go)](#)
@@ -48,7 +48,7 @@
 
 ![MVP 工作流程](./assets/MVP_Workflow.svg)
 
-> 詳細架構設計請參考 [`docs/sre-services-map.md`](./docs/sre-services-map.md)  
+> 詳細架構設計請參考 [`sre-services-map.md`](./sre-services-map.md)  
 > 技術實現規範請參考 [`spec.md`](./spec.md)
 
 ---
@@ -102,7 +102,7 @@
 
 ### 環境準備
 1. **閱讀核心文檔**：
-   - [`docs/sre-services-map.md`](./docs/sre-services-map.md) - 理解 SRE 三階段架構
+   - [`sre-services-map.md`](./sre-services-map.md) - 理解 SRE 三階段架構
    - [`spec.md`](./spec.md) - 技術實現規範
    - [`AGENT.md`](./AGENT.md) - AI 開發守則與協作指南
 
@@ -240,12 +240,6 @@
 
 ---
 
-## 技術棧架構
-
-![技術棧架構](./assets/TechStack.svg)
-
----
-
 ## 開發流程（摘要）
 - **契約先行**：任何跨語言變更請先更新 `contracts/`（proto/schema/samples），再生成並同步下游。
 - **生成碼**：在 `contracts/` 執行 `buf lint && buf generate`，禁止手動編輯 `*.pb.go` 等生成檔。
@@ -259,7 +253,7 @@
 ### 核心規範
 - [`spec.md`](./spec.md) - 平台技術規格
 - [`AGENT.md`](./AGENT.md) - AI 開發守則與協作指南
-- [`docs/sre-services-map.md`](./docs/sre-services-map.md) - 架構設計憲法
+- [`sre-services-map.md`](./sre-services-map.md) - 架構設計憲法
 
 ### 組件文檔
 - [`contracts/README.md`](./contracts/README.md) - SSOT 契約管理
