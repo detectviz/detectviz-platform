@@ -297,7 +297,7 @@ class ReportGenerator(BaseTool):
 
 ### 4.1 MVP 執行流程
 
-![MVP 執行流程](./assets/MVP_RunFlow.mmd)
+![MVP 執行流程](./assets/MVP_RunFlow.svg)
 
 ## 5. 契約定義與驗證
 

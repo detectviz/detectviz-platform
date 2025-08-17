@@ -10,7 +10,7 @@
 
 本 Runtime 在 detectviz-platform 架構中扮演 **智能決策層** 角色：
 
-![Platform 架構](../assets/Python_ADK_Architecture.mmd)
+![Platform 架構](../assets/Python_ADK_Architecture.svg)
 
 
 ### 核心設計原則
@@ -27,7 +27,7 @@
 
 ### Agent vs Tool 職責分離圖
 
-![Agent vs Tool 職責分離圖](../assets/Agent_Tool_Responsibility.mmd)
+![Agent vs Tool 職責分離圖](../assets/Agent_Tool_Responsibility.svg)
 
 
 ---
@@ -266,7 +266,7 @@ async def _robust_tool_call(self, tool: RemoteTool, params: dict, max_retries: i
 
 ### 混合架構數據流圖
 
-![混合架構數據流圖](../assets/Hybrid_Architecture_Data_Flow.mmd)
+![混合架構數據流圖](../assets/Hybrid_Architecture_Data_Flow.svg)
 
 
 ### 模組卡創建指南

@@ -31,7 +31,7 @@ WHEN - 何時做             WITH - 用什麼做
 
 ## SRE 生命週期總覽
 
-![SRE 生命週期](../assets/SRE_Lifecycle_Overview.mmd)
+![SRE 生命週期](../assets/SRE_Lifecycle_Overview.svg)
 
 ## 完整 Services MAP
 
@@ -298,7 +298,7 @@ postmortem_orchestrator:
 
 ### MVP (Phase 3 優先)
 
-![Agent 實施路線圖](../assets/Agent_Implementation_Roadmap.mmd)
+![Agent 實施路線圖](../assets/Agent_Implementation_Roadmap.svg)
 
 
 ## Agent 開發檢查清單

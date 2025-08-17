@@ -17,7 +17,7 @@
 
 本平台基於 **SRE 運維三階段生命週期**設計，構建完整的智能化可靠性工程體系：
 
-![SRE 生命週期](./assets/SRE_Lifecycle.mmd)
+![SRE 生命週期](./assets/SRE_Lifecycle.svg)
 
 ### 當前 MVP 聚焦：Phase 3（事後複盤）
 
@@ -46,7 +46,7 @@
 
 ### MVP 工作流程圖
 
-![MVP 工作流程](./assets/MVP_Workflow.mmd)
+![MVP 工作流程](./assets/MVP_Workflow.svg)
 
 > 詳細架構設計請參考 [`docs/sre-services-map.md`](./docs/sre-services-map.md)  
 > 技術實現規範請參考 [`spec.md`](./spec.md)
@@ -63,7 +63,7 @@
 
 ## 整體架構圖
 
-![整體架構圖](./assets/Architecture.mmd)
+![整體架構圖](./assets/Architecture.svg)
 
 ### 架構說明
 - **Contracts**: SSOT 契約層，包含 JSON Schemas 配置驗證和 Proto APIs 定義，透過 buf 工具生成跨語言類型安全的程式碼
@@ -242,7 +242,7 @@
 
 ## 技術棧架構
 
-![技術棧架構](./assets/TechStack.mmd)
+![技術棧架構](./assets/TechStack.svg)
 
 ---
 

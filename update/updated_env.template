@@ -1,0 +1,136 @@
+# Detectviz Platform Environment Variables Template
+# Copy this file to .env and fill in the values
+
+# ============================================
+# Core Configuration
+# ============================================
+DETECTVIZ_ENV=development
+HOSTNAME=detectviz-001
+
+# ============================================
+# Model Provider (Google ADK)
+# ============================================
+ADK_MODEL_PROVIDER=gemini
+ADK_MODEL_API_KEY=your-gemini-api-key-here
+
+# ============================================
+# Metrics Provider Configuration
+# ============================================
+METRICS_PROVIDER_TYPE=prometheus
+
+# Prometheus Configuration
+PROMETHEUS_URL=http://localhost:9090
+# PROMETHEUS_USERNAME=
+# PROMETHEUS_PASSWORD=
+
+# Future: Mimir Configuration (not yet implemented)
+# MIMIR_URL=http://localhost:8080
+# MIMIR_TENANT_ID=detectviz
+
+# ============================================
+# External Services
+# ============================================
+
+# Grafana Configuration
+GRAFANA_URL=http://localhost:3000
+GRAFANA_API_KEY=your-grafana-api-key-here
+GRAFANA_ORG_ID=1
+
+# PostgreSQL Configuration (Knowledge Base)
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=detectviz
+POSTGRES_USER=detectviz
+POSTGRES_PASSWORD=secure-password-here
+POSTGRES_SSLMODE=disable
+
+# Redis Configuration (State Management)
+REDIS_ADDRESS=localhost:6379
+# REDIS_PASSWORD=
+REDIS_DB=0
+
+# ============================================
+# Observability (Grafana Alloy)
+# ============================================
+DETECTVIZ__OBSERVABILITY__MODE=lgtm_local
+DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=localhost:4317
+DETECTVIZ__OBSERVABILITY__SERVICE_NAME=detectviz-platform
+DETECTVIZ__OBSERVABILITY__SERVICE_VERSION=1.0.0
+DETECTVIZ__OBSERVABILITY__ENVIRONMENT=development
+
+# Logging
+DETECTVIZ__OBSERVABILITY__LOGGING__LEVEL=info
+DETECTVIZ__OBSERVABILITY__LOGGING__FORMAT=json
+
+# Tracing
+DETECTVIZ__OBSERVABILITY__TRACING__SAMPLING_RATIO=1.0
+
+# Profiling
+DETECTVIZ__OBSERVABILITY__PROFILING__PPROF_ADDRESS=:6060
+
+# ============================================
+# Grafana Cloud (Optional)
+# ============================================
+# GCLOUD_RW_API_KEY=your-gcloud-rw-api-key-here
+# GF_CLOUD_OTEL_ID=your-gcloud-otel-id-here
+# GCLOUD_HOSTED_LOGS_ID=your-gcloud-hosted-logs-id-here
+# GCLOUD_HOSTED_LOGS_URL=your-gcloud-hosted-logs-url-here
+# GF_CLOUD_PROFILES_ID=your-gcloud-profiles-id-here
+# GF_CLOUD_PROFILES_URL=your-gcloud-profiles-url-here
+
+# ============================================
+# Network Configuration
+# ============================================
+DETECTVIZ__GRPC__LISTEN=:6606
+DETECTVIZ__HTTP__HEALTH__LISTEN=:8081
+DETECTVIZ__HTTP__DEMO__ENABLED=false
+DETECTVIZ__HTTP__DEMO__LISTEN=:7777
+
+# ============================================
+# Optional Integrations
+# ============================================
+
+# Slack Integration
+SLACK_ENABLED=false
+# SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+# SLACK_CHANNEL=#incidents
+
+# PagerDuty Integration
+PAGERDUTY_ENABLED=false
+# PAGERDUTY_API_KEY=your-pagerduty-api-key
+# PAGERDUTY_INTEGRATION_KEY=your-integration-key
+
+# ============================================
+# Security
+# ============================================
+AUTH_ENABLED=false
+# JWT_SECRET=your-secret-key-here
+
+# ============================================
+# Performance Tuning
+# ============================================
+WORKER_POOL_SIZE=10
+QUEUE_SIZE=100
+BATCH_SIZE=50
+
+# ============================================
+# Feature Flags
+# ============================================
+ENABLE_POSTMORTEM=true
+ENABLE_DASHBOARD_CREATION=true
+ENABLE_KNOWLEDGE_BASE=true
+
+# ============================================
+# Development Settings
+# ============================================
+DEBUG=false
+VERBOSE_LOGGING=false
+MOCK_EXTERNAL=false
+HOT_RELOAD=false
+TEST_DATA_ENABLED=false
+
+# ============================================
+# Paths
+# ============================================
+REPORT_OUTPUT_DIR=./reports
+REPORT_TEMPLATES_DIR=./templates
