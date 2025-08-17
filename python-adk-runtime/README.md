@@ -27,6 +27,8 @@
 
 ### Agent vs Tool 職責分離圖
 
+> **完整職責劃分說明**：參見 [../ARCHITECTURE.md - Agent vs Tool 職責劃分](../ARCHITECTURE.md#agent-vs-tool-職責劃分)
+
 ![Agent vs Tool 職責分離圖](../assets/Agent_Tool_Responsibility.svg)
 
 
@@ -714,7 +716,7 @@ agent = PostmortemRunner(
 ---
 
 ## 參考
-- `../spec.md`（整體平台規格）
+- `../SPEC.md`（整體平台規格）
 - `../contracts/`（SSOT：proto／schema／samples）
 - `../go-platform/`（ToolBridge 與觀測初始化）
 

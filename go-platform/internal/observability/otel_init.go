@@ -1,5 +1,5 @@
 // Package observability provides unified observability initialization for Go platform
-// According to spec.md: "統一可觀察性系統（Console、Prometheus、OTLP 導出器）"
+// According to SPEC.md: "統一可觀察性系統（Console、Prometheus、OTLP 導出器）"
 // "應用端僅輸出 OTLP 至 Alloy/Collector；憑證與 API Key 僅配置於 Alloy"
 package observability
 
@@ -34,10 +34,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// InitFromConfig initializes unified observability according to spec.md requirements
+// InitFromConfig initializes unified observability according to SPEC.md requirements
 // - Single OTLP exporter endpoint (to Alloy/Collector)
 // - JSON structured logs to stdout (collected by Alloy)
-// - Resource attributes as required by spec.md
+// - Resource attributes as required by SPEC.md
 func InitFromConfig(cfg interface{}) (func(), error) {
 	// 支援兩種輸入型態：
 	// 1) 整體 config（含 observability 節點）
@@ -117,7 +117,7 @@ func InitFromConfig(cfg interface{}) (func(), error) {
 		zap.L().Info("Continuous profiling disabled or not configured")
 	}
 
-	// 建立 Resource（遵循 spec.md）
+	// 建立 Resource（遵循 SPEC.md）
 	res, err := createResource(mode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)

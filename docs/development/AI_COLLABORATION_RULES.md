@@ -130,15 +130,15 @@ make health-check-proto
 
 ### 1. 理解優先級
 ```
-sre-services-map.md (業務邏輯) → 
-spec.md (技術規範) → 
+ARCHITECTURE.md (業務邏輯) → 
+SPEC.md (技術規範) → 
 AGENT.md (協作指南) → 
 模組/llm.txt (具體執行)
 ```
 
 ### 2. 開發流程
-1. 先理解業務需求 (sre-services-map.md)
-2. 確認技術實現方案 (spec.md)  
+1. 先理解業務需求 (ARCHITECTURE.md)
+2. 確認技術實現方案 (SPEC.md)  
 3. 遵循協作規範 (AGENT.md)
 4. 執行模組專用指南 (llm.txt)
 

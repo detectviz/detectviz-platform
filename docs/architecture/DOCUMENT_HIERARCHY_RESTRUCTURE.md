@@ -2,7 +2,7 @@
 
 ## 🎯 當前問題
 
-**spec.md** 和 **sre-services-map.md** 存在嚴重的定位模糊問題：
+**SPEC.md** 和 **ARCHITECTURE.md** 存在嚴重的定位模糊問題：
 
 1. **內容重疊**：兩者都包含架構設計、技術實現、業務邏輯
 2. **層級混亂**：聲稱的層級關係與實際內容不符
@@ -12,16 +12,16 @@
 
 ### 方案 A：合併重構（推薦）
 
-#### 1. 保留 sre-services-map.md 作為**唯一架構憲法**
+#### 1. 保留 ARCHITECTURE.md 作為**唯一架構憲法**
 ```markdown
-# sre-services-map.md
+# ARCHITECTURE.md
 - 職責：業務邏輯 + 架構決策 + 技術標準
 - 內容：SRE三階段 + Agent協作模式 + 技術架構選型
 - 讀者：所有開發者（AI + 人類）
 - 層級：頂層架構文檔
 ```
 
-#### 2. 將 spec.md 重構為**實施指南**
+#### 2. 將 SPEC.md 重構為**實施指南**
 ```markdown
 # implementation-guide.md
 - 職責：具體實施步驟 + 配置範例 + 開發工具
@@ -32,7 +32,7 @@
 
 #### 3. 新的文檔層級
 ```bash
-sre-services-map.md          # 架構憲法（業務+技術決策）
+ARCHITECTURE.md          # 架構憲法（業務+技術決策）
          ↓
 AGENT.md                     # AI協作規範
          ↓ 
@@ -43,11 +43,11 @@ docs/guides/IMPLEMENTATION_GUIDE.md  # 實施指南
 
 ### 方案 B：職責分離（替代方案）
 
-#### 1. sre-services-map.md → 純業務架構
+#### 1. ARCHITECTURE.md → 純業務架構
 - **專注**：SRE三階段、Agent協作模式、業務決策
 - **移除**：技術實現細節、配置範例、啟動命令
 
-#### 2. spec.md → 純技術規格
+#### 2. SPEC.md → 純技術規格
 - **專注**：技術架構、API設計、系統配置
 - **移除**：業務邏輯描述、Agent協作模式
 
@@ -62,8 +62,8 @@ docs/guides/IMPLEMENTATION_GUIDE.md  # 實施指南
 3. 確定保留/移動/刪除的內容
 
 ### Phase 2: 重構執行
-1. 重組 sre-services-map.md 為完整架構憲法
-2. 精簡 spec.md 為純實施指南
+1. 重組 ARCHITECTURE.md 為完整架構憲法
+2. 精簡 SPEC.md 為純實施指南
 3. 更新所有引用鏈接
 
 ### Phase 3: 驗證和優化
@@ -91,4 +91,4 @@ docs/guides/IMPLEMENTATION_GUIDE.md  # 實施指南
 
 ---
 
-**結論**：當前的 spec.md 和 sre-services-map.md 確實存在定位模糊問題，建議按方案 A 進行重構，建立清晰的文檔職責邊界。
+**結論**：當前的 SPEC.md 和 ARCHITECTURE.md 確實存在定位模糊問題，建議按方案 A 進行重構，建立清晰的文檔職責邊界。

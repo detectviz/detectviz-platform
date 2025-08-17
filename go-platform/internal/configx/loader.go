@@ -1,5 +1,5 @@
 // Package configx provides configuration loading and validation against contracts schemas
-// This adheres to spec.md requirement: "Go 端負責 Config 驗證與載入"
+// This adheres to SPEC.md requirement: "Go 端負責 Config 驗證與載入"
 package configx
 
 import (
@@ -257,7 +257,7 @@ func findContractsDir() string {
 	return ""
 }
 
-// applyDefaults sets default values according to spec.md requirements
+// applyDefaults sets default values according to SPEC.md requirements
 func applyDefaults(cfg *Config) {
 	// Ensure non-nil maps/slices for schema validation
 	if cfg.Observability.OTLP.Headers == nil {

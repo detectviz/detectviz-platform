@@ -389,7 +389,6 @@ class DocumentRestructurer:
                         "QUICK_REFERENCE.md": "從現有整合"
                     },
                     "technical/": {
-                        "ARCHITECTURE_OVERVIEW.md": "需創建",
                         "API_REFERENCE.md": "需創建"
                     },
                     "mvp/": {
@@ -552,7 +551,7 @@ Unit Tests (80%)
 - 引用方式：`{{ docs/development/TESTING_GUIDELINES.md#section }}`
 ''',
             
-            "technical/ARCHITECTURE_OVERVIEW.md": '''# 技術架構概覽
+            "ARCHITECTURE.md": '''# 技術架構概覽
 
 > 📌 **文檔職責**：提供系統整體技術架構的高層視圖和關鍵設計決策
 
@@ -608,7 +607,7 @@ Unit Tests (80%)
 ## 🔗 相關文檔
 
 - [專案狀態](../status/PROJECT_STATUS.md) - 當前實現進度
-- [技術規格文檔](../../spec.md) - 詳細技術實現  
+- [技術規格文檔](../../SPEC.md) - 詳細技術實現  
 - [開發設置指南](../guides/DEVELOPMENT_SETUP.md) - 環境配置
 
 ---
@@ -616,7 +615,7 @@ Unit Tests (80%)
 **維護說明**：
 - 更新頻率：架構重大變更時更新
 - 維護責任：系統架構師
-- 引用方式：`{{ docs/technical/ARCHITECTURE_OVERVIEW.md#section }}`
+- 引用方式：`{{ ARCHITECTURE.md#section }}`
 '''
         }
         

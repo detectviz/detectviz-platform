@@ -1,6 +1,6 @@
 # go-platform — AI 維護指南（llm.txt）
 
-此檔為 AI 與協作者在維護 Go 平台（`go-platform/`）時的約束與流程，與 `AGENT.md`、`spec.md` 對齊。
+此檔為 AI 與協作者在維護 Go 平台（`go-platform/`）時的約束與流程，與 `AGENT.md`、`SPEC.md` 對齊。
 
 ## 範圍與原則
 - 僅維護 Go 平台程式（CLI、ToolBridge、Plugin Registry、Observability、Config Loader 等）。
@@ -29,11 +29,11 @@
 
 ### MVP Phase 3 專用規範
 12. **事後複盤聚焦**：當前重點為 HealthAggregator 插件和相關工具
-13. **高性能查詢**：InfluxDB 並行批量查詢、查詢結果快取、聚合計算
+13. **高性能查詢**：MetricsProvider 並行批量查詢、查詢結果快取、聚合計算
 14. **安全邊界**：內建 allowlist/denylist、payload 大小限制、超時控制
 
 ## 允許/禁止
-- 允許：新增/擴充 CLI 參數（需更新 README 與 `spec.md`）；新增插件（於 `internal/pluginhost/plugins/...`）。
+- 允許：新增/擴充 CLI 參數（需更新 README 與 `SPEC.md`）；新增插件（於 `internal/pluginhost/plugins/...`）。
 - 禁止：繞過 Loader 讀設定、直接修改生成碼、提交 `site/` 或大型二進位到 repo。
 
 ## 變更流程（AI/人類一致）
@@ -50,7 +50,7 @@
   curl -sS http://127.0.0.1:8081/readyz && curl -sS http://127.0.0.1:7777/hello
   ```
 4. 記錄：
-- 若影響使用者介面/行為，請同步更新根 README、`spec.md` 與相關文件站章節。
+- 若影響使用者介面/行為，請同步更新根 README、`SPEC.md` 與相關文件站章節。
 5. PR：
 - 說明 SSOT 影響、端到端驗證步驟（健康/關機/觀測）、是否更新文件。
 

@@ -5,10 +5,10 @@
 | 文檔 | 職責 | 讀者 | 更新頻率 | 引用來源 |
 |------|------|------|----------|----------|
 | **README.md** | 專案入口與快速開始 | 新用戶、決策者 | 里程碑發布時 | docs/status/PROJECT_STATUS.md |
-| **sre-services-map.md** | 業務架構憲法 | 架構師、PM | 季度 | - (SSOT根源) |
-| **spec.md** | 技術實現規範 | 開發者 | 架構變更時 | sre-services-map.md |
-| **AGENT.md** | AI協作守則 | AI開發者 | 技術債務清理後 | spec.md + docs/development/ |
-| **TODO.md** | 實作任務追蹤 | 開發團隊 | 每日 | docs/status/MVP_PROGRESS.md |
+| **ARCHITECTURE.md** | 業務架構憲法 | 架構師、PM | 季度 | - (SSOT根源) |
+| **SPEC.md** | 技術實現規範 | 開發者 | 架構變更時 | ARCHITECTURE.md |
+| **AGENT.md** | AI協作守則 | AI開發者 | 技術債務清理後 | SPEC.md + docs/development/ |
+| **TASKS.md** | 實作任務追蹤 | 開發團隊 | 每日 | docs/status/MVP_PROGRESS.md |
 | **contracts/README.md** | SSOT契約說明 | 所有開發者 | 契約變更時 | docs/technical/CONTRACTS_GUIDE.md |
 | **模組/llm.txt** | 模組專用維護指南 | 模組維護者 | 模組變更時 | docs/development/MODULE_STANDARDS.md |
 
@@ -16,26 +16,25 @@
 
 ```
 docs/
-├── DOCUMENTATION_ARCHITECTURE.md    # 本文檔 - 文檔架構說明
-├── status/                           # 專案狀態 (SSOT)
-│   ├── PROJECT_STATUS.md            # 專案狀態與里程碑
-│   ├── MVP_PROGRESS.md              # MVP進度追蹤
-│   └── TECHNICAL_DEBT_STATUS.md     # 技術債務狀態
-├── technical/                       # 技術規範 (SSOT)
-│   ├── ARCHITECTURE_OVERVIEW.md    # 技術架構總覽
+├── DOCUMENTATION_ARCHITECTURE.md   # 本文檔 - 文檔架構說明
+├── status/                         # 專案狀態 (SSOT)
+│   ├── PROJECT_STATUS.md           # 專案狀態與里程碑
+│   ├── MVP_PROGRESS.md             # MVP進度追蹤
+│   └── TECHNICAL_DEBT_STATUS.md    # 技術債務狀態
+├── technical/                      # 技術規範 (SSOT)
 │   ├── CONTRACTS_GUIDE.md          # 契約使用指南
 │   ├── CROSS_LANGUAGE_BRIDGE.md    # 跨語言通訊規範
 │   └── OBSERVABILITY_DESIGN.md     # 可觀察性設計
-├── development/                     # 開發規範 (SSOT)
+├── development/                    # 開發規範 (SSOT)
 │   ├── AI_COLLABORATION_RULES.md   # AI協作核心規則
 │   ├── MODULE_STANDARDS.md         # 模組開發標準
 │   ├── TESTING_GUIDELINES.md       # 測試指導原則
 │   └── AUTOMATION_TOOLS.md         # 自動化工具使用
-├── guides/                          # 操作指南
+├── guides/                         # 操作指南
 │   ├── QUICK_START.md              # 快速開始指南
 │   ├── DEVELOPMENT_SETUP.md        # 開發環境設置
 │   └── DEPLOYMENT_GUIDE.md         # 部署指南
-└── templates/                       # 文檔模板
+└── templates/                      # 文檔模板
     ├── MODULE_README_TEMPLATE.md   # 模組README模板
     ├── LLM_TXT_TEMPLATE.md         # llm.txt模板
     └── API_DOC_TEMPLATE.md         # API文檔模板
@@ -49,7 +48,7 @@ docs/
 > 📊 專案狀態：{{ docs/status/PROJECT_STATUS.md#current-completion }}
 
 <!-- 架構圖引用 -->
-> 🏗️ 詳細架構：參見 [技術架構總覽](docs/technical/ARCHITECTURE_OVERVIEW.md#system-architecture)
+> 🏗️ 詳細架構：參見 [技術架構總覽](ARCHITECTURE.md#system-architecture)
 
 <!-- 開發規範引用 -->
 > 📋 開發規範：遵循 [AI協作規則](docs/development/AI_COLLABORATION_RULES.md#agent-vs-tool-principle)
@@ -73,7 +72,7 @@ tools/docs/update_status.py
 
 ### 禁止的重複內容：
 - 專案完成度數字（僅在 PROJECT_STATUS.md）
-- 架構圖描述（僅在 ARCHITECTURE_OVERVIEW.md）
+- 架構圖描述（僅在 ARCHITECTURE.md）
 - 工具使用說明（僅在相應的GUIDE文檔）
 - 模組標準（僅在 MODULE_STANDARDS.md）
 

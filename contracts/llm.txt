@@ -26,7 +26,7 @@
 
 ## 標準流程 (2024年12月強化版)
 1. 規劃：描述需求與影響面（Go/Python/Docs/部署）。
-2. 編輯：修改 proto/schema/samples/specs；保持命名與枚舉一致性（見 `spec.md`）。
+2. 編輯：修改 proto/schema/samples/specs；保持命名與枚舉一致性（見 `SPEC.md`）。
 3. 驗證與生成（使用新自動化工具）：
 ```bash
 cd contracts
@@ -49,11 +49,11 @@ make generate-module-card ... # 生成新模組卡
 make validate-with-versions
 ```
 4. 同步：提交後，通知下游專案更新 import/生成碼（Go `go mod tidy`、Python 相依更新）。
-5. 文檔：更新 `spec.md` 與相關 README；如有行為/欄位變更，必須在文件站更新。
+5. 文檔：更新 `SPEC.md` 與相關 README；如有行為/欄位變更，必須在文件站更新。
 
 ## 風格與命名
 - Proto package 與 go_package/python package 固定；避免漂移。
-- 枚舉與常數統一於 `spec.md`；新增前先檢視既有分類（role/category 等）。
+- 枚舉與常數統一於 `SPEC.md`；新增前先檢視既有分類（role/category 等）。
 - 欄位命名採一致風格（snake_case），避免縮寫不明確。
 
 ## 驗證清單（提交前）
@@ -76,7 +76,7 @@ make validate-with-versions
 
 ### 影響面同步檢查
 - [ ] 影響面已記錄並通知下游同步（Go/Python 專案）
-- [ ] `spec.md`/README/文件站已更新，與 AGENT.md 保持一致
+- [ ] `SPEC.md`/README/文件站已更新，與 AGENT.md 保持一致
 - [ ] 破壞性變更已標註版本和遷移指南
 
 ## 破壞性變更（需審慎）

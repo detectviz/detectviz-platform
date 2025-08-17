@@ -1,6 +1,6 @@
 # python-adk-runtime — AI 維護指南（llm.txt）
 
-此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `AGENT.md`、`spec.md` 一致。
+此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `AGENT.md`、`SPEC.md` 一致。
 
 ## 🎯 模組狀態 (2024年12月更新)
 **當前狀態**: 生產就緒 ✅ (技術債務已清理完畢)
@@ -16,12 +16,11 @@
 ## 必守規範（與 AGENT.md 對齊）
 
 ### Agent vs Tool 黃金準則
-1. **Agent 職責（決策層）**：WHY（為什麼）、WHAT（做什麼）、WHEN（何時做）
-   - 決策制定、工作流編排、知識整合、業務邏輯處理
-   - **重要限制**：Agent 不直接操作數據，所有數據查詢、API 調用、文件生成都通過 Tool
-2. **Tool 職責（執行層）**：HOW（如何做）、WHERE（在哪做）、WITH（用什麼）
-   - 具體執行、數據操作、外部系統集成
-   - **重要特性**：Tool 不包含業務邏輯，是無狀態、冪等、原子性的執行單元
+> **完整職責劃分說明**：參見 [../ARCHITECTURE.md - Agent vs Tool 職責劃分](../ARCHITECTURE.md#agent-vs-tool-職責劃分)
+
+**核心原則**：
+- **Agent 職責（決策層）**：WHY/WHAT/WHEN - 決策制定、工作流編排
+- **Tool 職責（執行層）**：HOW/WHERE/WITH - 具體執行、數據操作
 
 ### 技術實現規範
 3. **ADK 標準**：使用 `FunctionTool` 包裝函式，Agent 使用 Root + Sub-Agents 架構
