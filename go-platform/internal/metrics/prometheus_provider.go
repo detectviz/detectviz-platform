@@ -209,15 +209,21 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 	return provider, nil
 }
 
-// Query 執行單一指標查詢，包含電路斷路器邏輯
+// Query 執行單一指標查詢，包含電路斷路器和指標記錄邏輯
 func (p *PrometheusProvider) Query(ctx context.Context, query MetricQuery) (*QueryResult, error) {
 	if !p.config.CircuitBreaker.Enabled {
-		return p.executeQuery(ctx, query)
+		result, err := p.executeQuery(ctx, query)
+		if err != nil {
+			providerQueriesTotal.WithLabelValues("error").Inc()
+			return nil, err
+		}
+		providerQueriesTotal.WithLabelValues("success").Inc()
+		return result, nil
 	}
 
 	// 檢查電路斷路器狀態
-	err := p.checkCircuitBreaker()
-	if err != nil {
+	if err := p.checkCircuitBreaker(); err != nil {
+		providerQueriesTotal.WithLabelValues("circuit_breaker_rejected").Inc()
 		return nil, err
 	}
 
@@ -225,10 +231,12 @@ func (p *PrometheusProvider) Query(ctx context.Context, query MetricQuery) (*Que
 	result, err := p.executeQuery(ctx, query)
 	if err != nil {
 		p.handleFailure(err)
+		providerQueriesTotal.WithLabelValues("error").Inc()
 		return nil, err
 	}
 
 	p.handleSuccess()
+	providerQueriesTotal.WithLabelValues("success").Inc()
 	return result, nil
 }
 
@@ -237,17 +245,12 @@ func (p *PrometheusProvider) executeQuery(ctx context.Context, query MetricQuery
 	// 檢查快取
 	if p.config.Cache.Enabled {
 		if cached := p.getCachedResult(query); cached != nil {
+			providerQueriesTotal.WithLabelValues("cache_hit").Inc()
+			providerCacheHitsTotal.Inc()
 			p.logger.Debug("returning cached result", zap.String("metric", query.Metric))
 			return cached, nil
 		}
-	}
-
-	// 獲取並發控制權限
-	select {
-	case p.concurrencyLimiter <- struct{}{}:
-		defer func() { <-p.concurrencyLimiter }()
-	case <-ctx.Done():
-		return nil, ctx.Err()
+		providerCacheMissesTotal.Inc()
 	}
 
 	// 構建 PromQL 查詢
@@ -256,24 +259,10 @@ func (p *PrometheusProvider) executeQuery(ctx context.Context, query MetricQuery
 		return nil, fmt.Errorf("failed to build valid PromQL query")
 	}
 
-	p.logger.Debug("executing prometheus query",
-		zap.String("promql", promQL),
-		zap.String("metric", query.Metric),
-	)
-
 	// 執行查詢
-	result, warnings, err := p.client.QueryRange(ctx, promQL, v1.Range{
-		Start: query.TimeRange.Start,
-		End:   query.TimeRange.End,
-		Step:  query.Step,
-	})
-
+	result, warnings, err := p.executePrometheusQuery(ctx, promQL, query.TimeRange, query.Step)
 	if err != nil {
-		p.logger.Error("prometheus query failed",
-			zap.Error(err),
-			zap.String("promql", promQL),
-		)
-		return nil, fmt.Errorf("prometheus query failed: %w", err)
+		return nil, err
 	}
 
 	// 轉換結果
@@ -294,22 +283,19 @@ func (p *PrometheusProvider) checkCircuitBreaker() error {
 
 	switch p.cbState {
 	case StateOpen:
-		// 如果在開啟狀態，檢查是否可以轉換到半開狀態
 		if time.Since(p.cbLastFailure) > p.config.CircuitBreaker.RecoveryTimeout {
 			p.logger.Info("recovery timeout elapsed, transitioning to half-open state",
 				zap.Duration("recoveryTimeout", p.config.CircuitBreaker.RecoveryTimeout))
 			p.cbState = StateHalfOpen
-			p.cbFailures = 0 // 重置失敗計數器以進行半開測試
+			providerCircuitBreakerState.Set(2) // 2 for half-open
+			p.cbFailures = 0
 			return nil
 		}
-		// 否則，保持開啟並返回錯誤
 		return fmt.Errorf("circuit breaker is open for metric provider")
 	case StateHalfOpen:
-		// 在半開狀態下，只允許一個請求通過
 		p.logger.Debug("circuit breaker is half-open, allowing one request")
 		return nil
 	case StateClosed:
-		// 關閉狀態，允許請求
 		return nil
 	}
 	return nil
@@ -320,7 +306,6 @@ func (p *PrometheusProvider) handleFailure(err error) {
 	p.cbMu.Lock()
 	defer p.cbMu.Unlock()
 
-	// 忽略 context canceled 錯誤
 	if err == context.Canceled || err == context.DeadlineExceeded {
 		return
 	}
@@ -333,11 +318,13 @@ func (p *PrometheusProvider) handleFailure(err error) {
 				zap.Int64("failures", p.cbFailures),
 				zap.Int64("threshold", p.config.CircuitBreaker.FailureThreshold))
 			p.cbState = StateOpen
+			providerCircuitBreakerState.Set(1) // 1 for open
 			p.cbLastFailure = time.Now()
 		}
 	case StateHalfOpen:
 		p.logger.Warn("request failed in half-open state, re-opening circuit breaker")
 		p.cbState = StateOpen
+		providerCircuitBreakerState.Set(1) // 1 for open
 		p.cbLastFailure = time.Now()
 	}
 }
@@ -360,46 +347,221 @@ func (p *PrometheusProvider) handleSuccess() {
 	}
 }
 
-// BatchQuery 並行執行多個查詢
+// BatchQuery 並行執行多個查詢，並對相似的查詢進行合併優化
 func (p *PrometheusProvider) BatchQuery(ctx context.Context, queries []MetricQuery) ([]*QueryResult, error) {
 	if len(queries) == 0 {
 		return nil, nil
 	}
 
-	// 檢查 context 取消
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
 	}
 
-	results := make([]*QueryResult, len(queries))
-	errors := make([]error, len(queries))
+	// 1. Group queries that can be merged
+	type queryGroupKey string
+	type originalQuery struct {
+		query MetricQuery
+		index int
+	}
 
-	// 使用 WaitGroup 進行並發控制
+	groups := make(map[queryGroupKey][]*originalQuery)
+	for i, q := range queries {
+		labels := make([]string, 0, len(q.Labels))
+		for k, v := range q.Labels {
+			labels = append(labels, fmt.Sprintf("%s=%s", k, v))
+		}
+		sort.Strings(labels)
+
+		key := fmt.Sprintf("%d-%d-%d-%s-%s",
+			q.TimeRange.Start.UnixNano(),
+			q.TimeRange.End.UnixNano(),
+			q.Step.Nanoseconds(),
+			q.Aggregation,
+			strings.Join(labels, ","))
+
+		groupKey := queryGroupKey(key)
+		groups[groupKey] = append(groups[groupKey], &originalQuery{query: q, index: i})
+	}
+
+	results := make([]*QueryResult, len(queries))
+	errs := make(chan error, len(groups))
 	var wg sync.WaitGroup
 
-	for i, query := range queries {
+	// 2. Execute each group
+	for _, group := range groups {
 		wg.Add(1)
-		go func(index int, q MetricQuery) {
+		go func(g []*originalQuery) {
 			defer wg.Done()
 
-			result, err := p.Query(ctx, q)
-			results[index] = result
-			errors[index] = err
-		}(i, query)
+			if len(g) == 1 {
+				// Execute as a single query
+				result, err := p.Query(ctx, g[0].query)
+				if err != nil {
+					errs <- fmt.Errorf("query for metric %s failed: %w", g[0].query.Metric, err)
+					return
+				}
+				results[g[0].index] = result
+				return
+			}
+
+			// Execute as a merged query
+			var groupQueries []MetricQuery
+			for _, oq := range g {
+				groupQueries = append(groupQueries, oq.query)
+			}
+
+			mergedPromQL := p.buildMergedPromQL(groupQueries)
+			if mergedPromQL == "" {
+				errs <- fmt.Errorf("failed to build merged promql for group")
+				return
+			}
+
+			// Execute query directly, bypassing individual query cache/circuit breaker
+			mergedResult, warnings, err := p.executePrometheusQuery(ctx, mergedPromQL, groupQueries[0].TimeRange, groupQueries[0].Step)
+			if err != nil {
+				errs <- fmt.Errorf("merged query failed: %w", err)
+				return
+			}
+
+			// De-multiplex the result
+			demuxResults := p.demultiplexResults(mergedResult, warnings, groupQueries)
+
+			// Assign results back to their original positions
+			for _, oq := range g {
+				if res, ok := demuxResults[oq.query.Metric]; ok {
+					results[oq.index] = res
+				} else {
+					results[oq.index] = &QueryResult{Query: &oq.query, Series: []TimeSeries{}}
+				}
+			}
+		}(group)
 	}
 
 	wg.Wait()
+	close(errs)
 
-	// 檢查是否有錯誤
-	for i, err := range errors {
-		if err != nil {
-			return nil, fmt.Errorf("query %d failed: %w", i, err)
+	// Check for errors
+	if len(errs) > 0 {
+		var errStrings []string
+		for err := range errs {
+			errStrings = append(errStrings, err.Error())
 		}
+		return nil, fmt.Errorf("one or more batch queries failed: %s", strings.Join(errStrings, "; "))
 	}
 
 	return results, nil
+}
+
+// executePrometheusQuery is a helper to run the actual PromQL query, wrapped with concurrency limiting.
+func (p *PrometheusProvider) executePrometheusQuery(ctx context.Context, promQL string, timeRange TimeRange, step time.Duration) (model.Value, v1.Warnings, error) {
+	// Get concurrency limiter token
+	select {
+	case p.concurrencyLimiter <- struct{}{}:
+		defer func() { <-p.concurrencyLimiter }()
+	case <-ctx.Done():
+		return nil, nil, ctx.Err()
+	}
+
+	p.logger.Debug("executing prometheus query", zap.String("promql", promQL))
+
+	result, warnings, err := p.client.QueryRange(ctx, promQL, v1.Range{
+		Start: timeRange.Start,
+		End:   timeRange.End,
+		Step:  step,
+	})
+	if err != nil {
+		p.logger.Error("prometheus query failed", zap.Error(err), zap.String("promql", promQL))
+		return nil, nil, fmt.Errorf("prometheus query failed: %w", err)
+	}
+	return result, warnings, nil
+}
+
+// buildMergedPromQL builds a PromQL query for a set of mergeable queries.
+func (p *PrometheusProvider) buildMergedPromQL(queries []MetricQuery) string {
+	if len(queries) == 0 {
+		return ""
+	}
+	sampleQuery := queries[0]
+
+	var metricNames []string
+	for _, q := range queries {
+		if isValidMetricName(q.Metric) {
+			metricNames = append(metricNames, q.Metric)
+		}
+	}
+	if len(metricNames) == 0 {
+		return ""
+	}
+	metricRegex := strings.Join(metricNames, "|")
+
+	// Combine labels from the sample query with the __name__ regex
+	var labelFilters []string
+	for k, v := range sampleQuery.Labels {
+		if isValidLabelName(k) && isValidLabelValue(v) {
+			labelFilters = append(labelFilters, fmt.Sprintf(`%s="%s"`, k, v))
+		}
+	}
+	labelFilters = append(labelFilters, fmt.Sprintf(`__name__=~"%s"`, metricRegex))
+	sort.Strings(labelFilters)
+
+	promql := fmt.Sprintf("{%s}", strings.Join(labelFilters, ","))
+
+	// Apply aggregation, preserving the metric name for de-multiplexing
+	if sampleQuery.Aggregation != "" && isValidAggregation(sampleQuery.Aggregation) {
+		promql = fmt.Sprintf("%s by (__name__) (%s)", sampleQuery.Aggregation, promql)
+	}
+
+	return promql
+}
+
+// demultiplexResults splits a merged query result back into individual results.
+func (p *PrometheusProvider) demultiplexResults(mergedResult model.Value, warnings v1.Warnings, originalQueries []MetricQuery) map[string]*QueryResult {
+	demuxResults := make(map[string]*QueryResult)
+
+	matrix, ok := mergedResult.(model.Matrix)
+	if !ok {
+		return demuxResults
+	}
+
+	// Pre-create result holders for each original query
+	queryMap := make(map[string]MetricQuery)
+	for _, q := range originalQueries {
+		queryMap[q.Metric] = q
+		demuxResults[q.Metric] = &QueryResult{
+			Query:    &q,
+			Series:   []TimeSeries{},
+			Warnings: warnings,
+		}
+	}
+
+	// Distribute the series from the merged result
+	for _, series := range matrix {
+		if metricName, ok := series.Metric["__name__"]; ok {
+			if _, exists := demuxResults[string(metricName)]; exists {
+				convertedSeries := p.convertSeries(series)
+				demuxResults[string(metricName)].Series = append(demuxResults[string(metricName)].Series, convertedSeries)
+			}
+		}
+	}
+
+	return demuxResults
+}
+
+// convertSeries converts a single Prometheus model.SampleStream to a TimeSeries.
+func (p *PrometheusProvider) convertSeries(series *model.SampleStream) TimeSeries {
+	ts := TimeSeries{
+		Labels: make(map[string]string),
+		Values: make([]DataPoint, len(series.Values)),
+	}
+	for name, value := range series.Metric {
+		ts.Labels[string(name)] = string(value)
+	}
+	for i, value := range series.Values {
+		ts.Values[i] = DataPoint{Timestamp: value.Timestamp.Time(), Value: float64(value.Value)}
+	}
+	return ts
 }
 
 // GetAggregation 執行聚合查詢

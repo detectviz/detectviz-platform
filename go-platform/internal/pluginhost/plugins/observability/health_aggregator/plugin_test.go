@@ -3,15 +3,53 @@ package health_aggregator
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
+	"github.com/detectviz/detectviz-platform/go-platform/internal/metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+// mockMetricsProvider is a mock implementation of MetricsProvider for testing.
+type mockMetricsProvider struct {
+	metrics.MetricsProvider
+	queryFunc func(ctx context.Context, query metrics.MetricQuery) (*metrics.QueryResult, error)
+}
+
+func (m *mockMetricsProvider) Query(ctx context.Context, query metrics.MetricQuery) (*metrics.QueryResult, error) {
+	if m.queryFunc != nil {
+		return m.queryFunc(ctx, query)
+	}
+	return nil, errors.New("mock not implemented")
+}
+
+func (m *mockMetricsProvider) BatchQuery(ctx context.Context, queries []metrics.MetricQuery) ([]*metrics.QueryResult, error) {
+	results := make([]*metrics.QueryResult, len(queries))
+	var errs []error
+	for i, q := range queries {
+		res, err := m.Query(ctx, q)
+		if err != nil {
+			// In a real scenario, we might want to handle multiple errors.
+			// For this test, the first error is enough to signal failure.
+			errs = append(errs, err)
+		}
+		results[i] = res
+	}
+	if len(errs) > 0 {
+		return results, errs[0]
+	}
+	return results, nil
+}
+
+func (m *mockMetricsProvider) Close() error {
+	return nil
+}
 
 func TestPlugin_New(t *testing.T) {
 	plugin := New()
@@ -254,4 +292,70 @@ func TestPlugin_StatisticsEmptyValues(t *testing.T) {
 
 	assert.NotNil(t, stats)
 	assert.Equal(t, int64(0), stats.Count)
+}
+
+func TestHealthAggregator_ProviderFailure(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	// 1. Create a mock provider that fails for one metric
+	mockProvider := &mockMetricsProvider{
+		queryFunc: func(ctx context.Context, query metrics.MetricQuery) (*metrics.QueryResult, error) {
+			if query.Metric == "cpu_usage" {
+				// Succeed for cpu_usage
+				return &metrics.QueryResult{
+					Query: &query,
+					Series: []metrics.TimeSeries{
+						{
+							Values: []metrics.DataPoint{{Value: 0.5}},
+						},
+					},
+				}, nil
+			}
+			if query.Metric == "memory_usage" {
+				// Fail for memory_usage
+				return nil, errors.New("provider failed for memory_usage")
+			}
+			return nil, fmt.Errorf("unexpected metric: %s", query.Metric)
+		},
+	}
+
+	// 2. Create the plugin and inject the mock provider
+	plugin := &Plugin{
+		provider:     mockProvider,
+		logger:       logger,
+		metricsCache: make(map[string]*CachedMetrics),
+	}
+
+	// 3. Call Invoke with a request for both metrics
+	request := HealthQueryRequest{
+		ServiceName: "test-service",
+		Metrics:     []string{"cpu_usage", "memory_usage"},
+	}
+	reqBytes, err := json.Marshal(request)
+	require.NoError(t, err)
+	reqStruct := &structpb.Struct{}
+	err = reqStruct.UnmarshalJSON(reqBytes)
+	require.NoError(t, err)
+	req := &pb.InvokeRequest{Payload: reqStruct}
+
+	resp, err := plugin.Invoke(context.Background(), req)
+
+	// 4. Assert that the call succeeds overall
+	require.NoError(t, err)
+	assert.NotNil(t, resp.Result)
+
+	// 5. Assert the response contains partial data
+	var healthResp HealthQueryResponse
+	respBytes, err := resp.Result.MarshalJSON()
+	require.NoError(t, err)
+	err = json.Unmarshal(respBytes, &healthResp)
+	require.NoError(t, err)
+
+	// Should contain the successful metric
+	assert.Contains(t, healthResp.Metrics, "cpu_usage")
+	assert.NotNil(t, healthResp.Metrics["cpu_usage"])
+	assert.Len(t, healthResp.Metrics["cpu_usage"].Values, 1)
+
+	// Should NOT contain the failed metric
+	assert.NotContains(t, healthResp.Metrics, "memory_usage")
 }
