@@ -1453,7 +1453,9 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
----
+```
+
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -1987,7 +1989,6 @@ class DataCollectorAgent:
         """收集日誌數據"""
         
         services = strategy.get('services', [])
-        time_window = strategy.get('time_window_minutes', 60)
         
         # 調用日誌分析器
         result = await self.log_analyzer(
@@ -2032,6 +2033,8 @@ class DataCollectorAgent:
 **檔案位置**：`python-adk-runtime/src/detectviz_adk/memory/stores/response_history_store.py`
 
 ```python
+# 注意：以下為程式碼片段，可能需要在完整上下文中使用
+# 注意：以下為程式碼片段，可能需要在完整上下文中使用
 """響應歷史存儲 - 知識庫實作"""
 
 import json
@@ -2127,10 +2130,7 @@ class ResponseHistoryStore:
         """獲取快取的響應"""
         
         # 計算請求雜湊
-        request_str = json.dumps(request_data, sort_keys=True)
-        request_hash = hashlib.sha256(request_str.encode()).hexdigest()
         
-        async with aiosqlite.connect(self.db_path) as conn:
             async with conn.execute("""
                 SELECT response_data, created_at, expires_at 
                 FROM response_history 
@@ -2177,12 +2177,10 @@ class ResponseHistoryStore:
         where_clause = " AND ".join(conditions) if conditions else "1=1"
         params.append(limit)
         
-        async with aiosqlite.connect(self.db_path) as conn:
             async with conn.execute(f"""
                 SELECT incident_id, agent_name, request_data, response_data, created_at, tags
                 FROM response_history 
                 WHERE {where_clause}
-                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
                 ORDER BY created_at DESC
                 LIMIT ?
             """, params) as cursor:
@@ -2203,7 +2201,6 @@ class ResponseHistoryStore:
     async def cleanup_expired(self) -> int:
         """清理過期數據"""
         
-        async with aiosqlite.connect(self.db_path) as conn:
             cursor = await conn.execute("""
                 DELETE FROM response_history 
                 WHERE expires_at IS NOT NULL AND expires_at <= CURRENT_TIMESTAMP
@@ -2403,7 +2400,6 @@ class TestMyCustomAgent:
 
 import pytest
 import asyncio
-from detectviz_adk.agents.custom.my_agent import MyCustomAgent
 from detectviz_adk.tools.remote_tool import RemoteTool
 
 class TestAgentIntegration:

@@ -123,21 +123,44 @@ func (p *Plugin) Invoke(ctx context.Context, req *pb.InvokeRequest) (*pb.InvokeR
 
 // Close 實作 ClosableHandler 介面 - 清理資源
 func (p *Plugin) Close() error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	return p.CloseWithContext(context.Background())
+}
 
-	// 清理快取
-	p.metricsCache = make(map[string]*CachedMetrics)
+// CloseWithContext 帶超時控制的關閉方法
+func (p *Plugin) CloseWithContext(ctx context.Context) error {
+	// 設置 5 秒超時
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
-	// 關閉 provider
-	if p.provider != nil {
-		if err := p.provider.Close(); err != nil {
-			p.logger.Warn("Failed to close metrics provider", zap.Error(err))
+	// 等待進行中的請求完成
+	done := make(chan error, 1)
+	go func() {
+		p.mu.Lock()
+		defer p.mu.Unlock()
+
+		// 清理快取
+		p.metricsCache = make(map[string]*CachedMetrics)
+
+		// 關閉 provider
+		if p.provider != nil {
+			if err := p.provider.Close(); err != nil {
+				p.logger.Warn("Failed to close metrics provider", zap.Error(err))
+				done <- err
+				return
+			}
 		}
-	}
 
-	p.logger.Info("Health aggregator plugin closed")
-	return nil
+		p.logger.Info("Health aggregator plugin closed")
+		done <- nil
+	}()
+
+	select {
+	case err := <-done:
+		return err
+	case <-ctx.Done():
+		p.logger.Error("Close timeout exceeded", zap.Error(ctx.Err()))
+		return fmt.Errorf("close timeout: %w", ctx.Err())
+	}
 }
 
 // queryHealthMetrics 查詢健康指標

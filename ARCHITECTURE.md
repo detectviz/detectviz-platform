@@ -455,9 +455,6 @@ Version_Control_Standards:
 ```go
 // 所有 Provider 必須實現的介面
 type MetricsProvider interface {
-    Query(ctx context.Context, query MetricQuery) (*QueryResult, error)
-    BatchQuery(ctx context.Context, queries []MetricQuery) ([]*QueryResult, error)
-    GetAggregation(ctx context.Context, opts AggregationOptions) (*AggregationResult, error)
     HealthCheck(ctx context.Context) error
 }
 

@@ -80,6 +80,15 @@ type QueryResult struct {
 
 	// Stats contains query statistics
 	Stats *QueryStats `json:"stats,omitempty"`
+
+	// Truncated indicates if results were truncated due to size limits
+	Truncated bool `json:"truncated,omitempty"`
+
+	// MaxSeriesExceeded indicates if max series limit was exceeded
+	MaxSeriesExceeded bool `json:"max_series_exceeded,omitempty"`
+
+	// MaxDataPointsExceeded indicates if max data points limit was exceeded
+	MaxDataPointsExceeded bool `json:"max_data_points_exceeded,omitempty"`
 }
 
 // TimeSeries represents a single time series
@@ -215,6 +224,24 @@ type ProviderConfig struct {
 
 	// Query routing configuration
 	QueryRouter *QueryRouterConfig `json:"query_router,omitempty"`
+
+	// Result limits configuration
+	Limits *ResultLimits `json:"limits,omitempty"`
+}
+
+// ResultLimits defines limits for query results
+type ResultLimits struct {
+	// Maximum number of time series per query
+	MaxSeries int `json:"max_series"`
+
+	// Maximum number of data points per series
+	MaxDataPointsPerSeries int `json:"max_data_points_per_series"`
+
+	// Maximum total data points per query
+	MaxTotalDataPoints int `json:"max_total_data_points"`
+
+	// Maximum query result size in bytes
+	MaxResultSizeBytes int64 `json:"max_result_size_bytes"`
 }
 
 // QueryRouterConfig defines routing rules for queries
