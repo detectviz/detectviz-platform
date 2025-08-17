@@ -1,23 +1,12 @@
-# AGENT.md - Detectviz 平台開發貢獻指南
+# Detectviz 平台開發貢獻指南
 
 本文檔為 Detectviz 平台所有貢獻者（包含 AI 與人類協作者）的統一開發指南，旨在確保程式碼品質、文件同步與高效協作。
 
-## 1. 核心開發原則與架構
+## 文檔層級關係
 
-### 1.1. 專案狀態與成熟度
-**當前專案完成度：96.8%** ✨ 
+本文檔在整體文檔體系中的定位：
 
-**關鍵里程碑**：
-- ✅ 核心架構實現完成 (Go 平台 + Python ADK Runtime)
-- ✅ 跨語言通訊橋接驗證完成 (gRPC ToolBridge)
-- ✅ 可觀察性系統整合完成 (OpenTelemetry + Grafana Cloud)
-- ✅ 技術債務清理完成 (2024年12月優化)
-- 🔄 生產部署準備中
-
-### 1.2. 文檔層級關係
-本專案所有開發工作遵循一個清晰的文檔層級，本文件是其中的核心協作規範：
-
-```bash
+```
 sre-services-map.md (架構憲法 - 業務邏輯與服務地圖)
 ↓ 指導實現
 spec.md (技術規格 - 詳細實作規範) 
@@ -29,138 +18,150 @@ AGENT.md (本文檔 - 開發守則與協作規範)
 contracts/ (SSOT - Protocol Buffers, Schema, 配置範本)
 ```
 
-### 1.3. 2024年12月技術債務清理成果
-剛完成的全面技術債務清理包含：
+## 專案狀態
 
-**🔧 Go Platform 優化**：
-- 實現 OpenTelemetry 觀測功能
-- 重構插件開發工具鏈
-- 強化 SSOT 契約驗證機制
-- 清理冗餘代碼，100% 測試通過
+> 當前專案狀態：參見 [專案狀態文檔](docs/status/PROJECT_STATUS.md)  
+> 技術債務清理成果：參見 [技術債務狀態](docs/status/TECHNICAL_DEBT_STATUS.md)
 
-**🐍 Python ADK Runtime 最佳化**：
-- 修復 RemoteTool proto 消息不匹配問題
-- 驗證 Agent 團隊協作架構
-- 確認與 go-platform 的橋接穩定性
-- 總計 1936 行代碼，結構清晰無技術債務
+## 核心開發原則
 
-**📋 Contracts Proto 規範化**：
-- 統一 Java 包選項配置
-- 修正所有枚舉命名規範 (ENUM_TYPE_PREFIX)
-- 規範化 RPC 方法請求/響應命名
-- 清理未使用 imports，通過 buf lint 檢查
-- 新增自動化工具：模組卡生成器、Proto 健康檢查器
+### Agent vs Tool 職責分離
 
-### 1.2. Agent vs. Tool 黃金準則
-所有開發必須嚴格遵守「決策」與「執行」分離的黃金準則：
-* **Agent (決策層)**：負責 **WHY** (為什麼), **WHAT** (做什麼), **WHEN** (何時做)。Agent 不直接操作數據，專注於業務邏輯和工作流編排。
-* **Tool (執行層)**：負責 **HOW** (如何做), **WHERE** (在哪做), **WITH** (用什麼)。Tool 是無狀態、冪等的執行單元，負責數據操作和與外部系統集成。
+> 核心規則詳述：參見 [AI協作核心規則](docs/development/AI_COLLABORATION_RULES.md)
 
-### 1.4. 三大基本原則
-1.  **SSOT 契約優先 (Contracts-First)**：任何跨語言介面、API 或組態結構的變更，**必須**優先在 `contracts/` 目錄下完成。
-2.  **文件同步 (Docs-as-Code)**：任何影響使用者行為或系統架構的程式碼變更，都必須同步更新相關文件。
-3.  **安全第一 (Security-First)**：嚴禁在版本控制中提交任何真實的密鑰或 Token。
+**黃金準則簡述**：
+- **Agent (決策層)**：負責 WHY、WHAT、WHEN - 決策制定、工作流編排
+- **Tool (執行層)**：負責 HOW、WHERE、WITH - 具體執行、數據操作
 
-### 1.5. 🛠️ 新增自動化工具鏈 (2024年12月)
-為防止技術債務累積，現已提供以下自動化工具：
+### SSOT 契約優先
 
-**模組卡管理**：
+> 詳細契約管理：參見 [contracts 使用指南](contracts/README.md)
+
+任何跨語言介面或配置變更**必須**優先在 `contracts/` 完成：
+1. 更新 proto/schema/samples
+2. 執行 `buf lint && buf generate` 
+3. 同步到下游專案
+
+### 自動化工具鏈
+
+> 完整工具使用：參見 [自動化工具文檔](docs/development/AUTOMATION_TOOLS.md)
+
+**關鍵命令**：
 ```bash
-# 生成新模組卡（自動符合 schema 規範）
-make generate-module-card NAME=health_monitor ROLE=observability.module CATEGORY=observability.processor DESC="健康監控模組"
+# 🚀 主要開發命令（AI 協作者常用）
+make validate-implementation   # 完整實作驗證 (推薦)
+make setup-development         # 設置開發環境
+make fix-common-issues         # 修復常見問題
 
-# 自動修復模組卡常見問題
+# 📋 模組卡管理
+make generate-module-card NAME=<name> ROLE=<role> CATEGORY=<category> DESC="<description>"
 make fix-module-cards
 
-# 驗證所有模組卡
-make validate-cards
-```
-
-**Proto 文件維護**：
-```bash
-# Proto 健康檢查
+# 🛠️ Proto 維護
 make health-check-proto
-
-# 完整 Proto 維護流程
 make maintain-proto
 
-# 單獨檢查特定文件
-python3 contracts/tools/proto_health_check.py contracts/proto/detectviz/contracts/v1/postmortem.proto
-```
-
-**完整驗證流程**：
-```bash
-# 包含版本檢查的完整驗證
+# ✅ 完整驗證
 make validate-with-versions
-
-# 快速驗證（適合開發時使用）
-make validate
 ```
 
-## 2. llm.txt 強制執行機制
+## llm.txt 強制執行機制
 
-這是確保所有原則得以落實的核心機制。每個主要模組下都有一份 `llm.txt`，作為該模組的**專用開發檢查清單**。
+每個主要模組都有專用的 `llm.txt` 檔案，作為該模組的開發檢查清單：
 
-* `contracts/llm.txt`
-* `go-platform/llm.txt`
-* `python-adk-runtime/llm.txt`
+- `contracts/llm.txt` - SSOT 契約維護規範
+- `go-platform/llm.txt` - Go 平台開發指南  
+- `python-adk-runtime/llm.txt` - Python ADK Runtime 維護指南
 
-**所有貢獻者必須遵循以下三級檢查制度**：
+### 三級檢查制度
 
-#### 第一級：開發前強制檢查
-1.  **識別模組**：明確本次開發涉及的所有模組。
-2.  **熟讀檢查清單**：完整閱讀所有相關模組的 `llm.txt` 文件。
-3.  **制定執行計畫**：明確哪些檢查項目適用於本次開發。
+**第一級：開發前檢查**
+1. 識別本次開發涉及的所有模組
+2. 閱讀所有相關模組的 `llm.txt` 
+3. 制定符合規範的執行計畫
 
-#### 第二級：開發過程中強制檢查
-* **里程碑檢查**：每完成一個功能點，回顧並檢查是否符合 `llm.txt` 的要求。
-* **規範遵循**：實時確認沒有違反模組的「必守規範」。
+**第二級：開發過程檢查**
+- 每完成一個功能點，回顧檢查清單
+- 確認沒有違反模組的必守規範
 
-#### 第三級：提交前強制檢查
-* **100% 完成度**：確保所有相關模組 `llm.txt` 的「提交前檢查清單」已 100% 完成。
-* **自我報告**：在 PR 描述中，必須附上 `llm.txt` 的自我檢查報告，說明完成情況。
+**第三級：提交前檢查**
+- 確保所有相關模組 `llm.txt` 的檢查清單 100% 完成
+- 運行自動化驗證工具
+- 同步更新相關文檔
 
-## 3. 開發與貢獻工作流程
+## 模組開發標準
 
-### 3.1. 變更前規劃
-- [ ] 識別變更類型 (SSOT 契約, 核心邏輯, 介面變更等)。
-- [ ] 評估影響範圍 (UI, 系統行為, 文件, 範例)。
-- [ ] 建立包含「文件更新」的 TODO 清單。
+> 詳細標準：參見 [模組開發標準](docs/development/MODULE_STANDARDS.md)
 
-### 3.2. 實作與驗證
-- [ ] 遵循 SSOT 原則，契約變更先行，並執行 `cd contracts && make gen`。
-- [ ] 嚴格遵循對應模組 `llm.txt` 的所有規範。
-- [ ] 編寫或更新單元測試和整合測試，確保測試覆蓋率 > 90%。
+### 代碼品質要求
+- 類型標註完整 (Python) / 類型安全 (Go)
+- 單元測試覆蓋率 > 90%
+- 錯誤處理機制完善
+- 結構化日誌記錄
 
-### 3.3. 文件同步更新
-根據變更的影響，更新相關文件：
--   **P0 (必須更新)**：影響 CLI、環境變數、啟動流程、`config.yaml` 結構的變更。
--   **P1 (重要更新)**：影響系統架構、核心行為或錯誤處理流程的變更。
--   **P2 (建議更新)**：內部程式碼結構的重大重構。
+### 可觀察性整合
+- 使用 OpenTelemetry 進行分散式追蹤
+- 導出 Prometheus 指標
+- 結構化日誌輸出
+- 支援 pprof 性能分析
 
-### 3.4. 提交 Pull Request
-- [ ] 在 PR 描述中清楚說明變更的摘要、風險與驗證方式。
-- [ ] **附上 `llm.txt` 的自我檢查報告**。
-- [ ] 確保所有 CI/CD 流程通過。
+### 安全規範
+- 敏感資訊通過環境變數管理
+- 禁止硬編碼密鑰或憑證
+- 實施適當的輸入驗證
+- 遵循最小權限原則
 
-## 4. MVP 開發聚焦 (Phase 3: 事後複盤)
+## 測試策略
 
-當前所有開發工作應聚焦於 MVP 範圍，避免添加非 Phase 3 的功能。
-* **核心組件**：`postmortem_orchestrator`, `HealthAggregator`, `ReportGenerator`, `ResponseHistoryStore`。
-* **目標**：實現一個可運行的、從數據查詢到報告生成的事後複盤流程。
-* 詳細的 MVP 任務請參考 `TODO.md`。
+> 完整測試指南：參見 [測試指導原則](docs/development/TESTING_GUIDELINES.md)
 
----
+### 測試層級
+- **單元測試**：模組內部邏輯驗證
+- **整合測試**：跨模組通訊驗證
+- **端到端測試**：完整工作流程驗證
 
-## 5. 相關文件快速連結
+### 測試要求
+- 每個公開介面都要有測試
+- 錯誤場景覆蓋完整
+- 性能基準測試
+- 回歸測試自動化
 
-* **架構**
-    * [**`sre-services-map.md`**](sre-services-map.md): 架構憲法
-    * [**`spec.md`**](spec.md): 平台技術規格
-* **開發**
-    * [**`TODO.md`**](TODO.md): 當前 MVP 任務指令
-    * [**`docs/quick-reference.md`**](docs/quick-reference.md): 快速參考手冊
-* **模組**
-    * [**`contracts/README.md`**](contracts/README.md): SSOT 契約管理
-    * [**`go-platform/README.md`**](go-platform/README.md): Go 平台開發指南
-    * [**`python-adk-runtime/README.md`**](python-adk-runtime/README.md): Python ADK 開發指南
+## 故障排除
+
+### 常見問題快速診斷
+1. **gRPC 通訊失敗**：檢查 ToolBridge 連接狀態
+2. **Proto 消息錯誤**：驗證 contracts 同步狀態  
+3. **模組卡驗證失敗**：使用自動修復工具
+4. **測試失敗**：檢查模組 llm.txt 指南
+
+### 緊急修復流程
+1. 識別問題模組
+2. 查閱對應的 llm.txt 緊急修復指南
+3. 使用提供的自動化工具
+4. 驗證修復結果
+
+## 開發工作流程
+
+### 功能開發流程
+1. **需求分析**：參考 sre-services-map.md 了解業務邏輯
+2. **技術設計**：依據 spec.md 進行技術設計
+3. **開發實現**：遵循本文檔和模組 llm.txt 指南
+4. **測試驗證**：執行完整測試套件
+5. **文檔更新**：同步更新相關文檔
+
+### 代碼審查檢查清單
+- [ ] 符合 Agent vs Tool 職責分離 (`docs/development/AI_COLLABORATION_RULES.md`)
+- [ ] 遵循 SSOT 契約優先原則 (`contracts/README.md`)
+- [ ] 通過所有自動化驗證 (`make validate-implementation`)
+- [ ] 包含完整的測試覆蓋 (`docs/development/TESTING_GUIDELINES.md`)
+- [ ] 文檔已同步更新 (相關 SSOT 文檔)
+
+## AI 協作者特殊注意事項
+
+1. **理解文檔層級**：按照文檔層級關係逐步深入理解
+2. **嚴格遵循職責分離**：Agent 和 Tool 的邊界不可模糊
+3. **優先使用自動化工具**：避免手動操作導致的錯誤
+4. **保持 SSOT 一致性**：所有變更都要回到契約源頭
+5. **定期檢查健康狀態**：使用提供的健康檢查工具
+
+記住：本指南是開發工作的基石，任何疑問都要回到對應的 SSOT 文檔尋找答案！

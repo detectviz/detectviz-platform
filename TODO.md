@@ -1,8 +1,12 @@
-# TODO.md - Detectviz Platform MVP 實作任務
+# TODO.md - MVP 實作任務
 
-> 本文件記錄 MVP 階段的具體實作任務。開發規範和架構原則請參考 [`AGENT.md`](./AGENT.md)
+> 文檔職責：記錄 MVP 階段具體實作任務和進度追蹤
 
 ## 專案狀態
+
+> 當前專案狀態：參見 [專案狀態文檔](docs/status/PROJECT_STATUS.md)  
+> 開發規範：參見 [AI協作指南](AGENT.md)  
+> 技術規格：參見 [技術規格文檔](spec.md)
 
 - **當前階段**: MVP Phase 3 - 事後複盤系統
 - **時程**: 2 週交付（當前 Week 1）
@@ -12,10 +16,10 @@
 ## MVP 核心交付目標
 
 ### 主要功能
-1. ✅ 自動事故複盤分析
-2. ✅ 結構化報告生成（Markdown）
-3. ✅ 知識庫累積與檢索
-4. ⚡ Grafana Dashboard 自動生成（增強功能）
+1. 自動事故複盤分析
+2. 結構化報告生成（Markdown）
+3. 知識庫累積與檢索
+4. Grafana Dashboard 自動生成（增強功能）
 
 ### 技術目標
 - 端到端工作流程驗證
@@ -486,9 +490,9 @@ async def test_complete_postmortem_flow():
 ## 進度追蹤
 
 ### Week 1 (當前)
-- ✅ Day 1-2: MetricsProvider 架構 + Prometheus Provider
-- ✅ Day 3-4: HealthAggregator 改造 + Registry 優化 + 生產級功能
-- ✅ Day 5: 完整測試驗證與文檔更新
+- Day 1-2: MetricsProvider 架構 + Prometheus Provider
+- Day 3-4: HealthAggregator 改造 + Registry 優化 + 生產級功能
+- Day 5: 完整測試驗證與文檔更新
 
 ### Week 2
 - [ ] Day 6-7: 報告生成 + 知識庫
@@ -543,15 +547,15 @@ make test-e2e
 ## 交付標準
 
 ### 必須完成
-- ✅ Prometheus 數據查詢功能
-- ✅ 完整的複盤報告生成
-- ✅ 基本知識庫功能
-- ✅ 90% 測試覆蓋率
+- Prometheus 數據查詢功能
+- 完整的複盤報告生成
+- 基本知識庫功能
+- 90% 測試覆蓋率
 
 ### 加分項
-- ⚡ Dashboard 自動生成
-- ⚡ 多語言報告支援
-- ⚡ 性能優化（<3s 報告生成）
+- Dashboard 自動生成
+- 多語言報告支援
+- 性能優化（<3s 報告生成）
 
 ## 問題追蹤
 

@@ -1,8 +1,12 @@
-# Detectviz 平台 SPEC
+# Detectviz 平台技術規格
+
+> 文檔職責：定義技術實現規範，為混合語言平台提供具體的架構設計和實施指導
 
 本規格針對 Detectviz 以 Google Agent Development Kit（ADK）為核心的混合語言平台（Go + Python），定義目錄結構、跨語言契約、外部觀測、插件/Agent 擴增模式與最小可運行（MVP）組態。設計目標是讓 AI 與人類開發者依此文件即可產出品質穩定、可長期演進的程式碼。
 
-## 文件層級關係
+## 文檔層級關係
+
+> 架構文檔關係：參見 [文檔架構文檔](docs/DOCUMENTATION_ARCHITECTURE.md)
 
 本規格作為技術實現指南，與其他架構文件形成層級關係：
 
@@ -21,6 +25,8 @@ sre-services-map.md     ←  架構憲法（業務邏輯與決策）
 - **本規格（spec.md）**：提供具體的技術實現方案，目錄結構，系統配置
 - **AGENT.md**：針對 AI 協作的具體操作守則和檢查清單
 - **MVP 當前聚焦**：Phase 3（事後複盤）作為最小可用產品
+
+> 詳細文檔關係：參見 [AI協作核心規則](docs/development/AI_COLLABORATION_RULES.md)
 
 所有技術決策應首先參考 SRE Services MAP 的業務邏輯，再依本規格進行具體實現。
 
@@ -197,6 +203,8 @@ go-platform/                           # Go 平台核心
 
 ### 4.1 MVP 範圍定義
 
+> MVP 詳細狀態：參見 [專案狀態文檔](docs/status/PROJECT_STATUS.md#mvp交付目標)
+
 **核心目標**：建立智能化的事後複盤系統，自動收集事故數據、生成分析報告、沉澱知識經驗。
 
 **MVP 包含組件**：
@@ -292,6 +300,8 @@ func (h *HealthAggregatorPlugin) Execute(ctx context.Context, req *pb.ToolReques
 - 明確的責任邊界
 
 ### 4.4 2 週實施時程表
+
+> 詳細任務清單：參見 [MVP實作任務](TODO.md)
 
 | 日期 | 階段 | 主要任務 | 交付物 |
 |------|------|----------|---------|
@@ -450,6 +460,8 @@ CLI 參數說明：
 
 ### 9.1 MVP 專用配置
 
+> 完整配置說明：參見 [contracts 使用指南](contracts/README.md#配置管理)
+
 **MVP 配置重點**：包含事後複盤所需的完整設置
 
 ```yaml
@@ -563,6 +575,8 @@ curl -sS http://127.0.0.1:7777/hello
 * * *
 
 ## 10. 測試與驗證
+
+> 測試範例和標準：參見 [模組開發標準](docs/development/MODULE_STANDARDS.md#測試標準)
 
 - **契約測試**：contracts 生成碼能在 Go/Python 成功編譯；proto 版本與 go_package/python package 固定。
 - **模組卡驗證**：`validate_module_card.py` 應對 role/category/semver/依賴做靜態檢查。

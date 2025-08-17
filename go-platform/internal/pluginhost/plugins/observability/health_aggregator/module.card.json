@@ -1,13 +1,11 @@
 {
   "specVersion": "1.1.0",
-  "kind": "plugin",
+  "kind": "capability",
   "id": "detectviz.health_aggregator",
   "name": "health_aggregator",
   "version": "1.0.0",
-  "role": "observability.module",
-  "category": "observability.processor",
   "responsibility": "Aggregates health metrics from various sources using configurable providers",
-  "description": "Aggregates health metrics from various sources using configurable providers",
+  "category": "capability",
   "capabilities": [
     "metrics_query",
     "batch_query",
