@@ -23,7 +23,12 @@
   "observability": {
     "tags": {
       "plugin.id": "detectviz.plugins.http_request_gateway"
-    }
+    },
+    "metrics": [
+      "http_client_requests_total",
+      "http_client_request_duration_seconds",
+      "http_client_requests_in_flight"
+    ]
   },
   "x-detectviz": {
     "rate_limit": {

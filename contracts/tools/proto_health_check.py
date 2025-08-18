@@ -161,24 +161,44 @@ class ProtoHealthChecker:
                         self.issues.append(f"RPC {method_name} 的響應類型應該是 {expected_response}，而不是 {response_type}")
     
     def _check_unused_imports(self, lines: List[str], content: str):
-        """檢查未使用的 import"""
-        imports = []
-        
-        for line in lines:
+        """檢查未使用的 import（改進版）"""
+        imports = {}  # Store path and line number
+
+        for i, line in enumerate(lines):
             line = line.strip()
             import_match = re.match(r'import\s+"([^"]+)";', line)
             if import_match:
                 import_path = import_match.group(1)
-                imports.append(import_path)
-        
+                imports[import_path] = i
+
+        # 創建一個不包含 import 行的內容版本，以避免自我匹配
+        content_without_imports = "\n".join([
+            line for i, line in enumerate(lines) if i not in imports.values()
+        ])
+
         for import_path in imports:
-            # 提取文件名作為檢查依據
-            filename = import_path.split('/')[-1].replace('.proto', '')
+            # 提取基本文件名作為檢查依據
+            base_filename = import_path.split('/')[-1].replace('.proto', '')
+
+            # 啟發式：將文件名轉換為 PascalCase 作為潛在的類型名稱
+            # e.g., 'google/protobuf/struct.proto' -> 'Struct'
+            # e.g., 'my_custom_message.proto' -> 'MyCustomMessage'
+            potential_type = self._to_pascal_case(base_filename)
             
-            # 檢查是否在 content 中被使用（簡化檢查）
-            if filename not in content or content.count(filename) <= 1:
+            # 檢查潛在類型是否在文件的其餘部分被使用
+            # 這是啟發式的，可能不完美，但比單純的文件名檢查要好
+            if potential_type not in content_without_imports:
                 self.issues.append(f"可能未使用的 import: {import_path}")
                 self.fixes.append(f"考慮移除未使用的 import: {import_path}")
+
+    def _to_pascal_case(self, snake_str: str) -> str:
+        """將 snake_case 或 camelCase 轉換為 PascalCase"""
+        # 處理 camelCase
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', snake_str)
+        # 處理 snake_case
+        s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+        return "".join(word.capitalize() for word in s2.split('_'))
 
 def main():
     """命令行接口"""
