@@ -2,9 +2,7 @@ package metrics
 
 import (
 	"context"
-	"math"
 	"math/rand"
-	"sort"
 	"sync"
 	"time"
 
@@ -110,7 +108,7 @@ func (p *MemoryProvider) generateTestData(metric string, timeRange TimeRange) []
 	step := time.Minute
 
 	for current.Before(timeRange.End) || current.Equal(timeRange.End) {
-		value := p.generateTestValue(metric, current)
+		value := p.generateTestValue(metric)
 		points = append(points, DataPoint{
 			Timestamp: current,
 			Value:     value,
@@ -122,7 +120,7 @@ func (p *MemoryProvider) generateTestData(metric string, timeRange TimeRange) []
 }
 
 // generateTestValue 生成測試值
-func (p *MemoryProvider) generateTestValue(metric string, timestamp time.Time) float64 {
+func (p *MemoryProvider) generateTestValue(metric string) float64 {
 	base := 0.0
 	amplitude := 1.0
 
@@ -146,29 +144,4 @@ func (p *MemoryProvider) generateTestValue(metric string, timestamp time.Time) f
 	// 添加隨機性
 	noise := (rand.Float64() - 0.5) * 0.1
 	return base + amplitude*rand.Float64() + noise
-}
-
-// percentile 計算百分位數 (根據 FIXME.md 優化)
-func (p *MemoryProvider) percentile(values []float64, percentile float64) float64 {
-	if len(values) == 0 {
-		return 0
-	}
-	
-	// 復製並排序
-	sorted := make([]float64, len(values))
-	copy(sorted, values)
-	sort.Float64s(sorted)
-	
-	// 使用線性插值方法計算更精確的百分位數
-	k := float64(len(sorted)-1) * percentile
-	f := math.Floor(k)
-	c := math.Ceil(k)
-	
-	if f == c {
-		return sorted[int(k)]
-	}
-	
-	d0 := sorted[int(f)] * (c - k)
-	d1 := sorted[int(c)] * (k - f)
-	return d0 + d1
 }

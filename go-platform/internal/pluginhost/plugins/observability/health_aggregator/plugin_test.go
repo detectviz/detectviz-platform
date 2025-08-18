@@ -57,7 +57,6 @@ func TestPlugin_New(t *testing.T) {
 	assert.NotNil(t, plugin)
 	assert.NotNil(t, plugin.provider)
 	assert.NotNil(t, plugin.logger)
-	assert.NotNil(t, plugin.metricsCache)
 }
 
 func TestPlugin_Initialize(t *testing.T) {
@@ -159,69 +158,14 @@ func TestPlugin_Invoke(t *testing.T) {
 	}
 }
 
-func TestPlugin_Cache(t *testing.T) {
-	plugin := New()
-	logger := zaptest.NewLogger(t)
-	plugin.Initialize(logger)
-
-	serviceName := "test-service"
-
-	// 第一次查詢
-	request := HealthQueryRequest{
-		ServiceName: serviceName,
-		TimeRange:   "1h",
-		Metrics:     []string{"cpu_usage"},
-	}
-
-	reqBytes, err := json.Marshal(request)
-	require.NoError(t, err)
-
-	reqStruct := &structpb.Struct{}
-	err = reqStruct.UnmarshalJSON(reqBytes)
-	require.NoError(t, err)
-
-	req := &pb.InvokeRequest{
-		Payload: reqStruct,
-	}
-
-	// 執行第一次查詢
-	resp1, err := plugin.Invoke(context.Background(), req)
-	require.NoError(t, err)
-
-	// 檢查快取是否存在
-	cached := plugin.getCachedMetrics(serviceName)
-	assert.NotNil(t, cached)
-
-	// 執行第二次查詢（應該使用快取）
-	resp2, err := plugin.Invoke(context.Background(), req)
-	require.NoError(t, err)
-
-	// 兩次回應應該相同（因為使用了快取）
-	assert.Equal(t, resp1.Result, resp2.Result)
-}
-
 func TestPlugin_Close(t *testing.T) {
 	plugin := New()
 	logger := zaptest.NewLogger(t)
 	plugin.Initialize(logger)
 
-	// 添加一些快取數據
-	response := &HealthQueryResponse{
-		ServiceName: "test",
-		Metrics:     make(map[string]*MetricData),
-		Timestamp:   time.Now(),
-	}
-	plugin.cacheMetrics("test", response)
-
-	// 驗證快取存在
-	assert.NotEmpty(t, plugin.metricsCache)
-
 	// 關閉插件
 	err := plugin.Close()
 	assert.NoError(t, err)
-
-	// 驗證快取已清理
-	assert.Empty(t, plugin.metricsCache)
 }
 
 func TestPlugin_TimeRangeParsing(t *testing.T) {
@@ -320,11 +264,9 @@ func TestHealthAggregator_ProviderFailure(t *testing.T) {
 	}
 
 	// 2. Create the plugin and inject the mock provider
-	plugin := &Plugin{
-		provider:     mockProvider,
-		logger:       logger,
-		metricsCache: make(map[string]*CachedMetrics),
-	}
+	plugin := New()
+	plugin.provider = mockProvider
+	plugin.logger = logger
 
 	// 3. Call Invoke with a request for both metrics
 	request := HealthQueryRequest{

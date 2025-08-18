@@ -69,14 +69,3 @@ func (r *Registry) UpdateMetrics() {
 		pluginHealthGauge.WithLabelValues(name).Set(float64(health))
 	}
 }
-
-// recordInvocation 記錄插件調用指標
-func (r *Registry) recordInvocation(pluginName string, duration float64, status string) {
-	pluginInvocationCounter.WithLabelValues(pluginName, status).Inc()
-	pluginInvocationDuration.WithLabelValues(pluginName).Observe(duration)
-}
-
-// recordHealthCheck 記錄健康檢查指標
-func (r *Registry) recordHealthCheck(pluginName string, duration float64) {
-	pluginHealthCheckDuration.WithLabelValues(pluginName).Observe(duration)
-}
