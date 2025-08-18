@@ -317,7 +317,7 @@ async def _robust_tool_call(self, tool: RemoteTool, params: dict, max_retries: i
 ### 連線與安全
 - 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`（預設 127.0.0.1:5002）
 - 明文：`DETECTVIZ_TOOLBRIDGE_INSECURE=true`
-- TLS／mTLS：`DETECTVIZ_TOOLBRIDGE_TLS_{CERT,KEY,CA}`
+- TLS／mTLS：`DETECTVIZ_TOOLBRIDGE_TLS_{CERT,KEY,CA}_PEM` (環境變數應包含 PEM 內容，可選用 base64 編碼)
 - OTel：若安裝 OpenTelemetry，`RemoteTool` 會嘗試自動注入 `traceparent`／`tracestate`
 
 ---

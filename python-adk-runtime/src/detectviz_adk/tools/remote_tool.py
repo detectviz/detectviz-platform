@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import asyncio
+import base64
 from typing import Any, Dict, Optional, List, Tuple
 
 import grpc
@@ -87,25 +88,29 @@ class RemoteTool(BaseTool):
         addr = os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR") or get_toolbridge_addr()
         insecure = _env_bool("DETECTVIZ_TOOLBRIDGE_INSECURE", default=False)
 
-        cert = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT")
-        key = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY")
-        ca = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA")
+        # 直接從環境變數讀取 PEM 內容 (可以是 base64 編碼)
+        cert_pem_str = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT_PEM")
+        key_pem_str = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY_PEM")
+        ca_pem_str = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA_PEM")
 
-        if cert and key:  # 優先 mTLS/單向 TLS
-            with open(cert, "rb") as f:
-                cert_pem = f.read()
-            with open(key, "rb") as f:
-                key_pem = f.read()
-            root = None
-            if ca:
-                with open(ca, "rb") as f:
-                    root = f.read()
-            creds = grpc.ssl_channel_credentials(root_certificates=root, private_key=key_pem, certificate_chain=cert_pem)
+        cert_pem, key_pem, ca_pem = None, None, None
+
+        if cert_pem_str:
+            cert_pem = _decode_pem(cert_pem_str)
+        if key_pem_str:
+            key_pem = _decode_pem(key_pem_str)
+        if ca_pem_str:
+            ca_pem = _decode_pem(ca_pem_str)
+
+        if cert_pem and key_pem:  # mTLS/TLS 優先
+            creds = grpc.ssl_channel_credentials(
+                root_certificates=ca_pem, private_key=key_pem, certificate_chain=cert_pem
+            )
             self._channel = grpc.aio.secure_channel(addr, creds)
         elif insecure:
             self._channel = grpc.aio.insecure_channel(addr)
         else:
-            # 無憑證但也未明確允許明文 → 開發環境預設允許，生產環境請設定憑證或 INSECURE=true
+            # 若無憑證也未明確設為 insecure，則預設為 insecure (適用於本地開發)
             self._channel = grpc.aio.insecure_channel(addr)
 
         self._stub = pbg.ToolBridgeStub(self._channel)  # type: ignore
@@ -229,3 +234,14 @@ def _env_bool(key: str, default: bool = False) -> bool:
         return default
     s = v.strip().lower()
     return s in ("1", "true", "t", "yes", "y", "on")
+
+
+def _decode_pem(pem_str: str) -> bytes:
+    """解碼 PEM 字串，可處理可選的 base64 編碼。"""
+    if "-----BEGIN" in pem_str:
+        return pem_str.encode("utf-8")
+    try:
+        return base64.b64decode(pem_str)
+    except (ValueError, TypeError):
+        # Return as is if not valid base64
+        return pem_str.encode("utf-8")

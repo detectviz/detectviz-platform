@@ -86,8 +86,14 @@ type Config struct {
 		MaxSendBytes int    `yaml:"max_send_bytes" json:"max_send_bytes"`
 		TLS          struct {
 			Enabled  bool   `yaml:"enabled" json:"enabled"`
-			CertFile string `yaml:"cert_file" json:"cert_file"`
-			KeyFile  string `yaml:"key_file" json:"key_file"`
+			CertPath string `yaml:"cert_path" json:"cert_path"`
+			KeyPath  string `yaml:"key_path" json:"key_path"`
+			CAPath   string `yaml:"ca_path" json:"ca_path"`
+
+			// Populated by loader, not from YAML
+			CertData []byte `yaml:"-" json:"-"`
+			KeyData  []byte `yaml:"-" json:"-"`
+			CAData   []byte `yaml:"-" json:"-"`
 		} `yaml:"tls" json:"tls"`
 	} `yaml:"grpc" json:"grpc"`
 
@@ -135,6 +141,11 @@ func LoadAndValidate(configPath string) (*Config, error) {
 	// Validate against contracts schema
 	if err := validateWithSchema(&cfg); err != nil {
 		return nil, fmt.Errorf("config validation failed: %w", err)
+	}
+
+	// Load TLS assets if paths are provided
+	if err := loadTLSAssets(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to load TLS assets: %w", err)
 	}
 
 	zap.L().Info("Configuration loaded and validated",
@@ -504,6 +515,37 @@ func splitCSV(s string) []string {
 		}
 	}
 	return out
+}
+
+// loadTLSAssets 從設定中指定的路徑讀取 TLS 憑證/金鑰/CA 檔案
+func loadTLSAssets(c *Config) error {
+	if !c.GRPC.TLS.Enabled {
+		return nil
+	}
+
+	if c.GRPC.TLS.CertPath != "" && c.GRPC.TLS.KeyPath != "" {
+		certData, err := os.ReadFile(c.GRPC.TLS.CertPath)
+		if err != nil {
+			return fmt.Errorf("could not read TLS cert file %s: %w", c.GRPC.TLS.CertPath, err)
+		}
+		c.GRPC.TLS.CertData = certData
+
+		keyData, err := os.ReadFile(c.GRPC.TLS.KeyPath)
+		if err != nil {
+			return fmt.Errorf("could not read TLS key file %s: %w", c.GRPC.TLS.KeyPath, err)
+		}
+		c.GRPC.TLS.KeyData = keyData
+	}
+
+	if c.GRPC.TLS.CAPath != "" {
+		caData, err := os.ReadFile(c.GRPC.TLS.CAPath)
+		if err != nil {
+			return fmt.Errorf("could not read TLS CA file %s: %w", c.GRPC.TLS.CAPath, err)
+		}
+		c.GRPC.TLS.CAData = caData
+	}
+
+	return nil
 }
 
 // atof 解析浮點數（用於 sampling.ratio）

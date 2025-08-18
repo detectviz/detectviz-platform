@@ -181,13 +181,10 @@ func cmdPluginServe() {
 	waitForShutdown(ctx)
 }
 
-// ServeFlags 封裝 serve 命令的所有參數
+// ServeFlags 封装 serve 命令的所有参数
 type ServeFlags struct {
 	Listen         string
 	ConfigPath     string
-	MTLSCert       string
-	MTLSKey        string
-	MTLSCA         string
 	HTTPDemo       bool
 	HTTPDemoListen string
 }
@@ -205,9 +202,6 @@ func parseServeFlags() (*ServeFlags, error) {
 	flags := &ServeFlags{}
 	fs.StringVar(&flags.Listen, "listen", defaultListen, "ToolBridge gRPC 監聽地址")
 	fs.StringVar(&flags.ConfigPath, "config", defaultCfg, "平台設定檔 (用於 observability 等)")
-	fs.StringVar(&flags.MTLSCert, "mtls-cert", os.Getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT"), "mTLS 證書路徑")
-	fs.StringVar(&flags.MTLSKey, "mtls-key", os.Getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY"), "mTLS 私鑰路徑")
-	fs.StringVar(&flags.MTLSCA, "mtls-ca", os.Getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA"), "mTLS CA 路徑")
 	fs.BoolVar(&flags.HTTPDemo, "http-demo", defaultHTTPDemo, "啟動示範 HTTP 服務 (otelhttp instrumentation)")
 	fs.StringVar(&flags.HTTPDemoListen, "http-demo-listen", defaultHTTPDemoListen, "示範 HTTP 服務監聽地址")
 
@@ -263,7 +257,7 @@ func executeStartupSequence(ctx *StartupContext, flags *ServeFlags) error {
 		zap.Duration("startup_duration", startupDuration),
 		zap.String("grpc_listen", flags.Listen),
 		zap.Bool("http_demo_enabled", flags.HTTPDemo),
-		zap.Bool("mtls_enabled", flags.MTLSCert != ""),
+		zap.Bool("mtls_enabled", ctx.Config.GRPC.TLS.Enabled),
 	)
 
 	return nil
@@ -314,7 +308,13 @@ func initObservability(ctx *StartupContext) error {
 // setupPluginSystem 設置插件系統
 func setupPluginSystem(ctx *StartupContext, flags *ServeFlags) error {
 	// 載入 TLS 配置
-	tlsCfg, err := pluginhost.LoadTLSConfig(flags.MTLSCert, flags.MTLSKey, flags.MTLSCA)
+	// loader 已根據設定中的路徑將憑證檔案讀入記憶體。
+	// 此處傳遞的是憑證的位元組內容，而非路徑。
+	tlsCfg, err := pluginhost.LoadTLSConfig(
+		ctx.Config.GRPC.TLS.CertData,
+		ctx.Config.GRPC.TLS.KeyData,
+		ctx.Config.GRPC.TLS.CAData,
+	)
 	if err != nil {
 		return fmt.Errorf("載入 mTLS 憑證失敗: %w", err)
 	}
