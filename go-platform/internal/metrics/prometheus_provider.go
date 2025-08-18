@@ -104,8 +104,10 @@ type PrometheusProvider struct {
 	logger *zap.Logger
 
 	// 快取管理
-	cache   map[string]*CachedResult
-	cacheMu sync.RWMutex
+	cache      map[string]*CachedResult
+	cacheMu    sync.RWMutex
+	inflight   map[string]chan struct{} // 用於防止快取失效風暴
+	inflightMu sync.Mutex
 
 	// 並發控制
 	concurrencyLimiter chan struct{}
@@ -197,6 +199,7 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 		config:             config,
 		logger:             logger,
 		cache:              make(map[string]*CachedResult),
+		inflight:           make(map[string]chan struct{}),
 		concurrencyLimiter: make(chan struct{}, config.Concurrency.MaxConcurrent),
 		cbState:            StateClosed,
 	}
@@ -240,38 +243,74 @@ func (p *PrometheusProvider) Query(ctx context.Context, query MetricQuery) (*Que
 	return result, nil
 }
 
-// executeQuery 執行實際的查詢邏輯
+// executeQuery 執行實際的查詢邏輯，包含 single-flight 機制防止快取失效風暴
 func (p *PrometheusProvider) executeQuery(ctx context.Context, query MetricQuery) (*QueryResult, error) {
-	// 檢查快取
-	if p.config.Cache.Enabled {
-		if cached := p.getCachedResult(query); cached != nil {
-			providerQueriesTotal.WithLabelValues("cache_hit").Inc()
-			providerCacheHitsTotal.Inc()
-			p.logger.Debug("returning cached result", zap.String("metric", query.Metric))
-			return cached, nil
+	if !p.config.Cache.Enabled {
+		// 如果快取未啟用，直接執行查詢
+		promQL := p.buildPromQL(query)
+		result, warnings, err := p.executePrometheusQuery(ctx, promQL, query.TimeRange, query.Step)
+		if err != nil {
+			return nil, err
 		}
-		providerCacheMissesTotal.Inc()
+		return p.convertResult(query, result, warnings), nil
 	}
 
-	// 構建 PromQL 查詢
+	// 1. 檢查快取
+	key := p.buildCacheKey(query)
+	if cached := p.getCachedResult(query); cached != nil {
+		providerQueriesTotal.WithLabelValues("cache_hit").Inc()
+		providerCacheHitsTotal.Inc()
+		p.logger.Debug("returning cached result", zap.String("key", key))
+		return cached, nil
+	}
+
+	// 2. Single-flight 邏輯
+	p.inflightMu.Lock()
+	ch, inFlight := p.inflight[key]
+	if inFlight {
+		// 如果有其他 goroutine 正在查詢此 key，等待結果
+		p.inflightMu.Unlock()
+		p.logger.Debug("waiting for in-flight query", zap.String("key", key))
+		select {
+		case <-ch:
+			// 查詢已完成，再次從快取中獲取
+			p.logger.Debug("in-flight query finished, retrying from cache", zap.String("key", key))
+			return p.getCachedResult(query), nil
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	// 標記此 key 為正在查詢中
+	ch = make(chan struct{})
+	p.inflight[key] = ch
+	p.inflightMu.Unlock()
+
+	// 確保無論如何都清理 in-flight 標記
+	defer func() {
+		p.inflightMu.Lock()
+		if c, ok := p.inflight[key]; ok {
+			close(c)
+			delete(p.inflight, key)
+		}
+		p.inflightMu.Unlock()
+	}()
+
+	// 3. 快取未命中，執行查詢
+	providerCacheMissesTotal.Inc()
 	promQL := p.buildPromQL(query)
 	if promQL == "" {
 		return nil, fmt.Errorf("failed to build valid PromQL query")
 	}
 
-	// 執行查詢
 	result, warnings, err := p.executePrometheusQuery(ctx, promQL, query.TimeRange, query.Step)
 	if err != nil {
 		return nil, err
 	}
 
-	// 轉換結果
+	// 4. 轉換並快取結果
 	queryResult := p.convertResult(query, result, warnings)
-
-	// 快取結果
-	if p.config.Cache.Enabled {
-		p.cacheResult(query, queryResult)
-	}
+	p.cacheResult(query, queryResult)
 
 	return queryResult, nil
 }

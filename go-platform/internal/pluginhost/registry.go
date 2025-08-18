@@ -278,7 +278,7 @@ func (r *Registry) checkPluginHealth(wrapper *PluginWrapper) {
 		err = healthAware.HealthCheck()
 	} else {
 		// 否則使用簡單的調用測試
-		err = r.simpleHealthCheck(wrapper)
+		err = r.simpleHealthCheck()
 	}
 
 	duration := time.Since(start)
@@ -305,7 +305,7 @@ func (r *Registry) checkPluginHealth(wrapper *PluginWrapper) {
 }
 
 // simpleHealthCheck 簡單的健康檢查（針對不支援 HealthAwareHandler 的插件）
-func (r *Registry) simpleHealthCheck(wrapper *PluginWrapper) error {
+func (r *Registry) simpleHealthCheck() error {
 	// 這裡可以實作基本的插件狀態檢查
 	// 例如檢查是否還能正常回應等
 	return nil
