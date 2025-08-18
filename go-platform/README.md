@@ -213,9 +213,11 @@ go run tools/scaffold.go gateway/api_client
 ---
 
 ## CLI 參數（節選）
-- `--config`：指定設定檔路徑（預設依優先序自動尋找）
-- `--http-demo`：啟用示範 HTTP 服務（含 otelhttp 儀表化）
-- `--http-demo-listen`：示範 HTTP 監聽位址（預設 `:8080`）
+- `--config`：指定設定檔路徑（預設依優先序自動尋找）。
+- `--http-demo`：啟用示範 HTTP 服務（含 otelhttp 儀表化）。
+- `--http-demo-listen`：示範 HTTP 監聽位址（預設 `:7777`）。
+
+**注意**：TLS/mTLS 相關設定（憑證路徑等）已移至 `config.yaml` 的 `grpc.tls` 區塊中進行統一管理，不再支援透過 CLI 旗標設定。
 
 常用環境變數：
 ```bash

@@ -164,11 +164,17 @@
               "type": "boolean",
               "default": false
             },
-            "cert_file": {
-              "type": "string"
+            "cert_path": {
+              "type": "string",
+              "description": "Path to the TLS server certificate file."
             },
-            "key_file": {
-              "type": "string"
+            "key_path": {
+              "type": "string",
+              "description": "Path to the TLS server key file."
+            },
+            "ca_path": {
+              "type": "string",
+              "description": "Path to the TLS CA certificate file for mTLS."
             }
           },
           "additionalProperties": false
