@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"os"
 )
 
 // LoadTLSConfig 由憑證內容載入 mTLS 設定。若任一為空，回傳 nil 代表使用明文（僅限開發）。

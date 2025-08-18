@@ -1,0 +1,289 @@
+[
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "MissingFieldOrMethod",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "MissingFieldOrMethod"
+			}
+		},
+		"severity": 8,
+		"message": "plugin.metricsCache undefined (type *Plugin has no field or method metricsCache)",
+		"source": "compiler",
+		"startLineNumber": 60,
+		"startColumn": 26,
+		"endLineNumber": 60,
+		"endColumn": 38,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "MissingFieldOrMethod",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "MissingFieldOrMethod"
+			}
+		},
+		"severity": 8,
+		"message": "plugin.getCachedMetrics undefined (type *Plugin has no field or method getCachedMetrics)",
+		"source": "compiler",
+		"startLineNumber": 192,
+		"startColumn": 19,
+		"endLineNumber": 192,
+		"endColumn": 35,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "MissingFieldOrMethod",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "MissingFieldOrMethod"
+			}
+		},
+		"severity": 8,
+		"message": "plugin.cacheMetrics undefined (type *Plugin has no field or method cacheMetrics)",
+		"source": "compiler",
+		"startLineNumber": 214,
+		"startColumn": 9,
+		"endLineNumber": 214,
+		"endColumn": 21,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "MissingFieldOrMethod",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "MissingFieldOrMethod"
+			}
+		},
+		"severity": 8,
+		"message": "plugin.metricsCache undefined (type *Plugin has no field or method metricsCache)",
+		"source": "compiler",
+		"startLineNumber": 217,
+		"startColumn": 28,
+		"endLineNumber": 217,
+		"endColumn": 40,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "MissingFieldOrMethod",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "MissingFieldOrMethod"
+			}
+		},
+		"severity": 8,
+		"message": "plugin.metricsCache undefined (type *Plugin has no field or method metricsCache)",
+		"source": "compiler",
+		"startLineNumber": 224,
+		"startColumn": 25,
+		"endLineNumber": 224,
+		"endColumn": 37,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "MissingLitField",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "MissingLitField"
+			}
+		},
+		"severity": 8,
+		"message": "unknown field metricsCache in struct literal of type Plugin",
+		"source": "compiler",
+		"startLineNumber": 326,
+		"startColumn": 3,
+		"endLineNumber": 326,
+		"endColumn": 15,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/plugins/observability/health_aggregator/plugin_test.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "UndeclaredName",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/internal/typesinternal",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "UndeclaredName"
+			}
+		},
+		"severity": 8,
+		"message": "undefined: CachedMetrics",
+		"source": "compiler",
+		"startLineNumber": 326,
+		"startColumn": 34,
+		"endLineNumber": 326,
+		"endColumn": 47,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./.kiro/specs/documentation-normalization/generate-feedback-summary.py",
+		"owner": "pyright",
+		"code": {
+			"value": "reportMissingImports",
+			"target": {
+				"$mid": 1,
+				"path": "/v1.29.4/configuration/config-files/",
+				"scheme": "https",
+				"authority": "docs.basedpyright.com",
+				"fragment": "reportMissingImports"
+			}
+		},
+		"severity": 4,
+		"message": "無法解析匯入 \"user_feedback_collector\"",
+		"source": "basedpyright",
+		"startLineNumber": 6,
+		"startColumn": 6,
+		"endLineNumber": 6,
+		"endColumn": 29,
+		"modelVersionId": 1
+	},
+	{
+		"resource": "./go-platform/internal/metrics/factory.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "unusedparams",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/gopls/internal/analysis/unusedparams",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "unusedparams"
+			}
+		},
+		"severity": 2,
+		"message": "unused parameter: timestamp",
+		"source": "unusedparams",
+		"startLineNumber": 125,
+		"startColumn": 59,
+		"endLineNumber": 125,
+		"endColumn": 78
+	},
+	{
+		"resource": "./go-platform/internal/metrics/factory.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "default",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/gopls/internal/analysis/unusedfunc",
+				"scheme": "https",
+				"authority": "pkg.go.dev"
+			}
+		},
+		"severity": 2,
+		"message": "method \"percentile\" is unused",
+		"source": "unusedfunc",
+		"startLineNumber": 152,
+		"startColumn": 26,
+		"endLineNumber": 152,
+		"endColumn": 36,
+		"tags": [
+			1
+		]
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/metrics.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "default",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/gopls/internal/analysis/unusedfunc",
+				"scheme": "https",
+				"authority": "pkg.go.dev"
+			}
+		},
+		"severity": 2,
+		"message": "method \"recordInvocation\" is unused",
+		"source": "unusedfunc",
+		"startLineNumber": 74,
+		"startColumn": 20,
+		"endLineNumber": 74,
+		"endColumn": 36,
+		"tags": [
+			1
+		]
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/metrics.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "default",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/gopls/internal/analysis/unusedfunc",
+				"scheme": "https",
+				"authority": "pkg.go.dev"
+			}
+		},
+		"severity": 2,
+		"message": "method \"recordHealthCheck\" is unused",
+		"source": "unusedfunc",
+		"startLineNumber": 80,
+		"startColumn": 20,
+		"endLineNumber": 80,
+		"endColumn": 37,
+		"tags": [
+			1
+		]
+	},
+	{
+		"resource": "./go-platform/internal/pluginhost/registry.go",
+		"owner": "_generated_diagnostic_collection_name_#2",
+		"code": {
+			"value": "unusedparams",
+			"target": {
+				"$mid": 1,
+				"path": "/golang.org/x/tools/gopls/internal/analysis/unusedparams",
+				"scheme": "https",
+				"authority": "pkg.go.dev",
+				"fragment": "unusedparams"
+			}
+		},
+		"severity": 2,
+		"message": "unused parameter: wrapper",
+		"source": "unusedparams",
+		"startLineNumber": 308,
+		"startColumn": 38,
+		"endLineNumber": 308,
+		"endColumn": 60
+	}
+]

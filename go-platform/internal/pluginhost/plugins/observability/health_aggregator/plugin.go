@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
 	"time"
 
 	pb "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1"
