@@ -2,7 +2,7 @@
 
 此檔規範 AI 與協作者在維護 Python ADK Runtime（`python-adk-runtime/`）的流程，與 `AGENT.md`、`SPEC.md` 一致。
 
-## 🎯 模組狀態 (2024年12月更新)
+## 🎯 模組狀態 (2025年8月更新)
 **當前狀態**: 生產就緒 ✅ (技術債務已清理完畢)
 **完成度**: 96% - 核心功能驗證通過，準備進入生產部署階段
 **關鍵修復**: RemoteTool proto 消息修復，Agent 團隊協作驗證完成
@@ -95,7 +95,7 @@ python server.py   # 或對應入口
 - [ ] postmortem_orchestrator ADK Agent 團隊協作正確
 - [ ] 與 Go 端 HealthAggregator 整合測試通過
 
-## 🛠️ 技術債務預防 (2024年12月新增)
+## 🛠️ 技術債務預防 (2025年8月新增)
 
 ### 自動化驗證工具
 ```bash
