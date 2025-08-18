@@ -1,0 +1,458 @@
+// contracts/proto/detectviz/contracts/v1/postmortem.proto
+syntax = "proto3";
+
+package detectviz.contracts.v1;
+
+option go_package = "github.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;v1";
+option java_multiple_files = true;
+option java_package = "io.detectviz.contracts.v1";
+option java_outer_classname = "PostmortemProto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/any.proto";
+
+// ==================== 通用類型定義 ====================
+
+// 時間範圍
+message TimeRange {
+  google.protobuf.Timestamp start = 1;
+  google.protobuf.Timestamp end = 2;
+  google.protobuf.Duration duration = 3; // 自動計算的持續時間
+}
+
+// 服務標識
+message ServiceIdentifier {
+  string name = 1;        // 服務名稱，如 "payment-service"
+  string namespace = 2;   // 命名空間，如 "production"
+  string version = 3;     // 服務版本，如 "v1.2.3"
+  map<string, string> labels = 4; // 額外標籤
+}
+
+// 嚴重程度
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_P0 = 1;  // 緊急 - 服務完全不可用
+  SEVERITY_P1 = 2;  // 嚴重 - 核心功能受影響
+  SEVERITY_P2 = 3;  // 重要 - 部分功能受影響
+  SEVERITY_P3 = 4;  // 一般 - 輕微影響
+  SEVERITY_P4 = 5;  // 低 - 無明顯影響
+}
+
+// 觸發類型
+enum TriggerType {
+  TRIGGER_TYPE_UNSPECIFIED = 0;
+  TRIGGER_TYPE_MANUAL = 1;         // 手動觸發
+  TRIGGER_TYPE_ALERT_RESOLVED = 2; // 告警解除後自動觸發
+  TRIGGER_TYPE_SCHEDULED = 3;      // 排程觸發
+  TRIGGER_TYPE_API = 4;           // API 調用觸發
+  TRIGGER_TYPE_WORKFLOW = 5;      // 工作流觸發
+}
+
+// ==================== 請求相關 ====================
+
+// 請求者資訊
+message Requester {
+  string user_id = 1;
+  string team = 2;
+  string email = 3;
+  string role = 4;
+  map<string, string> metadata = 5;
+}
+
+// 分析選項
+message AnalysisOptions {
+  bool include_dependencies = 1;          // 是否包含依賴服務分析
+  string correlation_window = 2;          // 相關性分析時間窗口，如 "30m"
+  bool generate_dashboard = 3;            // 是否生成 Grafana 儀表板
+  repeated string output_formats = 4;     // 輸出格式: markdown, json, pdf, confluence
+  bool include_cost_analysis = 5;         // 是否包含成本分析
+  bool auto_detect_root_cause = 6;        // 是否自動檢測根因
+  int32 max_analysis_depth = 7;           // 最大分析深度
+  repeated string custom_queries = 8;     // 自定義查詢
+  map<string, string> filter_tags = 9;    // 過濾標籤
+}
+
+// 事後複盤請求
+message ExecutePostMortemRequest {
+  string incident_id = 1;                  // 事件 ID
+  TriggerType trigger_type = 2;            // 觸發類型
+  TimeRange time_range = 3;                // 時間範圍
+  repeated ServiceIdentifier affected_services = 4; // 受影響服務
+  Severity severity = 5;                   // 嚴重程度
+  Requester requester = 6;                 // 請求者
+  AnalysisOptions options = 7;             // 分析選項
+  string description = 8;                  // 事件描述
+  repeated string alert_ids = 9;           // 相關告警 ID
+  map<string, string> metadata = 10;       // 額外元數據
+  google.protobuf.Timestamp requested_at = 11; // 請求時間
+}
+
+// ==================== 健康數據相關 ====================
+
+// 指標值
+message MetricValue {
+  double value = 1;
+  string unit = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  map<string, string> labels = 4;
+  string aggregation_type = 5; // avg, max, min, p50, p95, p99
+}
+
+// 指標時間序列
+message MetricTimeSeries {
+  string name = 1;                      // 指標名稱
+  repeated MetricValue values = 2;      // 時間序列數據
+  string description = 3;               // 指標描述
+  string source = 4;                    // 數據來源
+}
+
+// 健康事件
+message HealthEvent {
+  enum EventType {
+    EVENT_TYPE_UNSPECIFIED = 0;
+    EVENT_TYPE_DEPLOYMENT = 1;    // 部署
+    EVENT_TYPE_ALERT = 2;        // 告警
+    EVENT_TYPE_INCIDENT = 3;     // 事件
+    EVENT_TYPE_CONFIGURATION = 4; // 配置變更
+    EVENT_TYPE_SCALING = 5;      // 擴縮容
+    EVENT_TYPE_MAINTENANCE = 6;  // 維護
+  }
+  
+  string id = 1;
+  EventType type = 2;
+  string title = 3;
+  string description = 4;
+  Severity severity = 5;
+  google.protobuf.Timestamp occurred_at = 6;
+  google.protobuf.Duration duration = 7;
+  map<string, string> metadata = 8;
+}
+
+// 服務健康狀態
+message ServiceHealth {
+  ServiceIdentifier service = 1;
+  double sli_score = 2;                    // SLI 分數 (0-100)
+  double availability = 3;                 // 可用性百分比
+  map<string, MetricTimeSeries> metrics = 4; // 關鍵指標
+  repeated HealthEvent events = 5;         // 相關事件
+  string status = 6;                       // healthy, degraded, unhealthy
+  google.protobuf.Timestamp assessed_at = 7;
+}
+
+// 健康數據請求
+message GetHealthDataRequest {
+  repeated ServiceIdentifier services = 1;
+  TimeRange time_range = 2;
+  repeated string metrics = 3;             // 需要的指標列表
+  map<string, string> filters = 4;         // 過濾條件
+  int32 resolution_seconds = 5;            // 數據解析度（秒）
+  bool include_events = 6;                 // 是否包含事件
+}
+
+// 健康數據響應
+message GetHealthDataResponse {
+  map<string, ServiceHealth> services = 1; // key: service name
+  google.protobuf.Timestamp generated_at = 2;
+  string request_id = 3;
+  google.protobuf.Duration processing_time = 4;
+}
+
+// ==================== 分析結果相關 ====================
+
+// 根因分析結果
+message RootCauseAnalysis {
+  string primary_cause = 1;                // 主要原因
+  repeated string contributing_factors = 2; // 貢獻因素
+  string impact_summary = 3;               // 影響摘要
+  repeated Recommendation recommendations = 4; // 改進建議
+  repeated string lessons_learned = 5;     // 經驗教訓
+  double confidence_score = 6;             // 分析信心分數 (0-1)
+  repeated Evidence evidences = 7;         // 支撐證據
+  string analysis_method = 8;              // 分析方法
+}
+
+// 證據
+message Evidence {
+  string type = 1;        // metric, log, event, trace
+  string description = 2;
+  google.protobuf.Any data = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  double relevance_score = 5; // 相關性分數 (0-1)
+}
+
+// 改進建議
+message Recommendation {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string category = 4;     // process, technical, monitoring, documentation
+  string priority = 5;     // high, medium, low
+  string effort = 6;       // small, medium, large
+  repeated string tags = 7;
+  string assigned_team = 8;
+  google.protobuf.Timestamp due_date = 9;
+}
+
+// 影響分析
+message ImpactAnalysis {
+  int64 affected_users = 1;           // 受影響用戶數
+  double revenue_impact = 2;          // 收入影響（貨幣單位）
+  string revenue_currency = 3;        // 貨幣類型
+  repeated string affected_regions = 4; // 受影響地區
+  repeated string affected_features = 5; // 受影響功能
+  map<string, double> sla_breaches = 6; // SLA 違反情況
+  google.protobuf.Duration total_downtime = 7; // 總停機時間
+}
+
+// 時間線項目
+message TimelineItem {
+  google.protobuf.Timestamp timestamp = 1;
+  string event_type = 2;
+  string description = 3;
+  string actor = 4;        // 執行者（人或系統）
+  map<string, string> metadata = 5;
+  bool is_key_event = 6;   // 是否為關鍵事件
+}
+
+// 事後複盤結果
+message ExecutePostMortemResponse {
+  bool success = 1;
+  string incident_id = 2;
+  string dashboard_url = 3;              // Grafana 儀表板 URL
+  string report_url = 4;                 // 報告 URL
+  RootCauseAnalysis root_cause_analysis = 5;
+  ImpactAnalysis impact_analysis = 6;
+  repeated TimelineItem timeline = 7;    // 事件時間線
+  map<string, ServiceHealth> service_health = 8; // 服務健康狀態
+  repeated string errors = 9;            // 處理過程中的錯誤
+  google.protobuf.Timestamp completed_at = 10;
+  google.protobuf.Duration analysis_duration = 11;
+  string analysis_version = 12;          // 分析引擎版本
+  map<string, string> metadata = 13;
+}
+
+// ==================== 事件狀態查詢 ====================
+
+// 事件狀態
+enum IncidentStatus {
+  INCIDENT_STATUS_UNSPECIFIED = 0;
+  INCIDENT_STATUS_ANALYZING = 1;    // 分析中
+  INCIDENT_STATUS_COMPLETED = 2;    // 已完成
+  INCIDENT_STATUS_FAILED = 3;       // 失敗
+  INCIDENT_STATUS_CANCELLED = 4;    // 已取消
+  INCIDENT_STATUS_PENDING = 5;      // 待處理
+}
+
+// 事件狀態請求
+message GetIncidentStatusRequest {
+  string incident_id = 1;
+  bool include_details = 2;
+}
+
+// 事件狀態響應
+message GetIncidentStatusResponse {
+  string incident_id = 1;
+  IncidentStatus status = 2;
+  string message = 3;
+  int32 progress_percentage = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  google.protobuf.Duration estimated_remaining = 7;
+  ExecutePostMortemResponse partial_result = 8;  // 部分結果（如果有）
+}
+
+// ==================== 批量操作 ====================
+
+// 批量複盤請求
+message BatchExecutePostMortemRequest {
+  repeated ExecutePostMortemRequest requests = 1;
+  bool parallel_processing = 2;         // 是否並行處理
+  int32 max_concurrent = 3;            // 最大並發數
+}
+
+// 批量複盤響應
+message BatchExecutePostMortemResponse {
+  map<string, ExecutePostMortemResponse> results = 1; // key: incident_id
+  int32 total_requests = 2;
+  int32 successful_count = 3;
+  int32 failed_count = 4;
+  google.protobuf.Duration total_duration = 5;
+}
+
+// 流式健康數據請求
+message StreamHealthDataRequest {
+  repeated string service_names = 1;
+  TimeRange time_range = 2;
+  repeated string metric_types = 3;
+  int32 interval_seconds = 4; // 數據推送間隔
+}
+
+// 流式健康數據響應
+message StreamHealthDataResponse {
+  ServiceHealth health_data = 1;
+  google.protobuf.Timestamp timestamp = 2;
+}
+
+// 取消事後複盤請求
+message CancelPostMortemRequest {
+  string incident_id = 1;
+  string reason = 2; // 取消原因
+}
+
+// 取消事後複盤響應
+message CancelPostMortemResponse {
+  bool success = 1;
+  string message = 2;
+  google.protobuf.Timestamp cancelled_at = 3;
+}
+
+// ==================== 知識庫操作 ====================
+
+// 知識條目
+message KnowledgeEntry {
+  string id = 1;
+  string incident_id = 2;
+  string title = 3;
+  string content = 4;
+  repeated string tags = 5;
+  string category = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  string author = 9;
+  int32 usefulness_score = 10;  // 有用性評分
+  int32 view_count = 11;        // 查看次數
+}
+
+// 更新知識庫請求
+message UpdateKnowledgeBaseRequest {
+  string incident_id = 1;
+  RootCauseAnalysis analysis = 2;
+  repeated Recommendation recommendations = 3;
+  repeated string tags = 4;
+  bool auto_categorize = 5;     // 是否自動分類
+}
+
+// 更新知識庫響應
+message UpdateKnowledgeBaseResponse {
+  bool success = 1;
+  string knowledge_entry_id = 2;
+  string message = 3;
+  repeated string similar_incidents = 4; // 相似事件 ID
+}
+
+// ==================== 服務定義 ====================
+
+// 事後複盤服務
+service PostMortemService {
+  // 執行單個事後複盤
+  rpc ExecutePostMortem(ExecutePostMortemRequest) returns (ExecutePostMortemResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  
+  // 批量執行事後複盤
+  rpc BatchExecutePostMortem(BatchExecutePostMortemRequest) returns (BatchExecutePostMortemResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  
+  // 獲取健康數據
+  rpc GetHealthData(GetHealthDataRequest) returns (GetHealthDataResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  
+  // 查詢事件狀態
+  rpc GetIncidentStatus(GetIncidentStatusRequest) returns (GetIncidentStatusResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  
+  // 更新知識庫
+  rpc UpdateKnowledgeBase(UpdateKnowledgeBaseRequest) returns (UpdateKnowledgeBaseResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  
+  // 串流健康數據（實時監控）
+  rpc StreamHealthData(StreamHealthDataRequest) returns (stream StreamHealthDataResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  
+  // 取消正在執行的複盤
+  rpc CancelPostMortem(CancelPostMortemRequest) returns (CancelPostMortemResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+}
+
+// ==================== 輔助服務定義 ====================
+
+// 報告生成服務
+service ReportService {
+  // 生成複盤報告
+  rpc GenerateReport(GenerateReportRequest) returns (GenerateReportResponse);
+  
+  // 創建 Grafana 儀表板
+  rpc CreateDashboard(CreateDashboardRequest) returns (CreateDashboardResponse);
+  
+  // 匯出報告
+  rpc ExportReport(ExportReportRequest) returns (stream ExportReportResponse);
+}
+
+// 報告請求
+message GenerateReportRequest {
+  string incident_id = 1;
+  ExecutePostMortemResponse analysis_result = 2;
+  string format = 3;              // markdown, pdf, html, confluence
+  string template_id = 4;         // 模板 ID
+  map<string, string> variables = 5; // 模板變數
+}
+
+// 報告響應
+message GenerateReportResponse {
+  string report_id = 1;
+  string url = 2;
+  bytes content = 3;              // 報告內容（小檔案）
+  string storage_path = 4;        // 存儲路徑（大檔案）
+  google.protobuf.Timestamp generated_at = 5;
+}
+
+// 儀表板請求
+message CreateDashboardRequest {
+  string incident_id = 1;
+  TimeRange time_range = 2;
+  repeated ServiceIdentifier services = 3;
+  repeated DashboardPanel panels = 4;
+  string template_id = 5;
+}
+
+// 儀表板面板
+message DashboardPanel {
+  string title = 1;
+  string type = 2;               // graph, stat, table, heatmap
+  string query = 3;              // 查詢語句
+  map<string, string> options = 4;
+  int32 grid_x = 5;
+  int32 grid_y = 6;
+  int32 width = 7;
+  int32 height = 8;
+}
+
+// 儀表板響應
+message CreateDashboardResponse {
+  string dashboard_id = 1;
+  string url = 2;
+  string uid = 3;                // Grafana UID
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// 匯出請求
+message ExportReportRequest {
+  string report_id = 1;
+  string format = 2;
+  bool include_attachments = 3;
+}
+
+// 匯出資料塊
+message ExportReportResponse {
+  bytes data = 1;
+  int32 sequence = 2;
+  bool is_last = 3;
+  string content_type = 4;
+}

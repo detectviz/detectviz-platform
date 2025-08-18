@@ -178,7 +178,7 @@ AGENT.md → ARCHITECTURE.md → SPEC.md → TASKS.md
 - **Go Platform**：[go-platform/README.md](go-platform/README.md)
 - **Python ADK Runtime**：[python-adk-runtime/README.md](python-adk-runtime/README.md)
 - **Contracts SSOT**：[contracts/README.md](contracts/README.md)
-- **監控配置**：[grafana-alloy/](grafana-alloy/)
+- **依賴服務總覽**：[depoly/](depoly/)
 
 #### 📖 術語索引
 - **完整術語對照表**：[術語統一系統](.kiro/specs/documentation-normalization/terminology-index.md)
@@ -215,7 +215,7 @@ detectviz-platform/
 │   ├── src/            # 核心程式碼
 │   ├── agents/         # AI 代理實作
 │   └── tools/          # 工具集合
-├── grafana-alloy/      # 📊 可觀察性配置
+├── depoly/             # 依賴服務總覽
 ├── docs/               # 📚 文檔體系
 └── scripts/            # 🔧 自動化腳本
 ```

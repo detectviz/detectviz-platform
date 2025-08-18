@@ -85,10 +85,10 @@ contracts/
 │       └── QUICK_REFERENCE.md
 ├── .github/workflows/              # CI/CD 自動化
 │   ├── contracts-validation.yml    # 契約驗證流程
-│   ├── go-tests.yml               # Go 測試流程
-│   └── python-tests.yml           # Python 測試流程
-├── grafana-alloy/                  # 監控配置
-│   └── config.alloy               # Alloy 收集器配置
+│   ├── go-tests.yml                # Go 測試流程
+│   └── python-tests.yml            # Python 測試流程
+├── depoly/alloy/                   # 監控配置
+│   └── config.alloy                # Alloy 收集器配置
 └── assets/                         # 靜態資源
     ├── diagrams/                   # 架構圖表
     └── screenshots/                # 介面截圖
@@ -1477,7 +1477,7 @@ spec:
 
 #### Grafana Alloy 配置
 
-**檔案位置**：`grafana-alloy/config.alloy`
+**檔案位置**：`depoly/alloy/config.alloy`
 
 ```hcl
 // 日誌收集

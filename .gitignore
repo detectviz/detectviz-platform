@@ -24,24 +24,26 @@ profile.cov
 go.work
 go.work.sum
 
-# env file
+# Environment files
 .env
+deploy/.env
 
-# config file
-/config.yaml
+# Local data
+deploy/data/
+
+# Binaries
+go-platform/bin/
 
 # Editor/IDE
 # .idea/
 # .vscode/
 .DS_Store
 var/
-grafana-alloy/alloy
-data-alloy/
 references/
 .claude/
 .kiro/
 *note.md
-detectviz
+config.yaml
 
 # Python bytecode cache directories
 __pycache__/

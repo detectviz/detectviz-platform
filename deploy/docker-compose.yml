@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: detectviz-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - detectviz
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: detectviz-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,redis-datasource
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_ALERTING_ENABLED=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+      - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - detectviz
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: detectviz-alloy
+    ports:
+      - "12345:12345"
+      - "4317:4317"
+      - "4318:4318"
+      - "9999:9999"
+    volumes:
+      - ./configs/alloy/config.alloy:/etc/alloy/config.alloy
+      - alloy_data:/var/lib/alloy
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=0.0.0.0:12345
+    environment:
+      - HOSTNAME=alloy-01
+    networks:
+      - detectviz
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: detectviz-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=detectviz
+      - POSTGRES_USER=detectviz
+      - POSTGRES_PASSWORD=detectviz123
+      - POSTGRES_INIT_DB_ARGS=--encoding=UTF-8
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./configs/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - detectviz
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U detectviz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: detectviz-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - detectviz
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  loki:
+    image: grafana/loki:latest
+    container_name: detectviz-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./configs/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - detectviz
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: detectviz-tempo
+    user: "root"
+    ports:
+      - "3200:3200"
+      - "9095:9095"
+      - "14268:14268"
+      - "9411:9411"
+    volumes:
+      - ./configs/tempo/tempo-config.yaml:/etc/tempo.yaml
+      - tempo_data:/tmp/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    networks:
+      - detectviz
+    restart: unless-stopped
+
+  pyroscope:
+    image: grafana/pyroscope:latest
+    container_name: detectviz-pyroscope
+    ports:
+      - "4040:4040"
+    environment:
+      - PYROSCOPE_LOG_LEVEL=info
+    volumes:
+      - pyroscope_data:/var/lib/pyroscope
+    networks:
+      - detectviz
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: detectviz-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude'
+      - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+    networks:
+      - detectviz
+    restart: unless-stopped
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: detectviz-postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://detectviz:detectviz123@postgres:5432/detectviz?sslmode=disable
+    networks:
+      - detectviz
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: detectviz-redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    networks:
+      - detectviz
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+networks:
+  detectviz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  postgres_data:
+  redis_data:
+  loki_data:
+  tempo_data:
+  pyroscope_data:
+  alloy_data:
+  mimir_data:
