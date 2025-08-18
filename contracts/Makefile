@@ -10,13 +10,7 @@ PROTOC_GEN_PYTHON_VERSION := v5.28.3
 check-versions:
 	@echo "Checking tool versions..."
 	@command -v buf >/dev/null 2>&1 || { echo "buf not found. Run 'make install-tools' first."; exit 1; }
-	@BUF_ACTUAL=$$(buf --version 2>&1 | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1); \
-	if [ "$$BUF_ACTUAL" != "$(BUF_VERSION)" ]; then \
-		echo "WARNING: buf version mismatch. Expected: $(BUF_VERSION), Found: $$BUF_ACTUAL"; \
-		echo "Run 'make install-tools' to install correct versions."; \
-	else \
-		echo "✓ buf version: $$BUF_ACTUAL"; \
-	fi
+	@BUF_ACTUAL_VERSION=$$(buf --version); 	BUF_ACTUAL_NUM=$$(echo $$BUF_ACTUAL_VERSION | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1); 	EXPECTED_NUM=$$(echo "$(BUF_VERSION)" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'); 	if [ "$$BUF_ACTUAL_NUM" != "$$EXPECTED_NUM" ]; then 		echo "WARNING: buf version mismatch. Expected: $(BUF_VERSION), Found: $$BUF_ACTUAL_VERSION"; 		echo "Run 'make install-tools' to install correct versions."; 	else 		echo "✓ buf version: $(BUF_VERSION)"; 	fi
 
 ## Install required tools with pinned versions
 install-tools:

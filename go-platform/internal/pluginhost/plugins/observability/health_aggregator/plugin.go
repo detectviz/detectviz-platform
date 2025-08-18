@@ -16,16 +16,8 @@ import (
 
 // Plugin 實作健康聚合器插件，符合 Handler 介面
 type Plugin struct {
-	provider     metrics.MetricsProvider
-	logger       *zap.Logger
-	mu           sync.RWMutex
-	metricsCache map[string]*CachedMetrics
-}
-
-// CachedMetrics 快取的指標數據
-type CachedMetrics struct {
-	Data      *HealthQueryResponse `json:"data"`
-	Timestamp time.Time            `json:"timestamp"`
+	provider metrics.MetricsProvider
+	logger   *zap.Logger
 }
 
 // HealthQueryRequest 健康查詢請求
@@ -71,9 +63,8 @@ func New() *Plugin {
 	provider := factory.CreateMemoryProvider()
 
 	return &Plugin{
-		provider:     provider,
-		logger:       zap.NewNop(),
-		metricsCache: make(map[string]*CachedMetrics),
+		provider: provider,
+		logger:   zap.NewNop(),
 	}
 }
 
@@ -103,20 +94,11 @@ func (p *Plugin) Invoke(ctx context.Context, req *pb.InvokeRequest) (*pb.InvokeR
 		zap.Strings("metrics", queryReq.Metrics),
 	)
 
-	// 檢查快取
-	if cached := p.getCachedMetrics(queryReq.ServiceName); cached != nil {
-		p.logger.Debug("Returning cached metrics")
-		return p.buildResponse(cached.Data)
-	}
-
 	// 執行查詢
 	response, err := p.queryHealthMetrics(ctx, queryReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query health metrics: %w", err)
 	}
-
-	// 快取結果
-	p.cacheMetrics(queryReq.ServiceName, response)
 
 	return p.buildResponse(response)
 }
@@ -135,12 +117,6 @@ func (p *Plugin) CloseWithContext(ctx context.Context) error {
 	// 等待進行中的請求完成
 	done := make(chan error, 1)
 	go func() {
-		p.mu.Lock()
-		defer p.mu.Unlock()
-
-		// 清理快取
-		p.metricsCache = make(map[string]*CachedMetrics)
-
 		// 關閉 provider
 		if p.provider != nil {
 			if err := p.provider.Close(); err != nil {
@@ -298,35 +274,6 @@ func (p *Plugin) calculateStatistics(values []DataPoint) *Statistics {
 	}
 }
 
-// getCachedMetrics 獲取快取的指標
-func (p *Plugin) getCachedMetrics(serviceName string) *CachedMetrics {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	cached, exists := p.metricsCache[serviceName]
-	if !exists {
-		return nil
-	}
-
-	// 檢查快取是否過期（5分鐘）
-	if time.Since(cached.Timestamp) > 5*time.Minute {
-		return nil
-	}
-
-	return cached
-}
-
-// cacheMetrics 快取指標數據
-func (p *Plugin) cacheMetrics(serviceName string, response *HealthQueryResponse) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	p.metricsCache[serviceName] = &CachedMetrics{
-		Data:      response,
-		Timestamp: time.Now(),
-	}
-}
-
 // buildResponse 建構回應
 func (p *Plugin) buildResponse(response *HealthQueryResponse) (*pb.InvokeResponse, error) {
 	// 序列化回應
@@ -351,15 +298,6 @@ func (p *Plugin) HealthCheck() error {
 	// 檢查 provider 是否可用
 	if p.provider == nil {
 		return fmt.Errorf("metrics provider 未初始化")
-	}
-
-	// 檢查快取大小是否過大
-	p.mu.RLock()
-	cacheSize := len(p.metricsCache)
-	p.mu.RUnlock()
-
-	if cacheSize > 1000 {
-		return fmt.Errorf("快取過大: %d entries", cacheSize)
 	}
 
 	return nil
