@@ -166,13 +166,13 @@ AGENT.md → ARCHITECTURE.md → SPEC.md → TASKS.md
 - **API 規格**：[SPEC.md](SPEC.md) → [API 規格與介面定義](SPEC.md#api-規格與介面定義)
 - **開發環境**：[docs/guides/DEVELOPMENT_SETUP.md](docs/guides/DEVELOPMENT_SETUP.md)
 - **部署指南**：[SPEC.md](SPEC.md) → [配置管理與模組規範](SPEC.md#配置管理與模組規範)
-- **故障排除**：[docs/guides/TESTING_GUIDE.md](docs/guides/TESTING_GUIDE.md)
+- **故障排除**：[SPEC.md](spec.md) → [故障排除與除錯指南](spec.md#故障排除與除錯指南)
 
 #### 🎯 按任務類型查找
 - **新功能開發**：[TASKS.md](TASKS.md) → [實作任務清單](TASKS.md#實作任務清單)
 - **Bug 修復**：[TASKS.md](TASKS.md) → [問題追蹤與風險管理](TASKS.md#問題追蹤與風險管理)
 - **性能優化**：[SPEC.md](SPEC.md) → [實作最佳實踐](SPEC.md#實作最佳實踐)
-- **測試驗證**：[docs/guides/TESTING_GUIDE.md](docs/guides/TESTING_GUIDE.md)
+- **測試驗證**：[docs/development/TESTING_GUIDELINES.md](docs/development/TESTING_GUIDELINES.md)
 
 ###### 🔧 按組件查找
 - **Go Platform**：[go-platform/README.md](go-platform/README.md)

@@ -350,6 +350,41 @@ make maintain-proto
 make validate-with-versions
 ```
 
+### AI 協作內容與執行標準
+
+#### AI 友善的內容組織
+```yaml
+AI_Friendly_Standards:
+  content_structure:
+    - "使用問題-解決方案-實作的邏輯結構"
+    - "提供明確的步驟和檢查清單"
+    - "包含具體的範例和模板"
+
+  decision_documentation:
+    - "記錄決策的原因和考量"
+    - "提供替代方案的比較"
+    - "明確指出約束條件和限制"
+
+  context_provision:
+    - "提供充足的背景資訊"
+    - "解釋專業術語和概念"
+    - "建立概念間的關聯性"
+```
+
+#### AI 任務執行規範
+```yaml
+AI_Task_Execution_Standards:
+  task_definition:
+    - "明確的任務目標和成功標準"
+    - "詳細的執行步驟和檢查點"
+    - "清晰的輸入和輸出規格"
+
+  error_handling:
+    - "預期的錯誤情況和處理方式"
+    - "故障排除指南和診斷步驟"
+    - "升級和求助的程序"
+```
+
 ### 文檔品質標準
 
 #### 文檔撰寫檢查清單
@@ -371,7 +406,7 @@ make validate-with-versions
 
 ### 測試標準
 
-> 完整測試指南：參見 [AI協作規範](ARCHITECTURE.md#ai-協作規範)
+> 完整測試指南：參見 [測試指導原則](docs/development/TESTING_GUIDELINES.md)
 
 #### 測試層級要求
 - **單元測試**：覆蓋率 > 90%，測試所有公開介面
