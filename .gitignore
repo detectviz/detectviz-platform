@@ -84,7 +84,6 @@ yarn-error.log*
 .dockerignore
 docker-compose.override.yml
 deploy/docker-compose.yml
-
 # Logs
 *.log
 logs/
