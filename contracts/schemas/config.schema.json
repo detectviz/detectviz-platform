@@ -205,7 +205,6 @@
           "enum": [
             "inmem",
             "redis",
-            "weaviate",
             "chroma",
             "vertex"
           ]

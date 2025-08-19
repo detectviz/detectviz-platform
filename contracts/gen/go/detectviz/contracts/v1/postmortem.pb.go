@@ -9,12 +9,10 @@
 package v1
 
 import (
-	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
-	_ "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -91,31 +89,31 @@ func (Severity) EnumDescriptor() ([]byte, []int) {
 type TriggerType int32
 
 const (
-	TriggerType_TRIGGER_UNSPECIFIED    TriggerType = 0
-	TriggerType_TRIGGER_MANUAL         TriggerType = 1 // 手動觸發
-	TriggerType_TRIGGER_ALERT_RESOLVED TriggerType = 2 // 告警解除後自動觸發
-	TriggerType_TRIGGER_SCHEDULED      TriggerType = 3 // 排程觸發
-	TriggerType_TRIGGER_API            TriggerType = 4 // API 調用觸發
-	TriggerType_TRIGGER_WORKFLOW       TriggerType = 5 // 工作流觸發
+	TriggerType_TRIGGER_TYPE_UNSPECIFIED    TriggerType = 0
+	TriggerType_TRIGGER_TYPE_MANUAL         TriggerType = 1 // 手動觸發
+	TriggerType_TRIGGER_TYPE_ALERT_RESOLVED TriggerType = 2 // 告警解除後自動觸發
+	TriggerType_TRIGGER_TYPE_SCHEDULED      TriggerType = 3 // 排程觸發
+	TriggerType_TRIGGER_TYPE_API            TriggerType = 4 // API 調用觸發
+	TriggerType_TRIGGER_TYPE_WORKFLOW       TriggerType = 5 // 工作流觸發
 )
 
 // Enum value maps for TriggerType.
 var (
 	TriggerType_name = map[int32]string{
-		0: "TRIGGER_UNSPECIFIED",
-		1: "TRIGGER_MANUAL",
-		2: "TRIGGER_ALERT_RESOLVED",
-		3: "TRIGGER_SCHEDULED",
-		4: "TRIGGER_API",
-		5: "TRIGGER_WORKFLOW",
+		0: "TRIGGER_TYPE_UNSPECIFIED",
+		1: "TRIGGER_TYPE_MANUAL",
+		2: "TRIGGER_TYPE_ALERT_RESOLVED",
+		3: "TRIGGER_TYPE_SCHEDULED",
+		4: "TRIGGER_TYPE_API",
+		5: "TRIGGER_TYPE_WORKFLOW",
 	}
 	TriggerType_value = map[string]int32{
-		"TRIGGER_UNSPECIFIED":    0,
-		"TRIGGER_MANUAL":         1,
-		"TRIGGER_ALERT_RESOLVED": 2,
-		"TRIGGER_SCHEDULED":      3,
-		"TRIGGER_API":            4,
-		"TRIGGER_WORKFLOW":       5,
+		"TRIGGER_TYPE_UNSPECIFIED":    0,
+		"TRIGGER_TYPE_MANUAL":         1,
+		"TRIGGER_TYPE_ALERT_RESOLVED": 2,
+		"TRIGGER_TYPE_SCHEDULED":      3,
+		"TRIGGER_TYPE_API":            4,
+		"TRIGGER_TYPE_WORKFLOW":       5,
 	}
 )
 
@@ -150,31 +148,31 @@ func (TriggerType) EnumDescriptor() ([]byte, []int) {
 type IncidentStatus int32
 
 const (
-	IncidentStatus_STATUS_UNSPECIFIED IncidentStatus = 0
-	IncidentStatus_STATUS_ANALYZING   IncidentStatus = 1 // 分析中
-	IncidentStatus_STATUS_COMPLETED   IncidentStatus = 2 // 已完成
-	IncidentStatus_STATUS_FAILED      IncidentStatus = 3 // 失敗
-	IncidentStatus_STATUS_CANCELLED   IncidentStatus = 4 // 已取消
-	IncidentStatus_STATUS_PENDING     IncidentStatus = 5 // 待處理
+	IncidentStatus_INCIDENT_STATUS_UNSPECIFIED IncidentStatus = 0
+	IncidentStatus_INCIDENT_STATUS_ANALYZING   IncidentStatus = 1 // 分析中
+	IncidentStatus_INCIDENT_STATUS_COMPLETED   IncidentStatus = 2 // 已完成
+	IncidentStatus_INCIDENT_STATUS_FAILED      IncidentStatus = 3 // 失敗
+	IncidentStatus_INCIDENT_STATUS_CANCELLED   IncidentStatus = 4 // 已取消
+	IncidentStatus_INCIDENT_STATUS_PENDING     IncidentStatus = 5 // 待處理
 )
 
 // Enum value maps for IncidentStatus.
 var (
 	IncidentStatus_name = map[int32]string{
-		0: "STATUS_UNSPECIFIED",
-		1: "STATUS_ANALYZING",
-		2: "STATUS_COMPLETED",
-		3: "STATUS_FAILED",
-		4: "STATUS_CANCELLED",
-		5: "STATUS_PENDING",
+		0: "INCIDENT_STATUS_UNSPECIFIED",
+		1: "INCIDENT_STATUS_ANALYZING",
+		2: "INCIDENT_STATUS_COMPLETED",
+		3: "INCIDENT_STATUS_FAILED",
+		4: "INCIDENT_STATUS_CANCELLED",
+		5: "INCIDENT_STATUS_PENDING",
 	}
 	IncidentStatus_value = map[string]int32{
-		"STATUS_UNSPECIFIED": 0,
-		"STATUS_ANALYZING":   1,
-		"STATUS_COMPLETED":   2,
-		"STATUS_FAILED":      3,
-		"STATUS_CANCELLED":   4,
-		"STATUS_PENDING":     5,
+		"INCIDENT_STATUS_UNSPECIFIED": 0,
+		"INCIDENT_STATUS_ANALYZING":   1,
+		"INCIDENT_STATUS_COMPLETED":   2,
+		"INCIDENT_STATUS_FAILED":      3,
+		"INCIDENT_STATUS_CANCELLED":   4,
+		"INCIDENT_STATUS_PENDING":     5,
 	}
 )
 
@@ -208,34 +206,34 @@ func (IncidentStatus) EnumDescriptor() ([]byte, []int) {
 type HealthEvent_EventType int32
 
 const (
-	HealthEvent_EVENT_UNSPECIFIED   HealthEvent_EventType = 0
-	HealthEvent_EVENT_DEPLOYMENT    HealthEvent_EventType = 1 // 部署
-	HealthEvent_EVENT_ALERT         HealthEvent_EventType = 2 // 告警
-	HealthEvent_EVENT_INCIDENT      HealthEvent_EventType = 3 // 事件
-	HealthEvent_EVENT_CONFIGURATION HealthEvent_EventType = 4 // 配置變更
-	HealthEvent_EVENT_SCALING       HealthEvent_EventType = 5 // 擴縮容
-	HealthEvent_EVENT_MAINTENANCE   HealthEvent_EventType = 6 // 維護
+	HealthEvent_EVENT_TYPE_UNSPECIFIED   HealthEvent_EventType = 0
+	HealthEvent_EVENT_TYPE_DEPLOYMENT    HealthEvent_EventType = 1 // 部署
+	HealthEvent_EVENT_TYPE_ALERT         HealthEvent_EventType = 2 // 告警
+	HealthEvent_EVENT_TYPE_INCIDENT      HealthEvent_EventType = 3 // 事件
+	HealthEvent_EVENT_TYPE_CONFIGURATION HealthEvent_EventType = 4 // 配置變更
+	HealthEvent_EVENT_TYPE_SCALING       HealthEvent_EventType = 5 // 擴縮容
+	HealthEvent_EVENT_TYPE_MAINTENANCE   HealthEvent_EventType = 6 // 維護
 )
 
 // Enum value maps for HealthEvent_EventType.
 var (
 	HealthEvent_EventType_name = map[int32]string{
-		0: "EVENT_UNSPECIFIED",
-		1: "EVENT_DEPLOYMENT",
-		2: "EVENT_ALERT",
-		3: "EVENT_INCIDENT",
-		4: "EVENT_CONFIGURATION",
-		5: "EVENT_SCALING",
-		6: "EVENT_MAINTENANCE",
+		0: "EVENT_TYPE_UNSPECIFIED",
+		1: "EVENT_TYPE_DEPLOYMENT",
+		2: "EVENT_TYPE_ALERT",
+		3: "EVENT_TYPE_INCIDENT",
+		4: "EVENT_TYPE_CONFIGURATION",
+		5: "EVENT_TYPE_SCALING",
+		6: "EVENT_TYPE_MAINTENANCE",
 	}
 	HealthEvent_EventType_value = map[string]int32{
-		"EVENT_UNSPECIFIED":   0,
-		"EVENT_DEPLOYMENT":    1,
-		"EVENT_ALERT":         2,
-		"EVENT_INCIDENT":      3,
-		"EVENT_CONFIGURATION": 4,
-		"EVENT_SCALING":       5,
-		"EVENT_MAINTENANCE":   6,
+		"EVENT_TYPE_UNSPECIFIED":   0,
+		"EVENT_TYPE_DEPLOYMENT":    1,
+		"EVENT_TYPE_ALERT":         2,
+		"EVENT_TYPE_INCIDENT":      3,
+		"EVENT_TYPE_CONFIGURATION": 4,
+		"EVENT_TYPE_SCALING":       5,
+		"EVENT_TYPE_MAINTENANCE":   6,
 	}
 )
 
@@ -583,7 +581,7 @@ func (x *AnalysisOptions) GetFilterTags() map[string]string {
 }
 
 // 事後複盤請求
-type PostMortemRequest struct {
+type ExecutePostMortemRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	IncidentId       string                 `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`                                                      // 事件 ID
 	TriggerType      TriggerType            `protobuf:"varint,2,opt,name=trigger_type,json=triggerType,proto3,enum=detectviz.contracts.v1.TriggerType" json:"trigger_type,omitempty"`          // 觸發類型
@@ -600,20 +598,20 @@ type PostMortemRequest struct {
 	sizeCache        protoimpl.SizeCache
 }
 
-func (x *PostMortemRequest) Reset() {
-	*x = PostMortemRequest{}
+func (x *ExecutePostMortemRequest) Reset() {
+	*x = ExecutePostMortemRequest{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PostMortemRequest) String() string {
+func (x *ExecutePostMortemRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PostMortemRequest) ProtoMessage() {}
+func (*ExecutePostMortemRequest) ProtoMessage() {}
 
-func (x *PostMortemRequest) ProtoReflect() protoreflect.Message {
+func (x *ExecutePostMortemRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -625,82 +623,82 @@ func (x *PostMortemRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PostMortemRequest.ProtoReflect.Descriptor instead.
-func (*PostMortemRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExecutePostMortemRequest.ProtoReflect.Descriptor instead.
+func (*ExecutePostMortemRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *PostMortemRequest) GetIncidentId() string {
+func (x *ExecutePostMortemRequest) GetIncidentId() string {
 	if x != nil {
 		return x.IncidentId
 	}
 	return ""
 }
 
-func (x *PostMortemRequest) GetTriggerType() TriggerType {
+func (x *ExecutePostMortemRequest) GetTriggerType() TriggerType {
 	if x != nil {
 		return x.TriggerType
 	}
-	return TriggerType_TRIGGER_UNSPECIFIED
+	return TriggerType_TRIGGER_TYPE_UNSPECIFIED
 }
 
-func (x *PostMortemRequest) GetTimeRange() *TimeRange {
+func (x *ExecutePostMortemRequest) GetTimeRange() *TimeRange {
 	if x != nil {
 		return x.TimeRange
 	}
 	return nil
 }
 
-func (x *PostMortemRequest) GetAffectedServices() []*ServiceIdentifier {
+func (x *ExecutePostMortemRequest) GetAffectedServices() []*ServiceIdentifier {
 	if x != nil {
 		return x.AffectedServices
 	}
 	return nil
 }
 
-func (x *PostMortemRequest) GetSeverity() Severity {
+func (x *ExecutePostMortemRequest) GetSeverity() Severity {
 	if x != nil {
 		return x.Severity
 	}
 	return Severity_SEVERITY_UNSPECIFIED
 }
 
-func (x *PostMortemRequest) GetRequester() *Requester {
+func (x *ExecutePostMortemRequest) GetRequester() *Requester {
 	if x != nil {
 		return x.Requester
 	}
 	return nil
 }
 
-func (x *PostMortemRequest) GetOptions() *AnalysisOptions {
+func (x *ExecutePostMortemRequest) GetOptions() *AnalysisOptions {
 	if x != nil {
 		return x.Options
 	}
 	return nil
 }
 
-func (x *PostMortemRequest) GetDescription() string {
+func (x *ExecutePostMortemRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *PostMortemRequest) GetAlertIds() []string {
+func (x *ExecutePostMortemRequest) GetAlertIds() []string {
 	if x != nil {
 		return x.AlertIds
 	}
 	return nil
 }
 
-func (x *PostMortemRequest) GetMetadata() map[string]string {
+func (x *ExecutePostMortemRequest) GetMetadata() map[string]string {
 	if x != nil {
 		return x.Metadata
 	}
 	return nil
 }
 
-func (x *PostMortemRequest) GetRequestedAt() *timestamppb.Timestamp {
+func (x *ExecutePostMortemRequest) GetRequestedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.RequestedAt
 	}
@@ -909,7 +907,7 @@ func (x *HealthEvent) GetType() HealthEvent_EventType {
 	if x != nil {
 		return x.Type
 	}
-	return HealthEvent_EVENT_UNSPECIFIED
+	return HealthEvent_EVENT_TYPE_UNSPECIFIED
 }
 
 func (x *HealthEvent) GetTitle() string {
@@ -1048,7 +1046,7 @@ func (x *ServiceHealth) GetAssessedAt() *timestamppb.Timestamp {
 }
 
 // 健康數據請求
-type HealthDataRequest struct {
+type GetHealthDataRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Services          []*ServiceIdentifier   `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
 	TimeRange         *TimeRange             `protobuf:"bytes,2,opt,name=time_range,json=timeRange,proto3" json:"time_range,omitempty"`
@@ -1060,20 +1058,20 @@ type HealthDataRequest struct {
 	sizeCache         protoimpl.SizeCache
 }
 
-func (x *HealthDataRequest) Reset() {
-	*x = HealthDataRequest{}
+func (x *GetHealthDataRequest) Reset() {
+	*x = GetHealthDataRequest{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HealthDataRequest) String() string {
+func (x *GetHealthDataRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HealthDataRequest) ProtoMessage() {}
+func (*GetHealthDataRequest) ProtoMessage() {}
 
-func (x *HealthDataRequest) ProtoReflect() protoreflect.Message {
+func (x *GetHealthDataRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1085,47 +1083,47 @@ func (x *HealthDataRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HealthDataRequest.ProtoReflect.Descriptor instead.
-func (*HealthDataRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetHealthDataRequest.ProtoReflect.Descriptor instead.
+func (*GetHealthDataRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *HealthDataRequest) GetServices() []*ServiceIdentifier {
+func (x *GetHealthDataRequest) GetServices() []*ServiceIdentifier {
 	if x != nil {
 		return x.Services
 	}
 	return nil
 }
 
-func (x *HealthDataRequest) GetTimeRange() *TimeRange {
+func (x *GetHealthDataRequest) GetTimeRange() *TimeRange {
 	if x != nil {
 		return x.TimeRange
 	}
 	return nil
 }
 
-func (x *HealthDataRequest) GetMetrics() []string {
+func (x *GetHealthDataRequest) GetMetrics() []string {
 	if x != nil {
 		return x.Metrics
 	}
 	return nil
 }
 
-func (x *HealthDataRequest) GetFilters() map[string]string {
+func (x *GetHealthDataRequest) GetFilters() map[string]string {
 	if x != nil {
 		return x.Filters
 	}
 	return nil
 }
 
-func (x *HealthDataRequest) GetResolutionSeconds() int32 {
+func (x *GetHealthDataRequest) GetResolutionSeconds() int32 {
 	if x != nil {
 		return x.ResolutionSeconds
 	}
 	return 0
 }
 
-func (x *HealthDataRequest) GetIncludeEvents() bool {
+func (x *GetHealthDataRequest) GetIncludeEvents() bool {
 	if x != nil {
 		return x.IncludeEvents
 	}
@@ -1133,7 +1131,7 @@ func (x *HealthDataRequest) GetIncludeEvents() bool {
 }
 
 // 健康數據響應
-type HealthDataResponse struct {
+type GetHealthDataResponse struct {
 	state          protoimpl.MessageState    `protogen:"open.v1"`
 	Services       map[string]*ServiceHealth `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // key: service name
 	GeneratedAt    *timestamppb.Timestamp    `protobuf:"bytes,2,opt,name=generated_at,json=generatedAt,proto3" json:"generated_at,omitempty"`
@@ -1143,20 +1141,20 @@ type HealthDataResponse struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *HealthDataResponse) Reset() {
-	*x = HealthDataResponse{}
+func (x *GetHealthDataResponse) Reset() {
+	*x = GetHealthDataResponse{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HealthDataResponse) String() string {
+func (x *GetHealthDataResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HealthDataResponse) ProtoMessage() {}
+func (*GetHealthDataResponse) ProtoMessage() {}
 
-func (x *HealthDataResponse) ProtoReflect() protoreflect.Message {
+func (x *GetHealthDataResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1168,33 +1166,33 @@ func (x *HealthDataResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HealthDataResponse.ProtoReflect.Descriptor instead.
-func (*HealthDataResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetHealthDataResponse.ProtoReflect.Descriptor instead.
+func (*GetHealthDataResponse) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *HealthDataResponse) GetServices() map[string]*ServiceHealth {
+func (x *GetHealthDataResponse) GetServices() map[string]*ServiceHealth {
 	if x != nil {
 		return x.Services
 	}
 	return nil
 }
 
-func (x *HealthDataResponse) GetGeneratedAt() *timestamppb.Timestamp {
+func (x *GetHealthDataResponse) GetGeneratedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.GeneratedAt
 	}
 	return nil
 }
 
-func (x *HealthDataResponse) GetRequestId() string {
+func (x *GetHealthDataResponse) GetRequestId() string {
 	if x != nil {
 		return x.RequestId
 	}
 	return ""
 }
 
-func (x *HealthDataResponse) GetProcessingTime() *durationpb.Duration {
+func (x *GetHealthDataResponse) GetProcessingTime() *durationpb.Duration {
 	if x != nil {
 		return x.ProcessingTime
 	}
@@ -1667,7 +1665,7 @@ func (x *TimelineItem) GetIsKeyEvent() bool {
 }
 
 // 事後複盤結果
-type PostMortemResult struct {
+type ExecutePostMortemResponse struct {
 	state             protoimpl.MessageState    `protogen:"open.v1"`
 	Success           bool                      `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	IncidentId        string                    `protobuf:"bytes,2,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
@@ -1686,20 +1684,20 @@ type PostMortemResult struct {
 	sizeCache         protoimpl.SizeCache
 }
 
-func (x *PostMortemResult) Reset() {
-	*x = PostMortemResult{}
+func (x *ExecutePostMortemResponse) Reset() {
+	*x = ExecutePostMortemResponse{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PostMortemResult) String() string {
+func (x *ExecutePostMortemResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PostMortemResult) ProtoMessage() {}
+func (*ExecutePostMortemResponse) ProtoMessage() {}
 
-func (x *PostMortemResult) ProtoReflect() protoreflect.Message {
+func (x *ExecutePostMortemResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1711,96 +1709,96 @@ func (x *PostMortemResult) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PostMortemResult.ProtoReflect.Descriptor instead.
-func (*PostMortemResult) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExecutePostMortemResponse.ProtoReflect.Descriptor instead.
+func (*ExecutePostMortemResponse) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *PostMortemResult) GetSuccess() bool {
+func (x *ExecutePostMortemResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *PostMortemResult) GetIncidentId() string {
+func (x *ExecutePostMortemResponse) GetIncidentId() string {
 	if x != nil {
 		return x.IncidentId
 	}
 	return ""
 }
 
-func (x *PostMortemResult) GetDashboardUrl() string {
+func (x *ExecutePostMortemResponse) GetDashboardUrl() string {
 	if x != nil {
 		return x.DashboardUrl
 	}
 	return ""
 }
 
-func (x *PostMortemResult) GetReportUrl() string {
+func (x *ExecutePostMortemResponse) GetReportUrl() string {
 	if x != nil {
 		return x.ReportUrl
 	}
 	return ""
 }
 
-func (x *PostMortemResult) GetRootCauseAnalysis() *RootCauseAnalysis {
+func (x *ExecutePostMortemResponse) GetRootCauseAnalysis() *RootCauseAnalysis {
 	if x != nil {
 		return x.RootCauseAnalysis
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetImpactAnalysis() *ImpactAnalysis {
+func (x *ExecutePostMortemResponse) GetImpactAnalysis() *ImpactAnalysis {
 	if x != nil {
 		return x.ImpactAnalysis
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetTimeline() []*TimelineItem {
+func (x *ExecutePostMortemResponse) GetTimeline() []*TimelineItem {
 	if x != nil {
 		return x.Timeline
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetServiceHealth() map[string]*ServiceHealth {
+func (x *ExecutePostMortemResponse) GetServiceHealth() map[string]*ServiceHealth {
 	if x != nil {
 		return x.ServiceHealth
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetErrors() []string {
+func (x *ExecutePostMortemResponse) GetErrors() []string {
 	if x != nil {
 		return x.Errors
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetCompletedAt() *timestamppb.Timestamp {
+func (x *ExecutePostMortemResponse) GetCompletedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CompletedAt
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetAnalysisDuration() *durationpb.Duration {
+func (x *ExecutePostMortemResponse) GetAnalysisDuration() *durationpb.Duration {
 	if x != nil {
 		return x.AnalysisDuration
 	}
 	return nil
 }
 
-func (x *PostMortemResult) GetAnalysisVersion() string {
+func (x *ExecutePostMortemResponse) GetAnalysisVersion() string {
 	if x != nil {
 		return x.AnalysisVersion
 	}
 	return ""
 }
 
-func (x *PostMortemResult) GetMetadata() map[string]string {
+func (x *ExecutePostMortemResponse) GetMetadata() map[string]string {
 	if x != nil {
 		return x.Metadata
 	}
@@ -1808,7 +1806,7 @@ func (x *PostMortemResult) GetMetadata() map[string]string {
 }
 
 // 事件狀態請求
-type IncidentStatusRequest struct {
+type GetIncidentStatusRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	IncidentId     string                 `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
 	IncludeDetails bool                   `protobuf:"varint,2,opt,name=include_details,json=includeDetails,proto3" json:"include_details,omitempty"`
@@ -1816,20 +1814,20 @@ type IncidentStatusRequest struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *IncidentStatusRequest) Reset() {
-	*x = IncidentStatusRequest{}
+func (x *GetIncidentStatusRequest) Reset() {
+	*x = GetIncidentStatusRequest{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IncidentStatusRequest) String() string {
+func (x *GetIncidentStatusRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IncidentStatusRequest) ProtoMessage() {}
+func (*GetIncidentStatusRequest) ProtoMessage() {}
 
-func (x *IncidentStatusRequest) ProtoReflect() protoreflect.Message {
+func (x *GetIncidentStatusRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1841,19 +1839,19 @@ func (x *IncidentStatusRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IncidentStatusRequest.ProtoReflect.Descriptor instead.
-func (*IncidentStatusRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetIncidentStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetIncidentStatusRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *IncidentStatusRequest) GetIncidentId() string {
+func (x *GetIncidentStatusRequest) GetIncidentId() string {
 	if x != nil {
 		return x.IncidentId
 	}
 	return ""
 }
 
-func (x *IncidentStatusRequest) GetIncludeDetails() bool {
+func (x *GetIncidentStatusRequest) GetIncludeDetails() bool {
 	if x != nil {
 		return x.IncludeDetails
 	}
@@ -1861,34 +1859,34 @@ func (x *IncidentStatusRequest) GetIncludeDetails() bool {
 }
 
 // 事件狀態響應
-type IncidentStatusResponse struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	IncidentId         string                 `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
-	Status             IncidentStatus         `protobuf:"varint,2,opt,name=status,proto3,enum=detectviz.contracts.v1.IncidentStatus" json:"status,omitempty"`
-	Message            string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	ProgressPercentage int32                  `protobuf:"varint,4,opt,name=progress_percentage,json=progressPercentage,proto3" json:"progress_percentage,omitempty"`
-	StartedAt          *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	UpdatedAt          *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	EstimatedRemaining *durationpb.Duration   `protobuf:"bytes,7,opt,name=estimated_remaining,json=estimatedRemaining,proto3" json:"estimated_remaining,omitempty"`
-	PartialResult      *PostMortemResult      `protobuf:"bytes,8,opt,name=partial_result,json=partialResult,proto3" json:"partial_result,omitempty"` // 部分結果（如果有）
+type GetIncidentStatusResponse struct {
+	state              protoimpl.MessageState     `protogen:"open.v1"`
+	IncidentId         string                     `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
+	Status             IncidentStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=detectviz.contracts.v1.IncidentStatus" json:"status,omitempty"`
+	Message            string                     `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	ProgressPercentage int32                      `protobuf:"varint,4,opt,name=progress_percentage,json=progressPercentage,proto3" json:"progress_percentage,omitempty"`
+	StartedAt          *timestamppb.Timestamp     `protobuf:"bytes,5,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	UpdatedAt          *timestamppb.Timestamp     `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	EstimatedRemaining *durationpb.Duration       `protobuf:"bytes,7,opt,name=estimated_remaining,json=estimatedRemaining,proto3" json:"estimated_remaining,omitempty"`
+	PartialResult      *ExecutePostMortemResponse `protobuf:"bytes,8,opt,name=partial_result,json=partialResult,proto3" json:"partial_result,omitempty"` // 部分結果（如果有）
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
-func (x *IncidentStatusResponse) Reset() {
-	*x = IncidentStatusResponse{}
+func (x *GetIncidentStatusResponse) Reset() {
+	*x = GetIncidentStatusResponse{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IncidentStatusResponse) String() string {
+func (x *GetIncidentStatusResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IncidentStatusResponse) ProtoMessage() {}
+func (*GetIncidentStatusResponse) ProtoMessage() {}
 
-func (x *IncidentStatusResponse) ProtoReflect() protoreflect.Message {
+func (x *GetIncidentStatusResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1900,61 +1898,61 @@ func (x *IncidentStatusResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IncidentStatusResponse.ProtoReflect.Descriptor instead.
-func (*IncidentStatusResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetIncidentStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetIncidentStatusResponse) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *IncidentStatusResponse) GetIncidentId() string {
+func (x *GetIncidentStatusResponse) GetIncidentId() string {
 	if x != nil {
 		return x.IncidentId
 	}
 	return ""
 }
 
-func (x *IncidentStatusResponse) GetStatus() IncidentStatus {
+func (x *GetIncidentStatusResponse) GetStatus() IncidentStatus {
 	if x != nil {
 		return x.Status
 	}
-	return IncidentStatus_STATUS_UNSPECIFIED
+	return IncidentStatus_INCIDENT_STATUS_UNSPECIFIED
 }
 
-func (x *IncidentStatusResponse) GetMessage() string {
+func (x *GetIncidentStatusResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *IncidentStatusResponse) GetProgressPercentage() int32 {
+func (x *GetIncidentStatusResponse) GetProgressPercentage() int32 {
 	if x != nil {
 		return x.ProgressPercentage
 	}
 	return 0
 }
 
-func (x *IncidentStatusResponse) GetStartedAt() *timestamppb.Timestamp {
+func (x *GetIncidentStatusResponse) GetStartedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.StartedAt
 	}
 	return nil
 }
 
-func (x *IncidentStatusResponse) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *GetIncidentStatusResponse) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
 	return nil
 }
 
-func (x *IncidentStatusResponse) GetEstimatedRemaining() *durationpb.Duration {
+func (x *GetIncidentStatusResponse) GetEstimatedRemaining() *durationpb.Duration {
 	if x != nil {
 		return x.EstimatedRemaining
 	}
 	return nil
 }
 
-func (x *IncidentStatusResponse) GetPartialResult() *PostMortemResult {
+func (x *GetIncidentStatusResponse) GetPartialResult() *ExecutePostMortemResponse {
 	if x != nil {
 		return x.PartialResult
 	}
@@ -1962,29 +1960,29 @@ func (x *IncidentStatusResponse) GetPartialResult() *PostMortemResult {
 }
 
 // 批量複盤請求
-type BatchPostMortemRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Requests           []*PostMortemRequest   `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
-	ParallelProcessing bool                   `protobuf:"varint,2,opt,name=parallel_processing,json=parallelProcessing,proto3" json:"parallel_processing,omitempty"` // 是否並行處理
-	MaxConcurrent      int32                  `protobuf:"varint,3,opt,name=max_concurrent,json=maxConcurrent,proto3" json:"max_concurrent,omitempty"`                // 最大並發數
+type BatchExecutePostMortemRequest struct {
+	state              protoimpl.MessageState      `protogen:"open.v1"`
+	Requests           []*ExecutePostMortemRequest `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	ParallelProcessing bool                        `protobuf:"varint,2,opt,name=parallel_processing,json=parallelProcessing,proto3" json:"parallel_processing,omitempty"` // 是否並行處理
+	MaxConcurrent      int32                       `protobuf:"varint,3,opt,name=max_concurrent,json=maxConcurrent,proto3" json:"max_concurrent,omitempty"`                // 最大並發數
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
-func (x *BatchPostMortemRequest) Reset() {
-	*x = BatchPostMortemRequest{}
+func (x *BatchExecutePostMortemRequest) Reset() {
+	*x = BatchExecutePostMortemRequest{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchPostMortemRequest) String() string {
+func (x *BatchExecutePostMortemRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchPostMortemRequest) ProtoMessage() {}
+func (*BatchExecutePostMortemRequest) ProtoMessage() {}
 
-func (x *BatchPostMortemRequest) ProtoReflect() protoreflect.Message {
+func (x *BatchExecutePostMortemRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1996,26 +1994,26 @@ func (x *BatchPostMortemRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchPostMortemRequest.ProtoReflect.Descriptor instead.
-func (*BatchPostMortemRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use BatchExecutePostMortemRequest.ProtoReflect.Descriptor instead.
+func (*BatchExecutePostMortemRequest) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *BatchPostMortemRequest) GetRequests() []*PostMortemRequest {
+func (x *BatchExecutePostMortemRequest) GetRequests() []*ExecutePostMortemRequest {
 	if x != nil {
 		return x.Requests
 	}
 	return nil
 }
 
-func (x *BatchPostMortemRequest) GetParallelProcessing() bool {
+func (x *BatchExecutePostMortemRequest) GetParallelProcessing() bool {
 	if x != nil {
 		return x.ParallelProcessing
 	}
 	return false
 }
 
-func (x *BatchPostMortemRequest) GetMaxConcurrent() int32 {
+func (x *BatchExecutePostMortemRequest) GetMaxConcurrent() int32 {
 	if x != nil {
 		return x.MaxConcurrent
 	}
@@ -2023,31 +2021,31 @@ func (x *BatchPostMortemRequest) GetMaxConcurrent() int32 {
 }
 
 // 批量複盤響應
-type BatchPostMortemResponse struct {
-	state           protoimpl.MessageState       `protogen:"open.v1"`
-	Results         map[string]*PostMortemResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // key: incident_id
-	TotalRequests   int32                        `protobuf:"varint,2,opt,name=total_requests,json=totalRequests,proto3" json:"total_requests,omitempty"`
-	SuccessfulCount int32                        `protobuf:"varint,3,opt,name=successful_count,json=successfulCount,proto3" json:"successful_count,omitempty"`
-	FailedCount     int32                        `protobuf:"varint,4,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
-	TotalDuration   *durationpb.Duration         `protobuf:"bytes,5,opt,name=total_duration,json=totalDuration,proto3" json:"total_duration,omitempty"`
+type BatchExecutePostMortemResponse struct {
+	state           protoimpl.MessageState                `protogen:"open.v1"`
+	Results         map[string]*ExecutePostMortemResponse `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // key: incident_id
+	TotalRequests   int32                                 `protobuf:"varint,2,opt,name=total_requests,json=totalRequests,proto3" json:"total_requests,omitempty"`
+	SuccessfulCount int32                                 `protobuf:"varint,3,opt,name=successful_count,json=successfulCount,proto3" json:"successful_count,omitempty"`
+	FailedCount     int32                                 `protobuf:"varint,4,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	TotalDuration   *durationpb.Duration                  `protobuf:"bytes,5,opt,name=total_duration,json=totalDuration,proto3" json:"total_duration,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
-func (x *BatchPostMortemResponse) Reset() {
-	*x = BatchPostMortemResponse{}
+func (x *BatchExecutePostMortemResponse) Reset() {
+	*x = BatchExecutePostMortemResponse{}
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchPostMortemResponse) String() string {
+func (x *BatchExecutePostMortemResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchPostMortemResponse) ProtoMessage() {}
+func (*BatchExecutePostMortemResponse) ProtoMessage() {}
 
-func (x *BatchPostMortemResponse) ProtoReflect() protoreflect.Message {
+func (x *BatchExecutePostMortemResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2059,42 +2057,278 @@ func (x *BatchPostMortemResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchPostMortemResponse.ProtoReflect.Descriptor instead.
-func (*BatchPostMortemResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use BatchExecutePostMortemResponse.ProtoReflect.Descriptor instead.
+func (*BatchExecutePostMortemResponse) Descriptor() ([]byte, []int) {
 	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *BatchPostMortemResponse) GetResults() map[string]*PostMortemResult {
+func (x *BatchExecutePostMortemResponse) GetResults() map[string]*ExecutePostMortemResponse {
 	if x != nil {
 		return x.Results
 	}
 	return nil
 }
 
-func (x *BatchPostMortemResponse) GetTotalRequests() int32 {
+func (x *BatchExecutePostMortemResponse) GetTotalRequests() int32 {
 	if x != nil {
 		return x.TotalRequests
 	}
 	return 0
 }
 
-func (x *BatchPostMortemResponse) GetSuccessfulCount() int32 {
+func (x *BatchExecutePostMortemResponse) GetSuccessfulCount() int32 {
 	if x != nil {
 		return x.SuccessfulCount
 	}
 	return 0
 }
 
-func (x *BatchPostMortemResponse) GetFailedCount() int32 {
+func (x *BatchExecutePostMortemResponse) GetFailedCount() int32 {
 	if x != nil {
 		return x.FailedCount
 	}
 	return 0
 }
 
-func (x *BatchPostMortemResponse) GetTotalDuration() *durationpb.Duration {
+func (x *BatchExecutePostMortemResponse) GetTotalDuration() *durationpb.Duration {
 	if x != nil {
 		return x.TotalDuration
+	}
+	return nil
+}
+
+// 流式健康數據請求
+type StreamHealthDataRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ServiceNames    []string               `protobuf:"bytes,1,rep,name=service_names,json=serviceNames,proto3" json:"service_names,omitempty"`
+	TimeRange       *TimeRange             `protobuf:"bytes,2,opt,name=time_range,json=timeRange,proto3" json:"time_range,omitempty"`
+	MetricTypes     []string               `protobuf:"bytes,3,rep,name=metric_types,json=metricTypes,proto3" json:"metric_types,omitempty"`
+	IntervalSeconds int32                  `protobuf:"varint,4,opt,name=interval_seconds,json=intervalSeconds,proto3" json:"interval_seconds,omitempty"` // 數據推送間隔
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *StreamHealthDataRequest) Reset() {
+	*x = StreamHealthDataRequest{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamHealthDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamHealthDataRequest) ProtoMessage() {}
+
+func (x *StreamHealthDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamHealthDataRequest.ProtoReflect.Descriptor instead.
+func (*StreamHealthDataRequest) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *StreamHealthDataRequest) GetServiceNames() []string {
+	if x != nil {
+		return x.ServiceNames
+	}
+	return nil
+}
+
+func (x *StreamHealthDataRequest) GetTimeRange() *TimeRange {
+	if x != nil {
+		return x.TimeRange
+	}
+	return nil
+}
+
+func (x *StreamHealthDataRequest) GetMetricTypes() []string {
+	if x != nil {
+		return x.MetricTypes
+	}
+	return nil
+}
+
+func (x *StreamHealthDataRequest) GetIntervalSeconds() int32 {
+	if x != nil {
+		return x.IntervalSeconds
+	}
+	return 0
+}
+
+// 流式健康數據響應
+type StreamHealthDataResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HealthData    *ServiceHealth         `protobuf:"bytes,1,opt,name=health_data,json=healthData,proto3" json:"health_data,omitempty"`
+	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamHealthDataResponse) Reset() {
+	*x = StreamHealthDataResponse{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamHealthDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamHealthDataResponse) ProtoMessage() {}
+
+func (x *StreamHealthDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamHealthDataResponse.ProtoReflect.Descriptor instead.
+func (*StreamHealthDataResponse) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *StreamHealthDataResponse) GetHealthData() *ServiceHealth {
+	if x != nil {
+		return x.HealthData
+	}
+	return nil
+}
+
+func (x *StreamHealthDataResponse) GetTimestamp() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Timestamp
+	}
+	return nil
+}
+
+// 取消事後複盤請求
+type CancelPostMortemRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IncidentId    string                 `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"` // 取消原因
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelPostMortemRequest) Reset() {
+	*x = CancelPostMortemRequest{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelPostMortemRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelPostMortemRequest) ProtoMessage() {}
+
+func (x *CancelPostMortemRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelPostMortemRequest.ProtoReflect.Descriptor instead.
+func (*CancelPostMortemRequest) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CancelPostMortemRequest) GetIncidentId() string {
+	if x != nil {
+		return x.IncidentId
+	}
+	return ""
+}
+
+func (x *CancelPostMortemRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// 取消事後複盤響應
+type CancelPostMortemResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	CancelledAt   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=cancelled_at,json=cancelledAt,proto3" json:"cancelled_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelPostMortemResponse) Reset() {
+	*x = CancelPostMortemResponse{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelPostMortemResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelPostMortemResponse) ProtoMessage() {}
+
+func (x *CancelPostMortemResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelPostMortemResponse.ProtoReflect.Descriptor instead.
+func (*CancelPostMortemResponse) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *CancelPostMortemResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CancelPostMortemResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CancelPostMortemResponse) GetCancelledAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CancelledAt
 	}
 	return nil
 }
@@ -2119,7 +2353,7 @@ type KnowledgeEntry struct {
 
 func (x *KnowledgeEntry) Reset() {
 	*x = KnowledgeEntry{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[21]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2131,7 +2365,7 @@ func (x *KnowledgeEntry) String() string {
 func (*KnowledgeEntry) ProtoMessage() {}
 
 func (x *KnowledgeEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[21]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2144,7 +2378,7 @@ func (x *KnowledgeEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeEntry.ProtoReflect.Descriptor instead.
 func (*KnowledgeEntry) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{21}
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *KnowledgeEntry) GetId() string {
@@ -2238,7 +2472,7 @@ type UpdateKnowledgeBaseRequest struct {
 
 func (x *UpdateKnowledgeBaseRequest) Reset() {
 	*x = UpdateKnowledgeBaseRequest{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[22]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2250,7 +2484,7 @@ func (x *UpdateKnowledgeBaseRequest) String() string {
 func (*UpdateKnowledgeBaseRequest) ProtoMessage() {}
 
 func (x *UpdateKnowledgeBaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[22]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2263,7 +2497,7 @@ func (x *UpdateKnowledgeBaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKnowledgeBaseRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKnowledgeBaseRequest) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{22}
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateKnowledgeBaseRequest) GetIncidentId() string {
@@ -2314,7 +2548,7 @@ type UpdateKnowledgeBaseResponse struct {
 
 func (x *UpdateKnowledgeBaseResponse) Reset() {
 	*x = UpdateKnowledgeBaseResponse{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[23]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2326,7 +2560,7 @@ func (x *UpdateKnowledgeBaseResponse) String() string {
 func (*UpdateKnowledgeBaseResponse) ProtoMessage() {}
 
 func (x *UpdateKnowledgeBaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[23]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2339,7 +2573,7 @@ func (x *UpdateKnowledgeBaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKnowledgeBaseResponse.ProtoReflect.Descriptor instead.
 func (*UpdateKnowledgeBaseResponse) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{23}
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateKnowledgeBaseResponse) GetSuccess() bool {
@@ -2371,32 +2605,32 @@ func (x *UpdateKnowledgeBaseResponse) GetSimilarIncidents() []string {
 }
 
 // 報告請求
-type ReportRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	IncidentId     string                 `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
-	AnalysisResult *PostMortemResult      `protobuf:"bytes,2,opt,name=analysis_result,json=analysisResult,proto3" json:"analysis_result,omitempty"`
-	Format         string                 `protobuf:"bytes,3,opt,name=format,proto3" json:"format,omitempty"`                                                                                 // markdown, pdf, html, confluence
-	TemplateId     string                 `protobuf:"bytes,4,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`                                                       // 模板 ID
-	Variables      map[string]string      `protobuf:"bytes,5,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // 模板變數
+type GenerateReportRequest struct {
+	state          protoimpl.MessageState     `protogen:"open.v1"`
+	IncidentId     string                     `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
+	AnalysisResult *ExecutePostMortemResponse `protobuf:"bytes,2,opt,name=analysis_result,json=analysisResult,proto3" json:"analysis_result,omitempty"`
+	Format         string                     `protobuf:"bytes,3,opt,name=format,proto3" json:"format,omitempty"`                                                                                 // markdown, pdf, html, confluence
+	TemplateId     string                     `protobuf:"bytes,4,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`                                                       // 模板 ID
+	Variables      map[string]string          `protobuf:"bytes,5,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // 模板變數
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *ReportRequest) Reset() {
-	*x = ReportRequest{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[24]
+func (x *GenerateReportRequest) Reset() {
+	*x = GenerateReportRequest{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ReportRequest) String() string {
+func (x *GenerateReportRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ReportRequest) ProtoMessage() {}
+func (*GenerateReportRequest) ProtoMessage() {}
 
-func (x *ReportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[24]
+func (x *GenerateReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2407,40 +2641,40 @@ func (x *ReportRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ReportRequest.ProtoReflect.Descriptor instead.
-func (*ReportRequest) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{24}
+// Deprecated: Use GenerateReportRequest.ProtoReflect.Descriptor instead.
+func (*GenerateReportRequest) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{28}
 }
 
-func (x *ReportRequest) GetIncidentId() string {
+func (x *GenerateReportRequest) GetIncidentId() string {
 	if x != nil {
 		return x.IncidentId
 	}
 	return ""
 }
 
-func (x *ReportRequest) GetAnalysisResult() *PostMortemResult {
+func (x *GenerateReportRequest) GetAnalysisResult() *ExecutePostMortemResponse {
 	if x != nil {
 		return x.AnalysisResult
 	}
 	return nil
 }
 
-func (x *ReportRequest) GetFormat() string {
+func (x *GenerateReportRequest) GetFormat() string {
 	if x != nil {
 		return x.Format
 	}
 	return ""
 }
 
-func (x *ReportRequest) GetTemplateId() string {
+func (x *GenerateReportRequest) GetTemplateId() string {
 	if x != nil {
 		return x.TemplateId
 	}
 	return ""
 }
 
-func (x *ReportRequest) GetVariables() map[string]string {
+func (x *GenerateReportRequest) GetVariables() map[string]string {
 	if x != nil {
 		return x.Variables
 	}
@@ -2448,7 +2682,7 @@ func (x *ReportRequest) GetVariables() map[string]string {
 }
 
 // 報告響應
-type ReportResponse struct {
+type GenerateReportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
 	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
@@ -2459,21 +2693,21 @@ type ReportResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ReportResponse) Reset() {
-	*x = ReportResponse{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[25]
+func (x *GenerateReportResponse) Reset() {
+	*x = GenerateReportResponse{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ReportResponse) String() string {
+func (x *GenerateReportResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ReportResponse) ProtoMessage() {}
+func (*GenerateReportResponse) ProtoMessage() {}
 
-func (x *ReportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[25]
+func (x *GenerateReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2484,40 +2718,40 @@ func (x *ReportResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ReportResponse.ProtoReflect.Descriptor instead.
-func (*ReportResponse) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{25}
+// Deprecated: Use GenerateReportResponse.ProtoReflect.Descriptor instead.
+func (*GenerateReportResponse) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{29}
 }
 
-func (x *ReportResponse) GetReportId() string {
+func (x *GenerateReportResponse) GetReportId() string {
 	if x != nil {
 		return x.ReportId
 	}
 	return ""
 }
 
-func (x *ReportResponse) GetUrl() string {
+func (x *GenerateReportResponse) GetUrl() string {
 	if x != nil {
 		return x.Url
 	}
 	return ""
 }
 
-func (x *ReportResponse) GetContent() []byte {
+func (x *GenerateReportResponse) GetContent() []byte {
 	if x != nil {
 		return x.Content
 	}
 	return nil
 }
 
-func (x *ReportResponse) GetStoragePath() string {
+func (x *GenerateReportResponse) GetStoragePath() string {
 	if x != nil {
 		return x.StoragePath
 	}
 	return ""
 }
 
-func (x *ReportResponse) GetGeneratedAt() *timestamppb.Timestamp {
+func (x *GenerateReportResponse) GetGeneratedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.GeneratedAt
 	}
@@ -2525,7 +2759,7 @@ func (x *ReportResponse) GetGeneratedAt() *timestamppb.Timestamp {
 }
 
 // 儀表板請求
-type DashboardRequest struct {
+type CreateDashboardRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IncidentId    string                 `protobuf:"bytes,1,opt,name=incident_id,json=incidentId,proto3" json:"incident_id,omitempty"`
 	TimeRange     *TimeRange             `protobuf:"bytes,2,opt,name=time_range,json=timeRange,proto3" json:"time_range,omitempty"`
@@ -2536,21 +2770,21 @@ type DashboardRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DashboardRequest) Reset() {
-	*x = DashboardRequest{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[26]
+func (x *CreateDashboardRequest) Reset() {
+	*x = CreateDashboardRequest{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DashboardRequest) String() string {
+func (x *CreateDashboardRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DashboardRequest) ProtoMessage() {}
+func (*CreateDashboardRequest) ProtoMessage() {}
 
-func (x *DashboardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[26]
+func (x *CreateDashboardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2561,40 +2795,40 @@ func (x *DashboardRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DashboardRequest.ProtoReflect.Descriptor instead.
-func (*DashboardRequest) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{26}
+// Deprecated: Use CreateDashboardRequest.ProtoReflect.Descriptor instead.
+func (*CreateDashboardRequest) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{30}
 }
 
-func (x *DashboardRequest) GetIncidentId() string {
+func (x *CreateDashboardRequest) GetIncidentId() string {
 	if x != nil {
 		return x.IncidentId
 	}
 	return ""
 }
 
-func (x *DashboardRequest) GetTimeRange() *TimeRange {
+func (x *CreateDashboardRequest) GetTimeRange() *TimeRange {
 	if x != nil {
 		return x.TimeRange
 	}
 	return nil
 }
 
-func (x *DashboardRequest) GetServices() []*ServiceIdentifier {
+func (x *CreateDashboardRequest) GetServices() []*ServiceIdentifier {
 	if x != nil {
 		return x.Services
 	}
 	return nil
 }
 
-func (x *DashboardRequest) GetPanels() []*DashboardPanel {
+func (x *CreateDashboardRequest) GetPanels() []*DashboardPanel {
 	if x != nil {
 		return x.Panels
 	}
 	return nil
 }
 
-func (x *DashboardRequest) GetTemplateId() string {
+func (x *CreateDashboardRequest) GetTemplateId() string {
 	if x != nil {
 		return x.TemplateId
 	}
@@ -2618,7 +2852,7 @@ type DashboardPanel struct {
 
 func (x *DashboardPanel) Reset() {
 	*x = DashboardPanel{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[27]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2630,7 +2864,7 @@ func (x *DashboardPanel) String() string {
 func (*DashboardPanel) ProtoMessage() {}
 
 func (x *DashboardPanel) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[27]
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2643,7 +2877,7 @@ func (x *DashboardPanel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardPanel.ProtoReflect.Descriptor instead.
 func (*DashboardPanel) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{27}
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *DashboardPanel) GetTitle() string {
@@ -2703,7 +2937,7 @@ func (x *DashboardPanel) GetHeight() int32 {
 }
 
 // 儀表板響應
-type DashboardResponse struct {
+type CreateDashboardResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DashboardId   string                 `protobuf:"bytes,1,opt,name=dashboard_id,json=dashboardId,proto3" json:"dashboard_id,omitempty"`
 	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
@@ -2713,21 +2947,21 @@ type DashboardResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DashboardResponse) Reset() {
-	*x = DashboardResponse{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[28]
+func (x *CreateDashboardResponse) Reset() {
+	*x = CreateDashboardResponse{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DashboardResponse) String() string {
+func (x *CreateDashboardResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DashboardResponse) ProtoMessage() {}
+func (*CreateDashboardResponse) ProtoMessage() {}
 
-func (x *DashboardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[28]
+func (x *CreateDashboardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2738,33 +2972,33 @@ func (x *DashboardResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DashboardResponse.ProtoReflect.Descriptor instead.
-func (*DashboardResponse) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{28}
+// Deprecated: Use CreateDashboardResponse.ProtoReflect.Descriptor instead.
+func (*CreateDashboardResponse) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *DashboardResponse) GetDashboardId() string {
+func (x *CreateDashboardResponse) GetDashboardId() string {
 	if x != nil {
 		return x.DashboardId
 	}
 	return ""
 }
 
-func (x *DashboardResponse) GetUrl() string {
+func (x *CreateDashboardResponse) GetUrl() string {
 	if x != nil {
 		return x.Url
 	}
 	return ""
 }
 
-func (x *DashboardResponse) GetUid() string {
+func (x *CreateDashboardResponse) GetUid() string {
 	if x != nil {
 		return x.Uid
 	}
 	return ""
 }
 
-func (x *DashboardResponse) GetCreatedAt() *timestamppb.Timestamp {
+func (x *CreateDashboardResponse) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
@@ -2772,7 +3006,7 @@ func (x *DashboardResponse) GetCreatedAt() *timestamppb.Timestamp {
 }
 
 // 匯出請求
-type ExportRequest struct {
+type ExportReportRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	ReportId           string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
 	Format             string                 `protobuf:"bytes,2,opt,name=format,proto3" json:"format,omitempty"`
@@ -2781,21 +3015,21 @@ type ExportRequest struct {
 	sizeCache          protoimpl.SizeCache
 }
 
-func (x *ExportRequest) Reset() {
-	*x = ExportRequest{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[29]
+func (x *ExportReportRequest) Reset() {
+	*x = ExportReportRequest{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ExportRequest) String() string {
+func (x *ExportReportRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ExportRequest) ProtoMessage() {}
+func (*ExportReportRequest) ProtoMessage() {}
 
-func (x *ExportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[29]
+func (x *ExportReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2806,26 +3040,26 @@ func (x *ExportRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ExportRequest.ProtoReflect.Descriptor instead.
-func (*ExportRequest) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{29}
+// Deprecated: Use ExportReportRequest.ProtoReflect.Descriptor instead.
+func (*ExportReportRequest) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{33}
 }
 
-func (x *ExportRequest) GetReportId() string {
+func (x *ExportReportRequest) GetReportId() string {
 	if x != nil {
 		return x.ReportId
 	}
 	return ""
 }
 
-func (x *ExportRequest) GetFormat() string {
+func (x *ExportReportRequest) GetFormat() string {
 	if x != nil {
 		return x.Format
 	}
 	return ""
 }
 
-func (x *ExportRequest) GetIncludeAttachments() bool {
+func (x *ExportReportRequest) GetIncludeAttachments() bool {
 	if x != nil {
 		return x.IncludeAttachments
 	}
@@ -2833,7 +3067,7 @@ func (x *ExportRequest) GetIncludeAttachments() bool {
 }
 
 // 匯出資料塊
-type ExportChunk struct {
+type ExportReportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Sequence      int32                  `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -2843,21 +3077,21 @@ type ExportChunk struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ExportChunk) Reset() {
-	*x = ExportChunk{}
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[30]
+func (x *ExportReportResponse) Reset() {
+	*x = ExportReportResponse{}
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ExportChunk) String() string {
+func (x *ExportReportResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ExportChunk) ProtoMessage() {}
+func (*ExportReportResponse) ProtoMessage() {}
 
-func (x *ExportChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[30]
+func (x *ExportReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_detectviz_contracts_v1_postmortem_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2868,33 +3102,33 @@ func (x *ExportChunk) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ExportChunk.ProtoReflect.Descriptor instead.
-func (*ExportChunk) Descriptor() ([]byte, []int) {
-	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{30}
+// Deprecated: Use ExportReportResponse.ProtoReflect.Descriptor instead.
+func (*ExportReportResponse) Descriptor() ([]byte, []int) {
+	return file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP(), []int{34}
 }
 
-func (x *ExportChunk) GetData() []byte {
+func (x *ExportReportResponse) GetData() []byte {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *ExportChunk) GetSequence() int32 {
+func (x *ExportReportResponse) GetSequence() int32 {
 	if x != nil {
 		return x.Sequence
 	}
 	return 0
 }
 
-func (x *ExportChunk) GetIsLast() bool {
+func (x *ExportReportResponse) GetIsLast() bool {
 	if x != nil {
 		return x.IsLast
 	}
 	return false
 }
 
-func (x *ExportChunk) GetContentType() string {
+func (x *ExportReportResponse) GetContentType() string {
 	if x != nil {
 		return x.ContentType
 	}
@@ -2905,7 +3139,7 @@ var File_detectviz_contracts_v1_postmortem_proto protoreflect.FileDescriptor
 
 const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\n" +
-	"'detectviz/contracts/v1/postmortem.proto\x12\x16detectviz.contracts.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x19google/protobuf/any.proto\x1a\x17google/rpc/status.proto\"\xa2\x01\n" +
+	"'detectviz/contracts/v1/postmortem.proto\x12\x16detectviz.contracts.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x19google/protobuf/any.proto\"\xa2\x01\n" +
 	"\tTimeRange\x120\n" +
 	"\x05start\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x05start\x12,\n" +
 	"\x03end\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x03end\x125\n" +
@@ -2940,8 +3174,8 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"filterTags\x1a=\n" +
 	"\x0fFilterTagsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe8\x05\n" +
-	"\x11PostMortemRequest\x12\x1f\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf6\x05\n" +
+	"\x18ExecutePostMortemRequest\x12\x1f\n" +
 	"\vincident_id\x18\x01 \x01(\tR\n" +
 	"incidentId\x12F\n" +
 	"\ftrigger_type\x18\x02 \x01(\x0e2#.detectviz.contracts.v1.TriggerTypeR\vtriggerType\x12@\n" +
@@ -2952,9 +3186,9 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\trequester\x18\x06 \x01(\v2!.detectviz.contracts.v1.RequesterR\trequester\x12A\n" +
 	"\aoptions\x18\a \x01(\v2'.detectviz.contracts.v1.AnalysisOptionsR\aoptions\x12 \n" +
 	"\vdescription\x18\b \x01(\tR\vdescription\x12\x1b\n" +
-	"\talert_ids\x18\t \x03(\tR\balertIds\x12S\n" +
+	"\talert_ids\x18\t \x03(\tR\balertIds\x12Z\n" +
 	"\bmetadata\x18\n" +
-	" \x03(\v27.detectviz.contracts.v1.PostMortemRequest.MetadataEntryR\bmetadata\x12=\n" +
+	" \x03(\v2>.detectviz.contracts.v1.ExecutePostMortemRequest.MetadataEntryR\bmetadata\x12=\n" +
 	"\frequested_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\vrequestedAt\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -2972,7 +3206,7 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12;\n" +
 	"\x06values\x18\x02 \x03(\v2#.detectviz.contracts.v1.MetricValueR\x06values\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06source\x18\x04 \x01(\tR\x06source\"\xf9\x04\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\"\x9c\x05\n" +
 	"\vHealthEvent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12A\n" +
 	"\x04type\x18\x02 \x01(\x0e2-.detectviz.contracts.v1.HealthEvent.EventTypeR\x04type\x12\x14\n" +
@@ -2985,15 +3219,15 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\bmetadata\x18\b \x03(\v21.detectviz.contracts.v1.HealthEvent.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa0\x01\n" +
-	"\tEventType\x12\x15\n" +
-	"\x11EVENT_UNSPECIFIED\x10\x00\x12\x14\n" +
-	"\x10EVENT_DEPLOYMENT\x10\x01\x12\x0f\n" +
-	"\vEVENT_ALERT\x10\x02\x12\x12\n" +
-	"\x0eEVENT_INCIDENT\x10\x03\x12\x17\n" +
-	"\x13EVENT_CONFIGURATION\x10\x04\x12\x11\n" +
-	"\rEVENT_SCALING\x10\x05\x12\x15\n" +
-	"\x11EVENT_MAINTENANCE\x10\x06\"\xdb\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc3\x01\n" +
+	"\tEventType\x12\x1a\n" +
+	"\x16EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15EVENT_TYPE_DEPLOYMENT\x10\x01\x12\x14\n" +
+	"\x10EVENT_TYPE_ALERT\x10\x02\x12\x17\n" +
+	"\x13EVENT_TYPE_INCIDENT\x10\x03\x12\x1c\n" +
+	"\x18EVENT_TYPE_CONFIGURATION\x10\x04\x12\x16\n" +
+	"\x12EVENT_TYPE_SCALING\x10\x05\x12\x1a\n" +
+	"\x16EVENT_TYPE_MAINTENANCE\x10\x06\"\xdb\x03\n" +
 	"\rServiceHealth\x12C\n" +
 	"\aservice\x18\x01 \x01(\v2).detectviz.contracts.v1.ServiceIdentifierR\aservice\x12\x1b\n" +
 	"\tsli_score\x18\x02 \x01(\x01R\bsliScore\x12\"\n" +
@@ -3005,20 +3239,20 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"assessedAt\x1ad\n" +
 	"\fMetricsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12>\n" +
-	"\x05value\x18\x02 \x01(\v2(.detectviz.contracts.v1.MetricTimeSeriesR\x05value:\x028\x01\"\x9a\x03\n" +
-	"\x11HealthDataRequest\x12E\n" +
+	"\x05value\x18\x02 \x01(\v2(.detectviz.contracts.v1.MetricTimeSeriesR\x05value:\x028\x01\"\xa0\x03\n" +
+	"\x14GetHealthDataRequest\x12E\n" +
 	"\bservices\x18\x01 \x03(\v2).detectviz.contracts.v1.ServiceIdentifierR\bservices\x12@\n" +
 	"\n" +
 	"time_range\x18\x02 \x01(\v2!.detectviz.contracts.v1.TimeRangeR\ttimeRange\x12\x18\n" +
-	"\ametrics\x18\x03 \x03(\tR\ametrics\x12P\n" +
-	"\afilters\x18\x04 \x03(\v26.detectviz.contracts.v1.HealthDataRequest.FiltersEntryR\afilters\x12-\n" +
+	"\ametrics\x18\x03 \x03(\tR\ametrics\x12S\n" +
+	"\afilters\x18\x04 \x03(\v29.detectviz.contracts.v1.GetHealthDataRequest.FiltersEntryR\afilters\x12-\n" +
 	"\x12resolution_seconds\x18\x05 \x01(\x05R\x11resolutionSeconds\x12%\n" +
 	"\x0einclude_events\x18\x06 \x01(\bR\rincludeEvents\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf0\x02\n" +
-	"\x12HealthDataResponse\x12T\n" +
-	"\bservices\x18\x01 \x03(\v28.detectviz.contracts.v1.HealthDataResponse.ServicesEntryR\bservices\x12=\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf6\x02\n" +
+	"\x15GetHealthDataResponse\x12W\n" +
+	"\bservices\x18\x01 \x03(\v2;.detectviz.contracts.v1.GetHealthDataResponse.ServicesEntryR\bservices\x12=\n" +
 	"\fgenerated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x12B\n" +
@@ -3073,8 +3307,8 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"isKeyEvent\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa7\a\n" +
-	"\x10PostMortemResult\x12\x18\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc2\a\n" +
+	"\x19ExecutePostMortemResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1f\n" +
 	"\vincident_id\x18\x02 \x01(\tR\n" +
 	"incidentId\x12#\n" +
@@ -3083,25 +3317,25 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"report_url\x18\x04 \x01(\tR\treportUrl\x12Y\n" +
 	"\x13root_cause_analysis\x18\x05 \x01(\v2).detectviz.contracts.v1.RootCauseAnalysisR\x11rootCauseAnalysis\x12O\n" +
 	"\x0fimpact_analysis\x18\x06 \x01(\v2&.detectviz.contracts.v1.ImpactAnalysisR\x0eimpactAnalysis\x12@\n" +
-	"\btimeline\x18\a \x03(\v2$.detectviz.contracts.v1.TimelineItemR\btimeline\x12b\n" +
-	"\x0eservice_health\x18\b \x03(\v2;.detectviz.contracts.v1.PostMortemResult.ServiceHealthEntryR\rserviceHealth\x12\x16\n" +
+	"\btimeline\x18\a \x03(\v2$.detectviz.contracts.v1.TimelineItemR\btimeline\x12k\n" +
+	"\x0eservice_health\x18\b \x03(\v2D.detectviz.contracts.v1.ExecutePostMortemResponse.ServiceHealthEntryR\rserviceHealth\x12\x16\n" +
 	"\x06errors\x18\t \x03(\tR\x06errors\x12=\n" +
 	"\fcompleted_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\vcompletedAt\x12F\n" +
 	"\x11analysis_duration\x18\v \x01(\v2\x19.google.protobuf.DurationR\x10analysisDuration\x12)\n" +
-	"\x10analysis_version\x18\f \x01(\tR\x0fanalysisVersion\x12R\n" +
-	"\bmetadata\x18\r \x03(\v26.detectviz.contracts.v1.PostMortemResult.MetadataEntryR\bmetadata\x1ag\n" +
+	"\x10analysis_version\x18\f \x01(\tR\x0fanalysisVersion\x12[\n" +
+	"\bmetadata\x18\r \x03(\v2?.detectviz.contracts.v1.ExecutePostMortemResponse.MetadataEntryR\bmetadata\x1ag\n" +
 	"\x12ServiceHealthEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12;\n" +
 	"\x05value\x18\x02 \x01(\v2%.detectviz.contracts.v1.ServiceHealthR\x05value:\x028\x01\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"a\n" +
-	"\x15IncidentStatusRequest\x12\x1f\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"d\n" +
+	"\x18GetIncidentStatusRequest\x12\x1f\n" +
 	"\vincident_id\x18\x01 \x01(\tR\n" +
 	"incidentId\x12'\n" +
-	"\x0finclude_details\x18\x02 \x01(\bR\x0eincludeDetails\"\xd7\x03\n" +
-	"\x16IncidentStatusResponse\x12\x1f\n" +
+	"\x0finclude_details\x18\x02 \x01(\bR\x0eincludeDetails\"\xe3\x03\n" +
+	"\x19GetIncidentStatusResponse\x12\x1f\n" +
 	"\vincident_id\x18\x01 \x01(\tR\n" +
 	"incidentId\x12>\n" +
 	"\x06status\x18\x02 \x01(\x0e2&.detectviz.contracts.v1.IncidentStatusR\x06status\x12\x18\n" +
@@ -3111,21 +3345,39 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"started_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12J\n" +
-	"\x13estimated_remaining\x18\a \x01(\v2\x19.google.protobuf.DurationR\x12estimatedRemaining\x12O\n" +
-	"\x0epartial_result\x18\b \x01(\v2(.detectviz.contracts.v1.PostMortemResultR\rpartialResult\"\xb7\x01\n" +
-	"\x16BatchPostMortemRequest\x12E\n" +
-	"\brequests\x18\x01 \x03(\v2).detectviz.contracts.v1.PostMortemRequestR\brequests\x12/\n" +
+	"\x13estimated_remaining\x18\a \x01(\v2\x19.google.protobuf.DurationR\x12estimatedRemaining\x12X\n" +
+	"\x0epartial_result\x18\b \x01(\v21.detectviz.contracts.v1.ExecutePostMortemResponseR\rpartialResult\"\xc5\x01\n" +
+	"\x1dBatchExecutePostMortemRequest\x12L\n" +
+	"\brequests\x18\x01 \x03(\v20.detectviz.contracts.v1.ExecutePostMortemRequestR\brequests\x12/\n" +
 	"\x13parallel_processing\x18\x02 \x01(\bR\x12parallelProcessing\x12%\n" +
-	"\x0emax_concurrent\x18\x03 \x01(\x05R\rmaxConcurrent\"\x8e\x03\n" +
-	"\x17BatchPostMortemResponse\x12V\n" +
-	"\aresults\x18\x01 \x03(\v2<.detectviz.contracts.v1.BatchPostMortemResponse.ResultsEntryR\aresults\x12%\n" +
+	"\x0emax_concurrent\x18\x03 \x01(\x05R\rmaxConcurrent\"\xa5\x03\n" +
+	"\x1eBatchExecutePostMortemResponse\x12]\n" +
+	"\aresults\x18\x01 \x03(\v2C.detectviz.contracts.v1.BatchExecutePostMortemResponse.ResultsEntryR\aresults\x12%\n" +
 	"\x0etotal_requests\x18\x02 \x01(\x05R\rtotalRequests\x12)\n" +
 	"\x10successful_count\x18\x03 \x01(\x05R\x0fsuccessfulCount\x12!\n" +
 	"\ffailed_count\x18\x04 \x01(\x05R\vfailedCount\x12@\n" +
-	"\x0etotal_duration\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\rtotalDuration\x1ad\n" +
+	"\x0etotal_duration\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\rtotalDuration\x1am\n" +
 	"\fResultsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12>\n" +
-	"\x05value\x18\x02 \x01(\v2(.detectviz.contracts.v1.PostMortemResultR\x05value:\x028\x01\"\xf9\x02\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12G\n" +
+	"\x05value\x18\x02 \x01(\v21.detectviz.contracts.v1.ExecutePostMortemResponseR\x05value:\x028\x01\"\xce\x01\n" +
+	"\x17StreamHealthDataRequest\x12#\n" +
+	"\rservice_names\x18\x01 \x03(\tR\fserviceNames\x12@\n" +
+	"\n" +
+	"time_range\x18\x02 \x01(\v2!.detectviz.contracts.v1.TimeRangeR\ttimeRange\x12!\n" +
+	"\fmetric_types\x18\x03 \x03(\tR\vmetricTypes\x12)\n" +
+	"\x10interval_seconds\x18\x04 \x01(\x05R\x0fintervalSeconds\"\x9c\x01\n" +
+	"\x18StreamHealthDataResponse\x12F\n" +
+	"\vhealth_data\x18\x01 \x01(\v2%.detectviz.contracts.v1.ServiceHealthR\n" +
+	"healthData\x128\n" +
+	"\ttimestamp\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"R\n" +
+	"\x17CancelPostMortemRequest\x12\x1f\n" +
+	"\vincident_id\x18\x01 \x01(\tR\n" +
+	"incidentId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x8d\x01\n" +
+	"\x18CancelPostMortemResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12=\n" +
+	"\fcancelled_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\vcancelledAt\"\xf9\x02\n" +
 	"\x0eKnowledgeEntry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vincident_id\x18\x02 \x01(\tR\n" +
@@ -3154,25 +3406,25 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12,\n" +
 	"\x12knowledge_entry_id\x18\x02 \x01(\tR\x10knowledgeEntryId\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
-	"\x11similar_incidents\x18\x04 \x03(\tR\x10similarIncidents\"\xce\x02\n" +
-	"\rReportRequest\x12\x1f\n" +
+	"\x11similar_incidents\x18\x04 \x03(\tR\x10similarIncidents\"\xe7\x02\n" +
+	"\x15GenerateReportRequest\x12\x1f\n" +
 	"\vincident_id\x18\x01 \x01(\tR\n" +
-	"incidentId\x12Q\n" +
-	"\x0fanalysis_result\x18\x02 \x01(\v2(.detectviz.contracts.v1.PostMortemResultR\x0eanalysisResult\x12\x16\n" +
+	"incidentId\x12Z\n" +
+	"\x0fanalysis_result\x18\x02 \x01(\v21.detectviz.contracts.v1.ExecutePostMortemResponseR\x0eanalysisResult\x12\x16\n" +
 	"\x06format\x18\x03 \x01(\tR\x06format\x12\x1f\n" +
 	"\vtemplate_id\x18\x04 \x01(\tR\n" +
-	"templateId\x12R\n" +
-	"\tvariables\x18\x05 \x03(\v24.detectviz.contracts.v1.ReportRequest.VariablesEntryR\tvariables\x1a<\n" +
+	"templateId\x12Z\n" +
+	"\tvariables\x18\x05 \x03(\v2<.detectviz.contracts.v1.GenerateReportRequest.VariablesEntryR\tvariables\x1a<\n" +
 	"\x0eVariablesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbb\x01\n" +
-	"\x0eReportResponse\x12\x1b\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc3\x01\n" +
+	"\x16GenerateReportResponse\x12\x1b\n" +
 	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\fR\acontent\x12!\n" +
 	"\fstorage_path\x18\x04 \x01(\tR\vstoragePath\x12=\n" +
-	"\fgenerated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\"\x9d\x02\n" +
-	"\x10DashboardRequest\x12\x1f\n" +
+	"\fgenerated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\"\xa3\x02\n" +
+	"\x16CreateDashboardRequest\x12\x1f\n" +
 	"\vincident_id\x18\x01 \x01(\tR\n" +
 	"incidentId\x12@\n" +
 	"\n" +
@@ -3192,18 +3444,18 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\x06height\x18\b \x01(\x05R\x06height\x1a:\n" +
 	"\fOptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x95\x01\n" +
-	"\x11DashboardResponse\x12!\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9b\x01\n" +
+	"\x17CreateDashboardResponse\x12!\n" +
 	"\fdashboard_id\x18\x01 \x01(\tR\vdashboardId\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12\x10\n" +
 	"\x03uid\x18\x03 \x01(\tR\x03uid\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"u\n" +
-	"\rExportRequest\x12\x1b\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"{\n" +
+	"\x13ExportReportRequest\x12\x1b\n" +
 	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x16\n" +
 	"\x06format\x18\x02 \x01(\tR\x06format\x12/\n" +
-	"\x13include_attachments\x18\x03 \x01(\bR\x12includeAttachments\"y\n" +
-	"\vExportChunk\x12\x12\n" +
+	"\x13include_attachments\x18\x03 \x01(\bR\x12includeAttachments\"\x82\x01\n" +
+	"\x14ExportReportResponse\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12\x1a\n" +
 	"\bsequence\x18\x02 \x01(\x05R\bsequence\x12\x17\n" +
 	"\ais_last\x18\x03 \x01(\bR\x06isLast\x12!\n" +
@@ -3214,33 +3466,33 @@ const file_detectviz_contracts_v1_postmortem_proto_rawDesc = "" +
 	"\vSEVERITY_P1\x10\x02\x12\x0f\n" +
 	"\vSEVERITY_P2\x10\x03\x12\x0f\n" +
 	"\vSEVERITY_P3\x10\x04\x12\x0f\n" +
-	"\vSEVERITY_P4\x10\x05*\x94\x01\n" +
-	"\vTriggerType\x12\x17\n" +
-	"\x13TRIGGER_UNSPECIFIED\x10\x00\x12\x12\n" +
-	"\x0eTRIGGER_MANUAL\x10\x01\x12\x1a\n" +
-	"\x16TRIGGER_ALERT_RESOLVED\x10\x02\x12\x15\n" +
-	"\x11TRIGGER_SCHEDULED\x10\x03\x12\x0f\n" +
-	"\vTRIGGER_API\x10\x04\x12\x14\n" +
-	"\x10TRIGGER_WORKFLOW\x10\x05*\x91\x01\n" +
-	"\x0eIncidentStatus\x12\x16\n" +
-	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x14\n" +
-	"\x10STATUS_ANALYZING\x10\x01\x12\x14\n" +
-	"\x10STATUS_COMPLETED\x10\x02\x12\x11\n" +
-	"\rSTATUS_FAILED\x10\x03\x12\x14\n" +
-	"\x10STATUS_CANCELLED\x10\x04\x12\x12\n" +
-	"\x0eSTATUS_PENDING\x10\x052\xb7\x06\n" +
-	"\x11PostMortemService\x12m\n" +
-	"\x11ExecutePostMortem\x12).detectviz.contracts.v1.PostMortemRequest\x1a(.detectviz.contracts.v1.PostMortemResult\"\x03\x90\x02\x02\x12~\n" +
-	"\x16BatchExecutePostMortem\x12..detectviz.contracts.v1.BatchPostMortemRequest\x1a/.detectviz.contracts.v1.BatchPostMortemResponse\"\x03\x90\x02\x02\x12k\n" +
-	"\rGetHealthData\x12).detectviz.contracts.v1.HealthDataRequest\x1a*.detectviz.contracts.v1.HealthDataResponse\"\x03\x90\x02\x01\x12w\n" +
-	"\x11GetIncidentStatus\x12-.detectviz.contracts.v1.IncidentStatusRequest\x1a..detectviz.contracts.v1.IncidentStatusResponse\"\x03\x90\x02\x01\x12\x83\x01\n" +
-	"\x13UpdateKnowledgeBase\x122.detectviz.contracts.v1.UpdateKnowledgeBaseRequest\x1a3.detectviz.contracts.v1.UpdateKnowledgeBaseResponse\"\x03\x90\x02\x02\x12k\n" +
-	"\x10StreamHealthData\x12).detectviz.contracts.v1.HealthDataRequest\x1a%.detectviz.contracts.v1.ServiceHealth\"\x03\x90\x02\x010\x01\x12Z\n" +
-	"\x10CancelPostMortem\x12-.detectviz.contracts.v1.IncidentStatusRequest\x1a\x12.google.rpc.Status\"\x03\x90\x02\x022\xb6\x02\n" +
-	"\rReportService\x12_\n" +
-	"\x0eGenerateReport\x12%.detectviz.contracts.v1.ReportRequest\x1a&.detectviz.contracts.v1.ReportResponse\x12f\n" +
-	"\x0fCreateDashboard\x12(.detectviz.contracts.v1.DashboardRequest\x1a).detectviz.contracts.v1.DashboardResponse\x12\\\n" +
-	"\fExportReport\x12%.detectviz.contracts.v1.ExportRequest\x1a#.detectviz.contracts.v1.ExportChunk0\x01B\x82\x01\n" +
+	"\vSEVERITY_P4\x10\x05*\xb2\x01\n" +
+	"\vTriggerType\x12\x1c\n" +
+	"\x18TRIGGER_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13TRIGGER_TYPE_MANUAL\x10\x01\x12\x1f\n" +
+	"\x1bTRIGGER_TYPE_ALERT_RESOLVED\x10\x02\x12\x1a\n" +
+	"\x16TRIGGER_TYPE_SCHEDULED\x10\x03\x12\x14\n" +
+	"\x10TRIGGER_TYPE_API\x10\x04\x12\x19\n" +
+	"\x15TRIGGER_TYPE_WORKFLOW\x10\x05*\xc7\x01\n" +
+	"\x0eIncidentStatus\x12\x1f\n" +
+	"\x1bINCIDENT_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19INCIDENT_STATUS_ANALYZING\x10\x01\x12\x1d\n" +
+	"\x19INCIDENT_STATUS_COMPLETED\x10\x02\x12\x1a\n" +
+	"\x16INCIDENT_STATUS_FAILED\x10\x03\x12\x1d\n" +
+	"\x19INCIDENT_STATUS_CANCELLED\x10\x04\x12\x1b\n" +
+	"\x17INCIDENT_STATUS_PENDING\x10\x052\x93\a\n" +
+	"\x11PostMortemService\x12}\n" +
+	"\x11ExecutePostMortem\x120.detectviz.contracts.v1.ExecutePostMortemRequest\x1a1.detectviz.contracts.v1.ExecutePostMortemResponse\"\x03\x90\x02\x02\x12\x8c\x01\n" +
+	"\x16BatchExecutePostMortem\x125.detectviz.contracts.v1.BatchExecutePostMortemRequest\x1a6.detectviz.contracts.v1.BatchExecutePostMortemResponse\"\x03\x90\x02\x02\x12q\n" +
+	"\rGetHealthData\x12,.detectviz.contracts.v1.GetHealthDataRequest\x1a-.detectviz.contracts.v1.GetHealthDataResponse\"\x03\x90\x02\x01\x12}\n" +
+	"\x11GetIncidentStatus\x120.detectviz.contracts.v1.GetIncidentStatusRequest\x1a1.detectviz.contracts.v1.GetIncidentStatusResponse\"\x03\x90\x02\x01\x12\x83\x01\n" +
+	"\x13UpdateKnowledgeBase\x122.detectviz.contracts.v1.UpdateKnowledgeBaseRequest\x1a3.detectviz.contracts.v1.UpdateKnowledgeBaseResponse\"\x03\x90\x02\x02\x12|\n" +
+	"\x10StreamHealthData\x12/.detectviz.contracts.v1.StreamHealthDataRequest\x1a0.detectviz.contracts.v1.StreamHealthDataResponse\"\x03\x90\x02\x010\x01\x12z\n" +
+	"\x10CancelPostMortem\x12/.detectviz.contracts.v1.CancelPostMortemRequest\x1a0.detectviz.contracts.v1.CancelPostMortemResponse\"\x03\x90\x02\x022\xe1\x02\n" +
+	"\rReportService\x12o\n" +
+	"\x0eGenerateReport\x12-.detectviz.contracts.v1.GenerateReportRequest\x1a..detectviz.contracts.v1.GenerateReportResponse\x12r\n" +
+	"\x0fCreateDashboard\x12..detectviz.contracts.v1.CreateDashboardRequest\x1a/.detectviz.contracts.v1.CreateDashboardResponse\x12k\n" +
+	"\fExportReport\x12+.detectviz.contracts.v1.ExportReportRequest\x1a,.detectviz.contracts.v1.ExportReportResponse0\x01B\x82\x01\n" +
 	"\x19io.detectviz.contracts.v1B\x0fPostmortemProtoP\x01ZRgithub.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;v1b\x06proto3"
 
 var (
@@ -3256,162 +3508,169 @@ func file_detectviz_contracts_v1_postmortem_proto_rawDescGZIP() []byte {
 }
 
 var file_detectviz_contracts_v1_postmortem_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_detectviz_contracts_v1_postmortem_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
+var file_detectviz_contracts_v1_postmortem_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
 var file_detectviz_contracts_v1_postmortem_proto_goTypes = []any{
-	(Severity)(0),                       // 0: detectviz.contracts.v1.Severity
-	(TriggerType)(0),                    // 1: detectviz.contracts.v1.TriggerType
-	(IncidentStatus)(0),                 // 2: detectviz.contracts.v1.IncidentStatus
-	(HealthEvent_EventType)(0),          // 3: detectviz.contracts.v1.HealthEvent.EventType
-	(*TimeRange)(nil),                   // 4: detectviz.contracts.v1.TimeRange
-	(*ServiceIdentifier)(nil),           // 5: detectviz.contracts.v1.ServiceIdentifier
-	(*Requester)(nil),                   // 6: detectviz.contracts.v1.Requester
-	(*AnalysisOptions)(nil),             // 7: detectviz.contracts.v1.AnalysisOptions
-	(*PostMortemRequest)(nil),           // 8: detectviz.contracts.v1.PostMortemRequest
-	(*MetricValue)(nil),                 // 9: detectviz.contracts.v1.MetricValue
-	(*MetricTimeSeries)(nil),            // 10: detectviz.contracts.v1.MetricTimeSeries
-	(*HealthEvent)(nil),                 // 11: detectviz.contracts.v1.HealthEvent
-	(*ServiceHealth)(nil),               // 12: detectviz.contracts.v1.ServiceHealth
-	(*HealthDataRequest)(nil),           // 13: detectviz.contracts.v1.HealthDataRequest
-	(*HealthDataResponse)(nil),          // 14: detectviz.contracts.v1.HealthDataResponse
-	(*RootCauseAnalysis)(nil),           // 15: detectviz.contracts.v1.RootCauseAnalysis
-	(*Evidence)(nil),                    // 16: detectviz.contracts.v1.Evidence
-	(*Recommendation)(nil),              // 17: detectviz.contracts.v1.Recommendation
-	(*ImpactAnalysis)(nil),              // 18: detectviz.contracts.v1.ImpactAnalysis
-	(*TimelineItem)(nil),                // 19: detectviz.contracts.v1.TimelineItem
-	(*PostMortemResult)(nil),            // 20: detectviz.contracts.v1.PostMortemResult
-	(*IncidentStatusRequest)(nil),       // 21: detectviz.contracts.v1.IncidentStatusRequest
-	(*IncidentStatusResponse)(nil),      // 22: detectviz.contracts.v1.IncidentStatusResponse
-	(*BatchPostMortemRequest)(nil),      // 23: detectviz.contracts.v1.BatchPostMortemRequest
-	(*BatchPostMortemResponse)(nil),     // 24: detectviz.contracts.v1.BatchPostMortemResponse
-	(*KnowledgeEntry)(nil),              // 25: detectviz.contracts.v1.KnowledgeEntry
-	(*UpdateKnowledgeBaseRequest)(nil),  // 26: detectviz.contracts.v1.UpdateKnowledgeBaseRequest
-	(*UpdateKnowledgeBaseResponse)(nil), // 27: detectviz.contracts.v1.UpdateKnowledgeBaseResponse
-	(*ReportRequest)(nil),               // 28: detectviz.contracts.v1.ReportRequest
-	(*ReportResponse)(nil),              // 29: detectviz.contracts.v1.ReportResponse
-	(*DashboardRequest)(nil),            // 30: detectviz.contracts.v1.DashboardRequest
-	(*DashboardPanel)(nil),              // 31: detectviz.contracts.v1.DashboardPanel
-	(*DashboardResponse)(nil),           // 32: detectviz.contracts.v1.DashboardResponse
-	(*ExportRequest)(nil),               // 33: detectviz.contracts.v1.ExportRequest
-	(*ExportChunk)(nil),                 // 34: detectviz.contracts.v1.ExportChunk
-	nil,                                 // 35: detectviz.contracts.v1.ServiceIdentifier.LabelsEntry
-	nil,                                 // 36: detectviz.contracts.v1.Requester.MetadataEntry
-	nil,                                 // 37: detectviz.contracts.v1.AnalysisOptions.FilterTagsEntry
-	nil,                                 // 38: detectviz.contracts.v1.PostMortemRequest.MetadataEntry
-	nil,                                 // 39: detectviz.contracts.v1.MetricValue.LabelsEntry
-	nil,                                 // 40: detectviz.contracts.v1.HealthEvent.MetadataEntry
-	nil,                                 // 41: detectviz.contracts.v1.ServiceHealth.MetricsEntry
-	nil,                                 // 42: detectviz.contracts.v1.HealthDataRequest.FiltersEntry
-	nil,                                 // 43: detectviz.contracts.v1.HealthDataResponse.ServicesEntry
-	nil,                                 // 44: detectviz.contracts.v1.ImpactAnalysis.SlaBreachesEntry
-	nil,                                 // 45: detectviz.contracts.v1.TimelineItem.MetadataEntry
-	nil,                                 // 46: detectviz.contracts.v1.PostMortemResult.ServiceHealthEntry
-	nil,                                 // 47: detectviz.contracts.v1.PostMortemResult.MetadataEntry
-	nil,                                 // 48: detectviz.contracts.v1.BatchPostMortemResponse.ResultsEntry
-	nil,                                 // 49: detectviz.contracts.v1.ReportRequest.VariablesEntry
-	nil,                                 // 50: detectviz.contracts.v1.DashboardPanel.OptionsEntry
-	(*timestamppb.Timestamp)(nil),       // 51: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),         // 52: google.protobuf.Duration
-	(*anypb.Any)(nil),                   // 53: google.protobuf.Any
-	(*status.Status)(nil),               // 54: google.rpc.Status
+	(Severity)(0),                          // 0: detectviz.contracts.v1.Severity
+	(TriggerType)(0),                       // 1: detectviz.contracts.v1.TriggerType
+	(IncidentStatus)(0),                    // 2: detectviz.contracts.v1.IncidentStatus
+	(HealthEvent_EventType)(0),             // 3: detectviz.contracts.v1.HealthEvent.EventType
+	(*TimeRange)(nil),                      // 4: detectviz.contracts.v1.TimeRange
+	(*ServiceIdentifier)(nil),              // 5: detectviz.contracts.v1.ServiceIdentifier
+	(*Requester)(nil),                      // 6: detectviz.contracts.v1.Requester
+	(*AnalysisOptions)(nil),                // 7: detectviz.contracts.v1.AnalysisOptions
+	(*ExecutePostMortemRequest)(nil),       // 8: detectviz.contracts.v1.ExecutePostMortemRequest
+	(*MetricValue)(nil),                    // 9: detectviz.contracts.v1.MetricValue
+	(*MetricTimeSeries)(nil),               // 10: detectviz.contracts.v1.MetricTimeSeries
+	(*HealthEvent)(nil),                    // 11: detectviz.contracts.v1.HealthEvent
+	(*ServiceHealth)(nil),                  // 12: detectviz.contracts.v1.ServiceHealth
+	(*GetHealthDataRequest)(nil),           // 13: detectviz.contracts.v1.GetHealthDataRequest
+	(*GetHealthDataResponse)(nil),          // 14: detectviz.contracts.v1.GetHealthDataResponse
+	(*RootCauseAnalysis)(nil),              // 15: detectviz.contracts.v1.RootCauseAnalysis
+	(*Evidence)(nil),                       // 16: detectviz.contracts.v1.Evidence
+	(*Recommendation)(nil),                 // 17: detectviz.contracts.v1.Recommendation
+	(*ImpactAnalysis)(nil),                 // 18: detectviz.contracts.v1.ImpactAnalysis
+	(*TimelineItem)(nil),                   // 19: detectviz.contracts.v1.TimelineItem
+	(*ExecutePostMortemResponse)(nil),      // 20: detectviz.contracts.v1.ExecutePostMortemResponse
+	(*GetIncidentStatusRequest)(nil),       // 21: detectviz.contracts.v1.GetIncidentStatusRequest
+	(*GetIncidentStatusResponse)(nil),      // 22: detectviz.contracts.v1.GetIncidentStatusResponse
+	(*BatchExecutePostMortemRequest)(nil),  // 23: detectviz.contracts.v1.BatchExecutePostMortemRequest
+	(*BatchExecutePostMortemResponse)(nil), // 24: detectviz.contracts.v1.BatchExecutePostMortemResponse
+	(*StreamHealthDataRequest)(nil),        // 25: detectviz.contracts.v1.StreamHealthDataRequest
+	(*StreamHealthDataResponse)(nil),       // 26: detectviz.contracts.v1.StreamHealthDataResponse
+	(*CancelPostMortemRequest)(nil),        // 27: detectviz.contracts.v1.CancelPostMortemRequest
+	(*CancelPostMortemResponse)(nil),       // 28: detectviz.contracts.v1.CancelPostMortemResponse
+	(*KnowledgeEntry)(nil),                 // 29: detectviz.contracts.v1.KnowledgeEntry
+	(*UpdateKnowledgeBaseRequest)(nil),     // 30: detectviz.contracts.v1.UpdateKnowledgeBaseRequest
+	(*UpdateKnowledgeBaseResponse)(nil),    // 31: detectviz.contracts.v1.UpdateKnowledgeBaseResponse
+	(*GenerateReportRequest)(nil),          // 32: detectviz.contracts.v1.GenerateReportRequest
+	(*GenerateReportResponse)(nil),         // 33: detectviz.contracts.v1.GenerateReportResponse
+	(*CreateDashboardRequest)(nil),         // 34: detectviz.contracts.v1.CreateDashboardRequest
+	(*DashboardPanel)(nil),                 // 35: detectviz.contracts.v1.DashboardPanel
+	(*CreateDashboardResponse)(nil),        // 36: detectviz.contracts.v1.CreateDashboardResponse
+	(*ExportReportRequest)(nil),            // 37: detectviz.contracts.v1.ExportReportRequest
+	(*ExportReportResponse)(nil),           // 38: detectviz.contracts.v1.ExportReportResponse
+	nil,                                    // 39: detectviz.contracts.v1.ServiceIdentifier.LabelsEntry
+	nil,                                    // 40: detectviz.contracts.v1.Requester.MetadataEntry
+	nil,                                    // 41: detectviz.contracts.v1.AnalysisOptions.FilterTagsEntry
+	nil,                                    // 42: detectviz.contracts.v1.ExecutePostMortemRequest.MetadataEntry
+	nil,                                    // 43: detectviz.contracts.v1.MetricValue.LabelsEntry
+	nil,                                    // 44: detectviz.contracts.v1.HealthEvent.MetadataEntry
+	nil,                                    // 45: detectviz.contracts.v1.ServiceHealth.MetricsEntry
+	nil,                                    // 46: detectviz.contracts.v1.GetHealthDataRequest.FiltersEntry
+	nil,                                    // 47: detectviz.contracts.v1.GetHealthDataResponse.ServicesEntry
+	nil,                                    // 48: detectviz.contracts.v1.ImpactAnalysis.SlaBreachesEntry
+	nil,                                    // 49: detectviz.contracts.v1.TimelineItem.MetadataEntry
+	nil,                                    // 50: detectviz.contracts.v1.ExecutePostMortemResponse.ServiceHealthEntry
+	nil,                                    // 51: detectviz.contracts.v1.ExecutePostMortemResponse.MetadataEntry
+	nil,                                    // 52: detectviz.contracts.v1.BatchExecutePostMortemResponse.ResultsEntry
+	nil,                                    // 53: detectviz.contracts.v1.GenerateReportRequest.VariablesEntry
+	nil,                                    // 54: detectviz.contracts.v1.DashboardPanel.OptionsEntry
+	(*timestamppb.Timestamp)(nil),          // 55: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),            // 56: google.protobuf.Duration
+	(*anypb.Any)(nil),                      // 57: google.protobuf.Any
 }
 var file_detectviz_contracts_v1_postmortem_proto_depIdxs = []int32{
-	51, // 0: detectviz.contracts.v1.TimeRange.start:type_name -> google.protobuf.Timestamp
-	51, // 1: detectviz.contracts.v1.TimeRange.end:type_name -> google.protobuf.Timestamp
-	52, // 2: detectviz.contracts.v1.TimeRange.duration:type_name -> google.protobuf.Duration
-	35, // 3: detectviz.contracts.v1.ServiceIdentifier.labels:type_name -> detectviz.contracts.v1.ServiceIdentifier.LabelsEntry
-	36, // 4: detectviz.contracts.v1.Requester.metadata:type_name -> detectviz.contracts.v1.Requester.MetadataEntry
-	37, // 5: detectviz.contracts.v1.AnalysisOptions.filter_tags:type_name -> detectviz.contracts.v1.AnalysisOptions.FilterTagsEntry
-	1,  // 6: detectviz.contracts.v1.PostMortemRequest.trigger_type:type_name -> detectviz.contracts.v1.TriggerType
-	4,  // 7: detectviz.contracts.v1.PostMortemRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
-	5,  // 8: detectviz.contracts.v1.PostMortemRequest.affected_services:type_name -> detectviz.contracts.v1.ServiceIdentifier
-	0,  // 9: detectviz.contracts.v1.PostMortemRequest.severity:type_name -> detectviz.contracts.v1.Severity
-	6,  // 10: detectviz.contracts.v1.PostMortemRequest.requester:type_name -> detectviz.contracts.v1.Requester
-	7,  // 11: detectviz.contracts.v1.PostMortemRequest.options:type_name -> detectviz.contracts.v1.AnalysisOptions
-	38, // 12: detectviz.contracts.v1.PostMortemRequest.metadata:type_name -> detectviz.contracts.v1.PostMortemRequest.MetadataEntry
-	51, // 13: detectviz.contracts.v1.PostMortemRequest.requested_at:type_name -> google.protobuf.Timestamp
-	51, // 14: detectviz.contracts.v1.MetricValue.timestamp:type_name -> google.protobuf.Timestamp
-	39, // 15: detectviz.contracts.v1.MetricValue.labels:type_name -> detectviz.contracts.v1.MetricValue.LabelsEntry
+	55, // 0: detectviz.contracts.v1.TimeRange.start:type_name -> google.protobuf.Timestamp
+	55, // 1: detectviz.contracts.v1.TimeRange.end:type_name -> google.protobuf.Timestamp
+	56, // 2: detectviz.contracts.v1.TimeRange.duration:type_name -> google.protobuf.Duration
+	39, // 3: detectviz.contracts.v1.ServiceIdentifier.labels:type_name -> detectviz.contracts.v1.ServiceIdentifier.LabelsEntry
+	40, // 4: detectviz.contracts.v1.Requester.metadata:type_name -> detectviz.contracts.v1.Requester.MetadataEntry
+	41, // 5: detectviz.contracts.v1.AnalysisOptions.filter_tags:type_name -> detectviz.contracts.v1.AnalysisOptions.FilterTagsEntry
+	1,  // 6: detectviz.contracts.v1.ExecutePostMortemRequest.trigger_type:type_name -> detectviz.contracts.v1.TriggerType
+	4,  // 7: detectviz.contracts.v1.ExecutePostMortemRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
+	5,  // 8: detectviz.contracts.v1.ExecutePostMortemRequest.affected_services:type_name -> detectviz.contracts.v1.ServiceIdentifier
+	0,  // 9: detectviz.contracts.v1.ExecutePostMortemRequest.severity:type_name -> detectviz.contracts.v1.Severity
+	6,  // 10: detectviz.contracts.v1.ExecutePostMortemRequest.requester:type_name -> detectviz.contracts.v1.Requester
+	7,  // 11: detectviz.contracts.v1.ExecutePostMortemRequest.options:type_name -> detectviz.contracts.v1.AnalysisOptions
+	42, // 12: detectviz.contracts.v1.ExecutePostMortemRequest.metadata:type_name -> detectviz.contracts.v1.ExecutePostMortemRequest.MetadataEntry
+	55, // 13: detectviz.contracts.v1.ExecutePostMortemRequest.requested_at:type_name -> google.protobuf.Timestamp
+	55, // 14: detectviz.contracts.v1.MetricValue.timestamp:type_name -> google.protobuf.Timestamp
+	43, // 15: detectviz.contracts.v1.MetricValue.labels:type_name -> detectviz.contracts.v1.MetricValue.LabelsEntry
 	9,  // 16: detectviz.contracts.v1.MetricTimeSeries.values:type_name -> detectviz.contracts.v1.MetricValue
 	3,  // 17: detectviz.contracts.v1.HealthEvent.type:type_name -> detectviz.contracts.v1.HealthEvent.EventType
 	0,  // 18: detectviz.contracts.v1.HealthEvent.severity:type_name -> detectviz.contracts.v1.Severity
-	51, // 19: detectviz.contracts.v1.HealthEvent.occurred_at:type_name -> google.protobuf.Timestamp
-	52, // 20: detectviz.contracts.v1.HealthEvent.duration:type_name -> google.protobuf.Duration
-	40, // 21: detectviz.contracts.v1.HealthEvent.metadata:type_name -> detectviz.contracts.v1.HealthEvent.MetadataEntry
+	55, // 19: detectviz.contracts.v1.HealthEvent.occurred_at:type_name -> google.protobuf.Timestamp
+	56, // 20: detectviz.contracts.v1.HealthEvent.duration:type_name -> google.protobuf.Duration
+	44, // 21: detectviz.contracts.v1.HealthEvent.metadata:type_name -> detectviz.contracts.v1.HealthEvent.MetadataEntry
 	5,  // 22: detectviz.contracts.v1.ServiceHealth.service:type_name -> detectviz.contracts.v1.ServiceIdentifier
-	41, // 23: detectviz.contracts.v1.ServiceHealth.metrics:type_name -> detectviz.contracts.v1.ServiceHealth.MetricsEntry
+	45, // 23: detectviz.contracts.v1.ServiceHealth.metrics:type_name -> detectviz.contracts.v1.ServiceHealth.MetricsEntry
 	11, // 24: detectviz.contracts.v1.ServiceHealth.events:type_name -> detectviz.contracts.v1.HealthEvent
-	51, // 25: detectviz.contracts.v1.ServiceHealth.assessed_at:type_name -> google.protobuf.Timestamp
-	5,  // 26: detectviz.contracts.v1.HealthDataRequest.services:type_name -> detectviz.contracts.v1.ServiceIdentifier
-	4,  // 27: detectviz.contracts.v1.HealthDataRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
-	42, // 28: detectviz.contracts.v1.HealthDataRequest.filters:type_name -> detectviz.contracts.v1.HealthDataRequest.FiltersEntry
-	43, // 29: detectviz.contracts.v1.HealthDataResponse.services:type_name -> detectviz.contracts.v1.HealthDataResponse.ServicesEntry
-	51, // 30: detectviz.contracts.v1.HealthDataResponse.generated_at:type_name -> google.protobuf.Timestamp
-	52, // 31: detectviz.contracts.v1.HealthDataResponse.processing_time:type_name -> google.protobuf.Duration
+	55, // 25: detectviz.contracts.v1.ServiceHealth.assessed_at:type_name -> google.protobuf.Timestamp
+	5,  // 26: detectviz.contracts.v1.GetHealthDataRequest.services:type_name -> detectviz.contracts.v1.ServiceIdentifier
+	4,  // 27: detectviz.contracts.v1.GetHealthDataRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
+	46, // 28: detectviz.contracts.v1.GetHealthDataRequest.filters:type_name -> detectviz.contracts.v1.GetHealthDataRequest.FiltersEntry
+	47, // 29: detectviz.contracts.v1.GetHealthDataResponse.services:type_name -> detectviz.contracts.v1.GetHealthDataResponse.ServicesEntry
+	55, // 30: detectviz.contracts.v1.GetHealthDataResponse.generated_at:type_name -> google.protobuf.Timestamp
+	56, // 31: detectviz.contracts.v1.GetHealthDataResponse.processing_time:type_name -> google.protobuf.Duration
 	17, // 32: detectviz.contracts.v1.RootCauseAnalysis.recommendations:type_name -> detectviz.contracts.v1.Recommendation
 	16, // 33: detectviz.contracts.v1.RootCauseAnalysis.evidences:type_name -> detectviz.contracts.v1.Evidence
-	53, // 34: detectviz.contracts.v1.Evidence.data:type_name -> google.protobuf.Any
-	51, // 35: detectviz.contracts.v1.Evidence.timestamp:type_name -> google.protobuf.Timestamp
-	51, // 36: detectviz.contracts.v1.Recommendation.due_date:type_name -> google.protobuf.Timestamp
-	44, // 37: detectviz.contracts.v1.ImpactAnalysis.sla_breaches:type_name -> detectviz.contracts.v1.ImpactAnalysis.SlaBreachesEntry
-	52, // 38: detectviz.contracts.v1.ImpactAnalysis.total_downtime:type_name -> google.protobuf.Duration
-	51, // 39: detectviz.contracts.v1.TimelineItem.timestamp:type_name -> google.protobuf.Timestamp
-	45, // 40: detectviz.contracts.v1.TimelineItem.metadata:type_name -> detectviz.contracts.v1.TimelineItem.MetadataEntry
-	15, // 41: detectviz.contracts.v1.PostMortemResult.root_cause_analysis:type_name -> detectviz.contracts.v1.RootCauseAnalysis
-	18, // 42: detectviz.contracts.v1.PostMortemResult.impact_analysis:type_name -> detectviz.contracts.v1.ImpactAnalysis
-	19, // 43: detectviz.contracts.v1.PostMortemResult.timeline:type_name -> detectviz.contracts.v1.TimelineItem
-	46, // 44: detectviz.contracts.v1.PostMortemResult.service_health:type_name -> detectviz.contracts.v1.PostMortemResult.ServiceHealthEntry
-	51, // 45: detectviz.contracts.v1.PostMortemResult.completed_at:type_name -> google.protobuf.Timestamp
-	52, // 46: detectviz.contracts.v1.PostMortemResult.analysis_duration:type_name -> google.protobuf.Duration
-	47, // 47: detectviz.contracts.v1.PostMortemResult.metadata:type_name -> detectviz.contracts.v1.PostMortemResult.MetadataEntry
-	2,  // 48: detectviz.contracts.v1.IncidentStatusResponse.status:type_name -> detectviz.contracts.v1.IncidentStatus
-	51, // 49: detectviz.contracts.v1.IncidentStatusResponse.started_at:type_name -> google.protobuf.Timestamp
-	51, // 50: detectviz.contracts.v1.IncidentStatusResponse.updated_at:type_name -> google.protobuf.Timestamp
-	52, // 51: detectviz.contracts.v1.IncidentStatusResponse.estimated_remaining:type_name -> google.protobuf.Duration
-	20, // 52: detectviz.contracts.v1.IncidentStatusResponse.partial_result:type_name -> detectviz.contracts.v1.PostMortemResult
-	8,  // 53: detectviz.contracts.v1.BatchPostMortemRequest.requests:type_name -> detectviz.contracts.v1.PostMortemRequest
-	48, // 54: detectviz.contracts.v1.BatchPostMortemResponse.results:type_name -> detectviz.contracts.v1.BatchPostMortemResponse.ResultsEntry
-	52, // 55: detectviz.contracts.v1.BatchPostMortemResponse.total_duration:type_name -> google.protobuf.Duration
-	51, // 56: detectviz.contracts.v1.KnowledgeEntry.created_at:type_name -> google.protobuf.Timestamp
-	51, // 57: detectviz.contracts.v1.KnowledgeEntry.updated_at:type_name -> google.protobuf.Timestamp
-	15, // 58: detectviz.contracts.v1.UpdateKnowledgeBaseRequest.analysis:type_name -> detectviz.contracts.v1.RootCauseAnalysis
-	17, // 59: detectviz.contracts.v1.UpdateKnowledgeBaseRequest.recommendations:type_name -> detectviz.contracts.v1.Recommendation
-	20, // 60: detectviz.contracts.v1.ReportRequest.analysis_result:type_name -> detectviz.contracts.v1.PostMortemResult
-	49, // 61: detectviz.contracts.v1.ReportRequest.variables:type_name -> detectviz.contracts.v1.ReportRequest.VariablesEntry
-	51, // 62: detectviz.contracts.v1.ReportResponse.generated_at:type_name -> google.protobuf.Timestamp
-	4,  // 63: detectviz.contracts.v1.DashboardRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
-	5,  // 64: detectviz.contracts.v1.DashboardRequest.services:type_name -> detectviz.contracts.v1.ServiceIdentifier
-	31, // 65: detectviz.contracts.v1.DashboardRequest.panels:type_name -> detectviz.contracts.v1.DashboardPanel
-	50, // 66: detectviz.contracts.v1.DashboardPanel.options:type_name -> detectviz.contracts.v1.DashboardPanel.OptionsEntry
-	51, // 67: detectviz.contracts.v1.DashboardResponse.created_at:type_name -> google.protobuf.Timestamp
-	10, // 68: detectviz.contracts.v1.ServiceHealth.MetricsEntry.value:type_name -> detectviz.contracts.v1.MetricTimeSeries
-	12, // 69: detectviz.contracts.v1.HealthDataResponse.ServicesEntry.value:type_name -> detectviz.contracts.v1.ServiceHealth
-	12, // 70: detectviz.contracts.v1.PostMortemResult.ServiceHealthEntry.value:type_name -> detectviz.contracts.v1.ServiceHealth
-	20, // 71: detectviz.contracts.v1.BatchPostMortemResponse.ResultsEntry.value:type_name -> detectviz.contracts.v1.PostMortemResult
-	8,  // 72: detectviz.contracts.v1.PostMortemService.ExecutePostMortem:input_type -> detectviz.contracts.v1.PostMortemRequest
-	23, // 73: detectviz.contracts.v1.PostMortemService.BatchExecutePostMortem:input_type -> detectviz.contracts.v1.BatchPostMortemRequest
-	13, // 74: detectviz.contracts.v1.PostMortemService.GetHealthData:input_type -> detectviz.contracts.v1.HealthDataRequest
-	21, // 75: detectviz.contracts.v1.PostMortemService.GetIncidentStatus:input_type -> detectviz.contracts.v1.IncidentStatusRequest
-	26, // 76: detectviz.contracts.v1.PostMortemService.UpdateKnowledgeBase:input_type -> detectviz.contracts.v1.UpdateKnowledgeBaseRequest
-	13, // 77: detectviz.contracts.v1.PostMortemService.StreamHealthData:input_type -> detectviz.contracts.v1.HealthDataRequest
-	21, // 78: detectviz.contracts.v1.PostMortemService.CancelPostMortem:input_type -> detectviz.contracts.v1.IncidentStatusRequest
-	28, // 79: detectviz.contracts.v1.ReportService.GenerateReport:input_type -> detectviz.contracts.v1.ReportRequest
-	30, // 80: detectviz.contracts.v1.ReportService.CreateDashboard:input_type -> detectviz.contracts.v1.DashboardRequest
-	33, // 81: detectviz.contracts.v1.ReportService.ExportReport:input_type -> detectviz.contracts.v1.ExportRequest
-	20, // 82: detectviz.contracts.v1.PostMortemService.ExecutePostMortem:output_type -> detectviz.contracts.v1.PostMortemResult
-	24, // 83: detectviz.contracts.v1.PostMortemService.BatchExecutePostMortem:output_type -> detectviz.contracts.v1.BatchPostMortemResponse
-	14, // 84: detectviz.contracts.v1.PostMortemService.GetHealthData:output_type -> detectviz.contracts.v1.HealthDataResponse
-	22, // 85: detectviz.contracts.v1.PostMortemService.GetIncidentStatus:output_type -> detectviz.contracts.v1.IncidentStatusResponse
-	27, // 86: detectviz.contracts.v1.PostMortemService.UpdateKnowledgeBase:output_type -> detectviz.contracts.v1.UpdateKnowledgeBaseResponse
-	12, // 87: detectviz.contracts.v1.PostMortemService.StreamHealthData:output_type -> detectviz.contracts.v1.ServiceHealth
-	54, // 88: detectviz.contracts.v1.PostMortemService.CancelPostMortem:output_type -> google.rpc.Status
-	29, // 89: detectviz.contracts.v1.ReportService.GenerateReport:output_type -> detectviz.contracts.v1.ReportResponse
-	32, // 90: detectviz.contracts.v1.ReportService.CreateDashboard:output_type -> detectviz.contracts.v1.DashboardResponse
-	34, // 91: detectviz.contracts.v1.ReportService.ExportReport:output_type -> detectviz.contracts.v1.ExportChunk
-	82, // [82:92] is the sub-list for method output_type
-	72, // [72:82] is the sub-list for method input_type
-	72, // [72:72] is the sub-list for extension type_name
-	72, // [72:72] is the sub-list for extension extendee
-	0,  // [0:72] is the sub-list for field type_name
+	57, // 34: detectviz.contracts.v1.Evidence.data:type_name -> google.protobuf.Any
+	55, // 35: detectviz.contracts.v1.Evidence.timestamp:type_name -> google.protobuf.Timestamp
+	55, // 36: detectviz.contracts.v1.Recommendation.due_date:type_name -> google.protobuf.Timestamp
+	48, // 37: detectviz.contracts.v1.ImpactAnalysis.sla_breaches:type_name -> detectviz.contracts.v1.ImpactAnalysis.SlaBreachesEntry
+	56, // 38: detectviz.contracts.v1.ImpactAnalysis.total_downtime:type_name -> google.protobuf.Duration
+	55, // 39: detectviz.contracts.v1.TimelineItem.timestamp:type_name -> google.protobuf.Timestamp
+	49, // 40: detectviz.contracts.v1.TimelineItem.metadata:type_name -> detectviz.contracts.v1.TimelineItem.MetadataEntry
+	15, // 41: detectviz.contracts.v1.ExecutePostMortemResponse.root_cause_analysis:type_name -> detectviz.contracts.v1.RootCauseAnalysis
+	18, // 42: detectviz.contracts.v1.ExecutePostMortemResponse.impact_analysis:type_name -> detectviz.contracts.v1.ImpactAnalysis
+	19, // 43: detectviz.contracts.v1.ExecutePostMortemResponse.timeline:type_name -> detectviz.contracts.v1.TimelineItem
+	50, // 44: detectviz.contracts.v1.ExecutePostMortemResponse.service_health:type_name -> detectviz.contracts.v1.ExecutePostMortemResponse.ServiceHealthEntry
+	55, // 45: detectviz.contracts.v1.ExecutePostMortemResponse.completed_at:type_name -> google.protobuf.Timestamp
+	56, // 46: detectviz.contracts.v1.ExecutePostMortemResponse.analysis_duration:type_name -> google.protobuf.Duration
+	51, // 47: detectviz.contracts.v1.ExecutePostMortemResponse.metadata:type_name -> detectviz.contracts.v1.ExecutePostMortemResponse.MetadataEntry
+	2,  // 48: detectviz.contracts.v1.GetIncidentStatusResponse.status:type_name -> detectviz.contracts.v1.IncidentStatus
+	55, // 49: detectviz.contracts.v1.GetIncidentStatusResponse.started_at:type_name -> google.protobuf.Timestamp
+	55, // 50: detectviz.contracts.v1.GetIncidentStatusResponse.updated_at:type_name -> google.protobuf.Timestamp
+	56, // 51: detectviz.contracts.v1.GetIncidentStatusResponse.estimated_remaining:type_name -> google.protobuf.Duration
+	20, // 52: detectviz.contracts.v1.GetIncidentStatusResponse.partial_result:type_name -> detectviz.contracts.v1.ExecutePostMortemResponse
+	8,  // 53: detectviz.contracts.v1.BatchExecutePostMortemRequest.requests:type_name -> detectviz.contracts.v1.ExecutePostMortemRequest
+	52, // 54: detectviz.contracts.v1.BatchExecutePostMortemResponse.results:type_name -> detectviz.contracts.v1.BatchExecutePostMortemResponse.ResultsEntry
+	56, // 55: detectviz.contracts.v1.BatchExecutePostMortemResponse.total_duration:type_name -> google.protobuf.Duration
+	4,  // 56: detectviz.contracts.v1.StreamHealthDataRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
+	12, // 57: detectviz.contracts.v1.StreamHealthDataResponse.health_data:type_name -> detectviz.contracts.v1.ServiceHealth
+	55, // 58: detectviz.contracts.v1.StreamHealthDataResponse.timestamp:type_name -> google.protobuf.Timestamp
+	55, // 59: detectviz.contracts.v1.CancelPostMortemResponse.cancelled_at:type_name -> google.protobuf.Timestamp
+	55, // 60: detectviz.contracts.v1.KnowledgeEntry.created_at:type_name -> google.protobuf.Timestamp
+	55, // 61: detectviz.contracts.v1.KnowledgeEntry.updated_at:type_name -> google.protobuf.Timestamp
+	15, // 62: detectviz.contracts.v1.UpdateKnowledgeBaseRequest.analysis:type_name -> detectviz.contracts.v1.RootCauseAnalysis
+	17, // 63: detectviz.contracts.v1.UpdateKnowledgeBaseRequest.recommendations:type_name -> detectviz.contracts.v1.Recommendation
+	20, // 64: detectviz.contracts.v1.GenerateReportRequest.analysis_result:type_name -> detectviz.contracts.v1.ExecutePostMortemResponse
+	53, // 65: detectviz.contracts.v1.GenerateReportRequest.variables:type_name -> detectviz.contracts.v1.GenerateReportRequest.VariablesEntry
+	55, // 66: detectviz.contracts.v1.GenerateReportResponse.generated_at:type_name -> google.protobuf.Timestamp
+	4,  // 67: detectviz.contracts.v1.CreateDashboardRequest.time_range:type_name -> detectviz.contracts.v1.TimeRange
+	5,  // 68: detectviz.contracts.v1.CreateDashboardRequest.services:type_name -> detectviz.contracts.v1.ServiceIdentifier
+	35, // 69: detectviz.contracts.v1.CreateDashboardRequest.panels:type_name -> detectviz.contracts.v1.DashboardPanel
+	54, // 70: detectviz.contracts.v1.DashboardPanel.options:type_name -> detectviz.contracts.v1.DashboardPanel.OptionsEntry
+	55, // 71: detectviz.contracts.v1.CreateDashboardResponse.created_at:type_name -> google.protobuf.Timestamp
+	10, // 72: detectviz.contracts.v1.ServiceHealth.MetricsEntry.value:type_name -> detectviz.contracts.v1.MetricTimeSeries
+	12, // 73: detectviz.contracts.v1.GetHealthDataResponse.ServicesEntry.value:type_name -> detectviz.contracts.v1.ServiceHealth
+	12, // 74: detectviz.contracts.v1.ExecutePostMortemResponse.ServiceHealthEntry.value:type_name -> detectviz.contracts.v1.ServiceHealth
+	20, // 75: detectviz.contracts.v1.BatchExecutePostMortemResponse.ResultsEntry.value:type_name -> detectviz.contracts.v1.ExecutePostMortemResponse
+	8,  // 76: detectviz.contracts.v1.PostMortemService.ExecutePostMortem:input_type -> detectviz.contracts.v1.ExecutePostMortemRequest
+	23, // 77: detectviz.contracts.v1.PostMortemService.BatchExecutePostMortem:input_type -> detectviz.contracts.v1.BatchExecutePostMortemRequest
+	13, // 78: detectviz.contracts.v1.PostMortemService.GetHealthData:input_type -> detectviz.contracts.v1.GetHealthDataRequest
+	21, // 79: detectviz.contracts.v1.PostMortemService.GetIncidentStatus:input_type -> detectviz.contracts.v1.GetIncidentStatusRequest
+	30, // 80: detectviz.contracts.v1.PostMortemService.UpdateKnowledgeBase:input_type -> detectviz.contracts.v1.UpdateKnowledgeBaseRequest
+	25, // 81: detectviz.contracts.v1.PostMortemService.StreamHealthData:input_type -> detectviz.contracts.v1.StreamHealthDataRequest
+	27, // 82: detectviz.contracts.v1.PostMortemService.CancelPostMortem:input_type -> detectviz.contracts.v1.CancelPostMortemRequest
+	32, // 83: detectviz.contracts.v1.ReportService.GenerateReport:input_type -> detectviz.contracts.v1.GenerateReportRequest
+	34, // 84: detectviz.contracts.v1.ReportService.CreateDashboard:input_type -> detectviz.contracts.v1.CreateDashboardRequest
+	37, // 85: detectviz.contracts.v1.ReportService.ExportReport:input_type -> detectviz.contracts.v1.ExportReportRequest
+	20, // 86: detectviz.contracts.v1.PostMortemService.ExecutePostMortem:output_type -> detectviz.contracts.v1.ExecutePostMortemResponse
+	24, // 87: detectviz.contracts.v1.PostMortemService.BatchExecutePostMortem:output_type -> detectviz.contracts.v1.BatchExecutePostMortemResponse
+	14, // 88: detectviz.contracts.v1.PostMortemService.GetHealthData:output_type -> detectviz.contracts.v1.GetHealthDataResponse
+	22, // 89: detectviz.contracts.v1.PostMortemService.GetIncidentStatus:output_type -> detectviz.contracts.v1.GetIncidentStatusResponse
+	31, // 90: detectviz.contracts.v1.PostMortemService.UpdateKnowledgeBase:output_type -> detectviz.contracts.v1.UpdateKnowledgeBaseResponse
+	26, // 91: detectviz.contracts.v1.PostMortemService.StreamHealthData:output_type -> detectviz.contracts.v1.StreamHealthDataResponse
+	28, // 92: detectviz.contracts.v1.PostMortemService.CancelPostMortem:output_type -> detectviz.contracts.v1.CancelPostMortemResponse
+	33, // 93: detectviz.contracts.v1.ReportService.GenerateReport:output_type -> detectviz.contracts.v1.GenerateReportResponse
+	36, // 94: detectviz.contracts.v1.ReportService.CreateDashboard:output_type -> detectviz.contracts.v1.CreateDashboardResponse
+	38, // 95: detectviz.contracts.v1.ReportService.ExportReport:output_type -> detectviz.contracts.v1.ExportReportResponse
+	86, // [86:96] is the sub-list for method output_type
+	76, // [76:86] is the sub-list for method input_type
+	76, // [76:76] is the sub-list for extension type_name
+	76, // [76:76] is the sub-list for extension extendee
+	0,  // [0:76] is the sub-list for field type_name
 }
 
 func init() { file_detectviz_contracts_v1_postmortem_proto_init() }
@@ -3425,7 +3684,7 @@ func file_detectviz_contracts_v1_postmortem_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_detectviz_contracts_v1_postmortem_proto_rawDesc), len(file_detectviz_contracts_v1_postmortem_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   47,
+			NumMessages:   51,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

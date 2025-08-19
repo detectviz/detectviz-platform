@@ -800,7 +800,8 @@ const file_detectviz_contracts_v1_adk_bridge_proto_rawDesc = "" +
 	"\x11ToolBridgeService\x12W\n" +
 	"\x06Invoke\x12%.detectviz.contracts.v1.InvokeRequest\x1a&.detectviz.contracts.v1.InvokeResponse\x12k\n" +
 	"\fInvokeStream\x12+.detectviz.contracts.v1.InvokeStreamRequest\x1a,.detectviz.contracts.v1.InvokeStreamResponse0\x01\x12Z\n" +
-	"\aHealthz\x12&.detectviz.contracts.v1.HealthzRequest\x1a'.detectviz.contracts.v1.HealthzResponseBTZRgithub.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;v1b\x06proto3"
+	"\aHealthz\x12&.detectviz.contracts.v1.HealthzRequest\x1a'.detectviz.contracts.v1.HealthzResponseB\x81\x01\n" +
+	"\x19io.detectviz.contracts.v1B\x0eAdkBridgeProtoP\x01ZRgithub.com/detectviz/detectviz-platform/contracts/gen/go/detectviz/contracts/v1;v1b\x06proto3"
 
 var (
 	file_detectviz_contracts_v1_adk_bridge_proto_rawDescOnce sync.Once

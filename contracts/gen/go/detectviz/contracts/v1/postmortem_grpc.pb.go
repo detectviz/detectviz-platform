@@ -10,10 +10,9 @@ package v1
 
 import (
 	context "context"
-	status "google.golang.org/genproto/googleapis/rpc/status"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
-	status1 "google.golang.org/grpc/status"
+	status "google.golang.org/grpc/status"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -38,19 +37,19 @@ const (
 // 事後複盤服務
 type PostMortemServiceClient interface {
 	// 執行單個事後複盤
-	ExecutePostMortem(ctx context.Context, in *PostMortemRequest, opts ...grpc.CallOption) (*PostMortemResult, error)
+	ExecutePostMortem(ctx context.Context, in *ExecutePostMortemRequest, opts ...grpc.CallOption) (*ExecutePostMortemResponse, error)
 	// 批量執行事後複盤
-	BatchExecutePostMortem(ctx context.Context, in *BatchPostMortemRequest, opts ...grpc.CallOption) (*BatchPostMortemResponse, error)
+	BatchExecutePostMortem(ctx context.Context, in *BatchExecutePostMortemRequest, opts ...grpc.CallOption) (*BatchExecutePostMortemResponse, error)
 	// 獲取健康數據
-	GetHealthData(ctx context.Context, in *HealthDataRequest, opts ...grpc.CallOption) (*HealthDataResponse, error)
+	GetHealthData(ctx context.Context, in *GetHealthDataRequest, opts ...grpc.CallOption) (*GetHealthDataResponse, error)
 	// 查詢事件狀態
-	GetIncidentStatus(ctx context.Context, in *IncidentStatusRequest, opts ...grpc.CallOption) (*IncidentStatusResponse, error)
+	GetIncidentStatus(ctx context.Context, in *GetIncidentStatusRequest, opts ...grpc.CallOption) (*GetIncidentStatusResponse, error)
 	// 更新知識庫
 	UpdateKnowledgeBase(ctx context.Context, in *UpdateKnowledgeBaseRequest, opts ...grpc.CallOption) (*UpdateKnowledgeBaseResponse, error)
 	// 串流健康數據（實時監控）
-	StreamHealthData(ctx context.Context, in *HealthDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ServiceHealth], error)
+	StreamHealthData(ctx context.Context, in *StreamHealthDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamHealthDataResponse], error)
 	// 取消正在執行的複盤
-	CancelPostMortem(ctx context.Context, in *IncidentStatusRequest, opts ...grpc.CallOption) (*status.Status, error)
+	CancelPostMortem(ctx context.Context, in *CancelPostMortemRequest, opts ...grpc.CallOption) (*CancelPostMortemResponse, error)
 }
 
 type postMortemServiceClient struct {
@@ -61,9 +60,9 @@ func NewPostMortemServiceClient(cc grpc.ClientConnInterface) PostMortemServiceCl
 	return &postMortemServiceClient{cc}
 }
 
-func (c *postMortemServiceClient) ExecutePostMortem(ctx context.Context, in *PostMortemRequest, opts ...grpc.CallOption) (*PostMortemResult, error) {
+func (c *postMortemServiceClient) ExecutePostMortem(ctx context.Context, in *ExecutePostMortemRequest, opts ...grpc.CallOption) (*ExecutePostMortemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PostMortemResult)
+	out := new(ExecutePostMortemResponse)
 	err := c.cc.Invoke(ctx, PostMortemService_ExecutePostMortem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -71,9 +70,9 @@ func (c *postMortemServiceClient) ExecutePostMortem(ctx context.Context, in *Pos
 	return out, nil
 }
 
-func (c *postMortemServiceClient) BatchExecutePostMortem(ctx context.Context, in *BatchPostMortemRequest, opts ...grpc.CallOption) (*BatchPostMortemResponse, error) {
+func (c *postMortemServiceClient) BatchExecutePostMortem(ctx context.Context, in *BatchExecutePostMortemRequest, opts ...grpc.CallOption) (*BatchExecutePostMortemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchPostMortemResponse)
+	out := new(BatchExecutePostMortemResponse)
 	err := c.cc.Invoke(ctx, PostMortemService_BatchExecutePostMortem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -81,9 +80,9 @@ func (c *postMortemServiceClient) BatchExecutePostMortem(ctx context.Context, in
 	return out, nil
 }
 
-func (c *postMortemServiceClient) GetHealthData(ctx context.Context, in *HealthDataRequest, opts ...grpc.CallOption) (*HealthDataResponse, error) {
+func (c *postMortemServiceClient) GetHealthData(ctx context.Context, in *GetHealthDataRequest, opts ...grpc.CallOption) (*GetHealthDataResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HealthDataResponse)
+	out := new(GetHealthDataResponse)
 	err := c.cc.Invoke(ctx, PostMortemService_GetHealthData_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -91,9 +90,9 @@ func (c *postMortemServiceClient) GetHealthData(ctx context.Context, in *HealthD
 	return out, nil
 }
 
-func (c *postMortemServiceClient) GetIncidentStatus(ctx context.Context, in *IncidentStatusRequest, opts ...grpc.CallOption) (*IncidentStatusResponse, error) {
+func (c *postMortemServiceClient) GetIncidentStatus(ctx context.Context, in *GetIncidentStatusRequest, opts ...grpc.CallOption) (*GetIncidentStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IncidentStatusResponse)
+	out := new(GetIncidentStatusResponse)
 	err := c.cc.Invoke(ctx, PostMortemService_GetIncidentStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -111,13 +110,13 @@ func (c *postMortemServiceClient) UpdateKnowledgeBase(ctx context.Context, in *U
 	return out, nil
 }
 
-func (c *postMortemServiceClient) StreamHealthData(ctx context.Context, in *HealthDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ServiceHealth], error) {
+func (c *postMortemServiceClient) StreamHealthData(ctx context.Context, in *StreamHealthDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamHealthDataResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &PostMortemService_ServiceDesc.Streams[0], PostMortemService_StreamHealthData_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[HealthDataRequest, ServiceHealth]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StreamHealthDataRequest, StreamHealthDataResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -128,11 +127,11 @@ func (c *postMortemServiceClient) StreamHealthData(ctx context.Context, in *Heal
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type PostMortemService_StreamHealthDataClient = grpc.ServerStreamingClient[ServiceHealth]
+type PostMortemService_StreamHealthDataClient = grpc.ServerStreamingClient[StreamHealthDataResponse]
 
-func (c *postMortemServiceClient) CancelPostMortem(ctx context.Context, in *IncidentStatusRequest, opts ...grpc.CallOption) (*status.Status, error) {
+func (c *postMortemServiceClient) CancelPostMortem(ctx context.Context, in *CancelPostMortemRequest, opts ...grpc.CallOption) (*CancelPostMortemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(status.Status)
+	out := new(CancelPostMortemResponse)
 	err := c.cc.Invoke(ctx, PostMortemService_CancelPostMortem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -147,19 +146,19 @@ func (c *postMortemServiceClient) CancelPostMortem(ctx context.Context, in *Inci
 // 事後複盤服務
 type PostMortemServiceServer interface {
 	// 執行單個事後複盤
-	ExecutePostMortem(context.Context, *PostMortemRequest) (*PostMortemResult, error)
+	ExecutePostMortem(context.Context, *ExecutePostMortemRequest) (*ExecutePostMortemResponse, error)
 	// 批量執行事後複盤
-	BatchExecutePostMortem(context.Context, *BatchPostMortemRequest) (*BatchPostMortemResponse, error)
+	BatchExecutePostMortem(context.Context, *BatchExecutePostMortemRequest) (*BatchExecutePostMortemResponse, error)
 	// 獲取健康數據
-	GetHealthData(context.Context, *HealthDataRequest) (*HealthDataResponse, error)
+	GetHealthData(context.Context, *GetHealthDataRequest) (*GetHealthDataResponse, error)
 	// 查詢事件狀態
-	GetIncidentStatus(context.Context, *IncidentStatusRequest) (*IncidentStatusResponse, error)
+	GetIncidentStatus(context.Context, *GetIncidentStatusRequest) (*GetIncidentStatusResponse, error)
 	// 更新知識庫
 	UpdateKnowledgeBase(context.Context, *UpdateKnowledgeBaseRequest) (*UpdateKnowledgeBaseResponse, error)
 	// 串流健康數據（實時監控）
-	StreamHealthData(*HealthDataRequest, grpc.ServerStreamingServer[ServiceHealth]) error
+	StreamHealthData(*StreamHealthDataRequest, grpc.ServerStreamingServer[StreamHealthDataResponse]) error
 	// 取消正在執行的複盤
-	CancelPostMortem(context.Context, *IncidentStatusRequest) (*status.Status, error)
+	CancelPostMortem(context.Context, *CancelPostMortemRequest) (*CancelPostMortemResponse, error)
 	mustEmbedUnimplementedPostMortemServiceServer()
 }
 
@@ -170,26 +169,26 @@ type PostMortemServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPostMortemServiceServer struct{}
 
-func (UnimplementedPostMortemServiceServer) ExecutePostMortem(context.Context, *PostMortemRequest) (*PostMortemResult, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method ExecutePostMortem not implemented")
+func (UnimplementedPostMortemServiceServer) ExecutePostMortem(context.Context, *ExecutePostMortemRequest) (*ExecutePostMortemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecutePostMortem not implemented")
 }
-func (UnimplementedPostMortemServiceServer) BatchExecutePostMortem(context.Context, *BatchPostMortemRequest) (*BatchPostMortemResponse, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method BatchExecutePostMortem not implemented")
+func (UnimplementedPostMortemServiceServer) BatchExecutePostMortem(context.Context, *BatchExecutePostMortemRequest) (*BatchExecutePostMortemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchExecutePostMortem not implemented")
 }
-func (UnimplementedPostMortemServiceServer) GetHealthData(context.Context, *HealthDataRequest) (*HealthDataResponse, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method GetHealthData not implemented")
+func (UnimplementedPostMortemServiceServer) GetHealthData(context.Context, *GetHealthDataRequest) (*GetHealthDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHealthData not implemented")
 }
-func (UnimplementedPostMortemServiceServer) GetIncidentStatus(context.Context, *IncidentStatusRequest) (*IncidentStatusResponse, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method GetIncidentStatus not implemented")
+func (UnimplementedPostMortemServiceServer) GetIncidentStatus(context.Context, *GetIncidentStatusRequest) (*GetIncidentStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIncidentStatus not implemented")
 }
 func (UnimplementedPostMortemServiceServer) UpdateKnowledgeBase(context.Context, *UpdateKnowledgeBaseRequest) (*UpdateKnowledgeBaseResponse, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method UpdateKnowledgeBase not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateKnowledgeBase not implemented")
 }
-func (UnimplementedPostMortemServiceServer) StreamHealthData(*HealthDataRequest, grpc.ServerStreamingServer[ServiceHealth]) error {
-	return status1.Errorf(codes.Unimplemented, "method StreamHealthData not implemented")
+func (UnimplementedPostMortemServiceServer) StreamHealthData(*StreamHealthDataRequest, grpc.ServerStreamingServer[StreamHealthDataResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamHealthData not implemented")
 }
-func (UnimplementedPostMortemServiceServer) CancelPostMortem(context.Context, *IncidentStatusRequest) (*status.Status, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method CancelPostMortem not implemented")
+func (UnimplementedPostMortemServiceServer) CancelPostMortem(context.Context, *CancelPostMortemRequest) (*CancelPostMortemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelPostMortem not implemented")
 }
 func (UnimplementedPostMortemServiceServer) mustEmbedUnimplementedPostMortemServiceServer() {}
 func (UnimplementedPostMortemServiceServer) testEmbeddedByValue()                           {}
@@ -213,7 +212,7 @@ func RegisterPostMortemServiceServer(s grpc.ServiceRegistrar, srv PostMortemServ
 }
 
 func _PostMortemService_ExecutePostMortem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PostMortemRequest)
+	in := new(ExecutePostMortemRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -225,13 +224,13 @@ func _PostMortemService_ExecutePostMortem_Handler(srv interface{}, ctx context.C
 		FullMethod: PostMortemService_ExecutePostMortem_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostMortemServiceServer).ExecutePostMortem(ctx, req.(*PostMortemRequest))
+		return srv.(PostMortemServiceServer).ExecutePostMortem(ctx, req.(*ExecutePostMortemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PostMortemService_BatchExecutePostMortem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchPostMortemRequest)
+	in := new(BatchExecutePostMortemRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -243,13 +242,13 @@ func _PostMortemService_BatchExecutePostMortem_Handler(srv interface{}, ctx cont
 		FullMethod: PostMortemService_BatchExecutePostMortem_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostMortemServiceServer).BatchExecutePostMortem(ctx, req.(*BatchPostMortemRequest))
+		return srv.(PostMortemServiceServer).BatchExecutePostMortem(ctx, req.(*BatchExecutePostMortemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PostMortemService_GetHealthData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HealthDataRequest)
+	in := new(GetHealthDataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -261,13 +260,13 @@ func _PostMortemService_GetHealthData_Handler(srv interface{}, ctx context.Conte
 		FullMethod: PostMortemService_GetHealthData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostMortemServiceServer).GetHealthData(ctx, req.(*HealthDataRequest))
+		return srv.(PostMortemServiceServer).GetHealthData(ctx, req.(*GetHealthDataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PostMortemService_GetIncidentStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IncidentStatusRequest)
+	in := new(GetIncidentStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -279,7 +278,7 @@ func _PostMortemService_GetIncidentStatus_Handler(srv interface{}, ctx context.C
 		FullMethod: PostMortemService_GetIncidentStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostMortemServiceServer).GetIncidentStatus(ctx, req.(*IncidentStatusRequest))
+		return srv.(PostMortemServiceServer).GetIncidentStatus(ctx, req.(*GetIncidentStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -303,18 +302,18 @@ func _PostMortemService_UpdateKnowledgeBase_Handler(srv interface{}, ctx context
 }
 
 func _PostMortemService_StreamHealthData_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(HealthDataRequest)
+	m := new(StreamHealthDataRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(PostMortemServiceServer).StreamHealthData(m, &grpc.GenericServerStream[HealthDataRequest, ServiceHealth]{ServerStream: stream})
+	return srv.(PostMortemServiceServer).StreamHealthData(m, &grpc.GenericServerStream[StreamHealthDataRequest, StreamHealthDataResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type PostMortemService_StreamHealthDataServer = grpc.ServerStreamingServer[ServiceHealth]
+type PostMortemService_StreamHealthDataServer = grpc.ServerStreamingServer[StreamHealthDataResponse]
 
 func _PostMortemService_CancelPostMortem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IncidentStatusRequest)
+	in := new(CancelPostMortemRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -326,7 +325,7 @@ func _PostMortemService_CancelPostMortem_Handler(srv interface{}, ctx context.Co
 		FullMethod: PostMortemService_CancelPostMortem_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostMortemServiceServer).CancelPostMortem(ctx, req.(*IncidentStatusRequest))
+		return srv.(PostMortemServiceServer).CancelPostMortem(ctx, req.(*CancelPostMortemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -386,11 +385,11 @@ const (
 // 報告生成服務
 type ReportServiceClient interface {
 	// 生成複盤報告
-	GenerateReport(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*ReportResponse, error)
+	GenerateReport(ctx context.Context, in *GenerateReportRequest, opts ...grpc.CallOption) (*GenerateReportResponse, error)
 	// 創建 Grafana 儀表板
-	CreateDashboard(ctx context.Context, in *DashboardRequest, opts ...grpc.CallOption) (*DashboardResponse, error)
+	CreateDashboard(ctx context.Context, in *CreateDashboardRequest, opts ...grpc.CallOption) (*CreateDashboardResponse, error)
 	// 匯出報告
-	ExportReport(ctx context.Context, in *ExportRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportChunk], error)
+	ExportReport(ctx context.Context, in *ExportReportRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportReportResponse], error)
 }
 
 type reportServiceClient struct {
@@ -401,9 +400,9 @@ func NewReportServiceClient(cc grpc.ClientConnInterface) ReportServiceClient {
 	return &reportServiceClient{cc}
 }
 
-func (c *reportServiceClient) GenerateReport(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*ReportResponse, error) {
+func (c *reportServiceClient) GenerateReport(ctx context.Context, in *GenerateReportRequest, opts ...grpc.CallOption) (*GenerateReportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReportResponse)
+	out := new(GenerateReportResponse)
 	err := c.cc.Invoke(ctx, ReportService_GenerateReport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -411,9 +410,9 @@ func (c *reportServiceClient) GenerateReport(ctx context.Context, in *ReportRequ
 	return out, nil
 }
 
-func (c *reportServiceClient) CreateDashboard(ctx context.Context, in *DashboardRequest, opts ...grpc.CallOption) (*DashboardResponse, error) {
+func (c *reportServiceClient) CreateDashboard(ctx context.Context, in *CreateDashboardRequest, opts ...grpc.CallOption) (*CreateDashboardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DashboardResponse)
+	out := new(CreateDashboardResponse)
 	err := c.cc.Invoke(ctx, ReportService_CreateDashboard_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -421,13 +420,13 @@ func (c *reportServiceClient) CreateDashboard(ctx context.Context, in *Dashboard
 	return out, nil
 }
 
-func (c *reportServiceClient) ExportReport(ctx context.Context, in *ExportRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportChunk], error) {
+func (c *reportServiceClient) ExportReport(ctx context.Context, in *ExportReportRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportReportResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ReportService_ServiceDesc.Streams[0], ReportService_ExportReport_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ExportRequest, ExportChunk]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ExportReportRequest, ExportReportResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -438,7 +437,7 @@ func (c *reportServiceClient) ExportReport(ctx context.Context, in *ExportReques
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ReportService_ExportReportClient = grpc.ServerStreamingClient[ExportChunk]
+type ReportService_ExportReportClient = grpc.ServerStreamingClient[ExportReportResponse]
 
 // ReportServiceServer is the server API for ReportService service.
 // All implementations must embed UnimplementedReportServiceServer
@@ -447,11 +446,11 @@ type ReportService_ExportReportClient = grpc.ServerStreamingClient[ExportChunk]
 // 報告生成服務
 type ReportServiceServer interface {
 	// 生成複盤報告
-	GenerateReport(context.Context, *ReportRequest) (*ReportResponse, error)
+	GenerateReport(context.Context, *GenerateReportRequest) (*GenerateReportResponse, error)
 	// 創建 Grafana 儀表板
-	CreateDashboard(context.Context, *DashboardRequest) (*DashboardResponse, error)
+	CreateDashboard(context.Context, *CreateDashboardRequest) (*CreateDashboardResponse, error)
 	// 匯出報告
-	ExportReport(*ExportRequest, grpc.ServerStreamingServer[ExportChunk]) error
+	ExportReport(*ExportReportRequest, grpc.ServerStreamingServer[ExportReportResponse]) error
 	mustEmbedUnimplementedReportServiceServer()
 }
 
@@ -462,14 +461,14 @@ type ReportServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedReportServiceServer struct{}
 
-func (UnimplementedReportServiceServer) GenerateReport(context.Context, *ReportRequest) (*ReportResponse, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method GenerateReport not implemented")
+func (UnimplementedReportServiceServer) GenerateReport(context.Context, *GenerateReportRequest) (*GenerateReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateReport not implemented")
 }
-func (UnimplementedReportServiceServer) CreateDashboard(context.Context, *DashboardRequest) (*DashboardResponse, error) {
-	return nil, status1.Errorf(codes.Unimplemented, "method CreateDashboard not implemented")
+func (UnimplementedReportServiceServer) CreateDashboard(context.Context, *CreateDashboardRequest) (*CreateDashboardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDashboard not implemented")
 }
-func (UnimplementedReportServiceServer) ExportReport(*ExportRequest, grpc.ServerStreamingServer[ExportChunk]) error {
-	return status1.Errorf(codes.Unimplemented, "method ExportReport not implemented")
+func (UnimplementedReportServiceServer) ExportReport(*ExportReportRequest, grpc.ServerStreamingServer[ExportReportResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ExportReport not implemented")
 }
 func (UnimplementedReportServiceServer) mustEmbedUnimplementedReportServiceServer() {}
 func (UnimplementedReportServiceServer) testEmbeddedByValue()                       {}
@@ -493,7 +492,7 @@ func RegisterReportServiceServer(s grpc.ServiceRegistrar, srv ReportServiceServe
 }
 
 func _ReportService_GenerateReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReportRequest)
+	in := new(GenerateReportRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -505,13 +504,13 @@ func _ReportService_GenerateReport_Handler(srv interface{}, ctx context.Context,
 		FullMethod: ReportService_GenerateReport_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReportServiceServer).GenerateReport(ctx, req.(*ReportRequest))
+		return srv.(ReportServiceServer).GenerateReport(ctx, req.(*GenerateReportRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ReportService_CreateDashboard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DashboardRequest)
+	in := new(CreateDashboardRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -523,21 +522,21 @@ func _ReportService_CreateDashboard_Handler(srv interface{}, ctx context.Context
 		FullMethod: ReportService_CreateDashboard_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReportServiceServer).CreateDashboard(ctx, req.(*DashboardRequest))
+		return srv.(ReportServiceServer).CreateDashboard(ctx, req.(*CreateDashboardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ReportService_ExportReport_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ExportRequest)
+	m := new(ExportReportRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ReportServiceServer).ExportReport(m, &grpc.GenericServerStream[ExportRequest, ExportChunk]{ServerStream: stream})
+	return srv.(ReportServiceServer).ExportReport(m, &grpc.GenericServerStream[ExportReportRequest, ExportReportResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ReportService_ExportReportServer = grpc.ServerStreamingServer[ExportChunk]
+type ReportService_ExportReportServer = grpc.ServerStreamingServer[ExportReportResponse]
 
 // ReportService_ServiceDesc is the grpc.ServiceDesc for ReportService service.
 // It's only intended for direct use with grpc.RegisterService,

@@ -5,7 +5,7 @@
 # ============================================
 # Environment Configuration
 # ============================================
-env: ${DETECTVIZ_ENV:-development}
+env: ${DETECTVIZ_ENV:-dev}
 service:
   name: detectviz-platform
   version: 1.0.0

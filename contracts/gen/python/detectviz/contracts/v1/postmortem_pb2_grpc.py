@@ -3,7 +3,6 @@
 import grpc
 
 from detectviz.contracts.v1 import postmortem_pb2 as detectviz_dot_contracts_dot_v1_dot_postmortem__pb2
-from google.rpc import status_pb2 as google_dot_rpc_dot_status__pb2
 
 
 class PostMortemServiceStub(object):
@@ -20,23 +19,23 @@ class PostMortemServiceStub(object):
         """
         self.ExecutePostMortem = channel.unary_unary(
                 '/detectviz.contracts.v1.PostMortemService/ExecutePostMortem',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.PostMortemRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.PostMortemResult.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExecutePostMortemRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExecutePostMortemResponse.FromString,
                 _registered_method=True)
         self.BatchExecutePostMortem = channel.unary_unary(
                 '/detectviz.contracts.v1.PostMortemService/BatchExecutePostMortem',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchPostMortemRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchPostMortemResponse.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchExecutePostMortemRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchExecutePostMortemResponse.FromString,
                 _registered_method=True)
         self.GetHealthData = channel.unary_unary(
                 '/detectviz.contracts.v1.PostMortemService/GetHealthData',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataResponse.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetHealthDataRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetHealthDataResponse.FromString,
                 _registered_method=True)
         self.GetIncidentStatus = channel.unary_unary(
                 '/detectviz.contracts.v1.PostMortemService/GetIncidentStatus',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusResponse.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetIncidentStatusRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetIncidentStatusResponse.FromString,
                 _registered_method=True)
         self.UpdateKnowledgeBase = channel.unary_unary(
                 '/detectviz.contracts.v1.PostMortemService/UpdateKnowledgeBase',
@@ -45,13 +44,13 @@ class PostMortemServiceStub(object):
                 _registered_method=True)
         self.StreamHealthData = channel.unary_stream(
                 '/detectviz.contracts.v1.PostMortemService/StreamHealthData',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ServiceHealth.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.StreamHealthDataRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.StreamHealthDataResponse.FromString,
                 _registered_method=True)
         self.CancelPostMortem = channel.unary_unary(
                 '/detectviz.contracts.v1.PostMortemService/CancelPostMortem',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusRequest.SerializeToString,
-                response_deserializer=google_dot_rpc_dot_status__pb2.Status.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CancelPostMortemRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CancelPostMortemResponse.FromString,
                 _registered_method=True)
 
 
@@ -115,23 +114,23 @@ def add_PostMortemServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ExecutePostMortem': grpc.unary_unary_rpc_method_handler(
                     servicer.ExecutePostMortem,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.PostMortemRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.PostMortemResult.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExecutePostMortemRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExecutePostMortemResponse.SerializeToString,
             ),
             'BatchExecutePostMortem': grpc.unary_unary_rpc_method_handler(
                     servicer.BatchExecutePostMortem,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchPostMortemRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchPostMortemResponse.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchExecutePostMortemRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchExecutePostMortemResponse.SerializeToString,
             ),
             'GetHealthData': grpc.unary_unary_rpc_method_handler(
                     servicer.GetHealthData,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataResponse.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetHealthDataRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetHealthDataResponse.SerializeToString,
             ),
             'GetIncidentStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetIncidentStatus,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusResponse.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetIncidentStatusRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetIncidentStatusResponse.SerializeToString,
             ),
             'UpdateKnowledgeBase': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateKnowledgeBase,
@@ -140,13 +139,13 @@ def add_PostMortemServiceServicer_to_server(servicer, server):
             ),
             'StreamHealthData': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamHealthData,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ServiceHealth.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.StreamHealthDataRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.StreamHealthDataResponse.SerializeToString,
             ),
             'CancelPostMortem': grpc.unary_unary_rpc_method_handler(
                     servicer.CancelPostMortem,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusRequest.FromString,
-                    response_serializer=google_dot_rpc_dot_status__pb2.Status.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CancelPostMortemRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CancelPostMortemResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -177,8 +176,8 @@ class PostMortemService(object):
             request,
             target,
             '/detectviz.contracts.v1.PostMortemService/ExecutePostMortem',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.PostMortemRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.PostMortemResult.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExecutePostMortemRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExecutePostMortemResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -204,8 +203,8 @@ class PostMortemService(object):
             request,
             target,
             '/detectviz.contracts.v1.PostMortemService/BatchExecutePostMortem',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchPostMortemRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchPostMortemResponse.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchExecutePostMortemRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.BatchExecutePostMortemResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -231,8 +230,8 @@ class PostMortemService(object):
             request,
             target,
             '/detectviz.contracts.v1.PostMortemService/GetHealthData',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataResponse.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetHealthDataRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetHealthDataResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -258,8 +257,8 @@ class PostMortemService(object):
             request,
             target,
             '/detectviz.contracts.v1.PostMortemService/GetIncidentStatus',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusResponse.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetIncidentStatusRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GetIncidentStatusResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -312,8 +311,8 @@ class PostMortemService(object):
             request,
             target,
             '/detectviz.contracts.v1.PostMortemService/StreamHealthData',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.HealthDataRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ServiceHealth.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.StreamHealthDataRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.StreamHealthDataResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -339,8 +338,8 @@ class PostMortemService(object):
             request,
             target,
             '/detectviz.contracts.v1.PostMortemService/CancelPostMortem',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.IncidentStatusRequest.SerializeToString,
-            google_dot_rpc_dot_status__pb2.Status.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CancelPostMortemRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CancelPostMortemResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -366,18 +365,18 @@ class ReportServiceStub(object):
         """
         self.GenerateReport = channel.unary_unary(
                 '/detectviz.contracts.v1.ReportService/GenerateReport',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ReportRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ReportResponse.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GenerateReportRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GenerateReportResponse.FromString,
                 _registered_method=True)
         self.CreateDashboard = channel.unary_unary(
                 '/detectviz.contracts.v1.ReportService/CreateDashboard',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.DashboardRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.DashboardResponse.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CreateDashboardRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CreateDashboardResponse.FromString,
                 _registered_method=True)
         self.ExportReport = channel.unary_stream(
                 '/detectviz.contracts.v1.ReportService/ExportReport',
-                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportRequest.SerializeToString,
-                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportChunk.FromString,
+                request_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportReportRequest.SerializeToString,
+                response_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportReportResponse.FromString,
                 _registered_method=True)
 
 
@@ -413,18 +412,18 @@ def add_ReportServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GenerateReport': grpc.unary_unary_rpc_method_handler(
                     servicer.GenerateReport,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ReportRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ReportResponse.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GenerateReportRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GenerateReportResponse.SerializeToString,
             ),
             'CreateDashboard': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateDashboard,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.DashboardRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.DashboardResponse.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CreateDashboardRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CreateDashboardResponse.SerializeToString,
             ),
             'ExportReport': grpc.unary_stream_rpc_method_handler(
                     servicer.ExportReport,
-                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportRequest.FromString,
-                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportChunk.SerializeToString,
+                    request_deserializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportReportRequest.FromString,
+                    response_serializer=detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportReportResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -455,8 +454,8 @@ class ReportService(object):
             request,
             target,
             '/detectviz.contracts.v1.ReportService/GenerateReport',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ReportRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ReportResponse.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GenerateReportRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.GenerateReportResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -482,8 +481,8 @@ class ReportService(object):
             request,
             target,
             '/detectviz.contracts.v1.ReportService/CreateDashboard',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.DashboardRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.DashboardResponse.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CreateDashboardRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.CreateDashboardResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -509,8 +508,8 @@ class ReportService(object):
             request,
             target,
             '/detectviz.contracts.v1.ReportService/ExportReport',
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportRequest.SerializeToString,
-            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportChunk.FromString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportReportRequest.SerializeToString,
+            detectviz_dot_contracts_dot_v1_dot_postmortem__pb2.ExportReportResponse.FromString,
             options,
             channel_credentials,
             insecure,
