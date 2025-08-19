@@ -1,45 +1,47 @@
 {
-  "specVersion": "1.1.0",
-  "kind": "capability",
-  "id": "detectviz.knowledge_provider",
+  "$schema": "https://detectviz.dev/schemas/module.card.schema.json",
   "name": "knowledge_provider",
   "version": "1.0.0",
-  "responsibility": "Provides knowledge management capabilities for storing and retrieving postmortem knowledge",
-  "category": "capability",
-  "capabilities": [
-    "knowledge_storage",
-    "similarity_search",
-    "knowledge_retrieval",
-    "metadata_indexing"
-  ],
-  "dependencies": [],
-  "permissions": [
-    "net",
-    "fs:read",
-    "fs:write"
-  ],
-  "resources": {
-    "cpu": "200m",
-    "memory": "256Mi",
-    "storage": "1Gi"
+  "description": "Provides knowledge management capabilities for storing and retrieving postmortem knowledge",
+  "language": "go",
+  "entrypoint": "plugin.go",
+  "classification": {
+    "role": "capability",
+    "category": "storage.kv"
+  },
+  "dependencies": {
+    "requires": [
+      {
+        "name": "detectviz.contracts",
+        "version": ">=1.0.0",
+        "type": "proto"
+      }
+    ]
+  },
+  "runtime": {
+    "resources": {
+      "min_memory_mb": 128,
+      "max_memory_mb": 512,
+      "min_cpu_cores": 0.2,
+      "max_cpu_cores": 1.0
+    },
+    "timeout_seconds": 60
   },
   "observability": {
-    "metrics": [
-      "plugin_runs_total",
-      "plugin_duration_seconds_bucket",
-      "knowledge_provider_queries_total",
-      "knowledge_provider_query_duration_seconds",
-      "knowledge_provider_storage_size_bytes",
-      "knowledge_provider_similarity_search_duration_seconds"
-    ],
-    "spans": [
-      "knowledge_provider.store",
-      "knowledge_provider.search",
-      "knowledge_provider.retrieve",
-      "knowledge_provider.similarity_search"
-    ],
-    "logs_required": true
+    "metrics_enabled": true,
+    "tracing_enabled": true,
+    "logging_level": "info",
+    "tags": {
+      "component": "knowledge_provider",
+      "layer": "plugin"
+    }
   },
-  "author": "Detectviz Platform Team",
-  "license": "MIT"
+  "security": {
+    "permissions": [
+      "net",
+      "fs:read",
+      "fs:write"
+    ],
+    "sandbox": true
+  }
 }

@@ -1,51 +1,42 @@
 {
-  "specVersion": "1.1.0",
-  "kind": "plugin",
-  "id": "detectviz.plugins.http_request_gateway",
-  "version": "0.1.0",
-  "responsibility": "Provides a secure gateway to make HTTP requests as a remote tool.",
+  "$schema": "https://detectviz.dev/schemas/module.card.schema.json",
+  "name": "http_request",
+  "version": "1.0.0",
+  "description": "A gateway plugin to make external HTTP requests.",
   "language": "go",
-  "entrypoint": "./internal/pluginhost/plugins/gateway/http_request/plugin.go",
-  "category": "gateway",
-  "contracts": {
-    "min_proto": "0.1.0"
+  "entrypoint": "plugin.go",
+  "classification": {
+    "role": "plugin.gateway",
+    "category": "gateway"
   },
-  "requires": [
-    {
-      "name": "detectviz.contracts",
-      "version": ">=0.1.0"
-    }
-  ],
-  "exposes": {
-    "tool": "detectviz.tools.http_request",
-    "tool_version": "0.1.0"
+  "dependencies": {
+    "requires": [
+      {
+        "name": "detectviz.contracts",
+        "version": ">=1.0.0",
+        "type": "proto"
+      }
+    ]
+  },
+  "runtime": {
+    "resources": {
+      "min_memory_mb": 32,
+      "max_memory_mb": 128
+    },
+    "timeout_seconds": 60
   },
   "observability": {
+    "metrics_enabled": true,
+    "tracing_enabled": true,
+    "logging_level": "info",
     "tags": {
-      "plugin.id": "detectviz.plugins.http_request_gateway"
-    },
-    "metrics": [
-      "http_client_requests_total",
-      "http_client_request_duration_seconds",
-      "http_client_requests_in_flight"
-    ]
+      "component": "http_request"
+    }
   },
-  "x-detectviz": {
-    "rate_limit": {
-      "rps": 64,
-      "burst": 128,
-      "per_tenant": true
-    },
-    "a2a": {
-      "concurrency_limit": 32,
-      "queue_depth": 200
-    },
+  "security": {
     "permissions": [
       "net"
-    ]
-  },
-  "resources": {
-    "cpu": "100m",
-    "memory": "128Mi"
+    ],
+    "sandbox": true
   }
 }

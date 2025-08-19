@@ -128,8 +128,11 @@ export DETECTVIZ__OBSERVABILITY__OTLP__INSECURE=true
 
 ## ToolBridge（gRPC）
 - 介面來源：`contracts/proto/detectviz/contracts/v1/adk_bridge.proto`
-- 服務：`ToolBridge.Invoke(ToolInvokeRequest) returns (ToolInvokeReply)`
-- 已註冊 gRPC Health 服務，便於 gRPC 層存活/就緒探測。
+- 服務：`ToolBridgeService`
+  - `Invoke(InvokeRequest) returns (InvokeResponse)`
+  - `InvokeStream(InvokeStreamRequest) returns (stream InvokeStreamResponse)`
+  - `Healthz(HealthzRequest) returns (HealthzResponse)`
+- 已註冊 gRPC Health 服務 (`grpc.health.v1.Health`)，便於 gRPC 層存活/就緒探測。
 
 Python 端呼叫方式（示意）：
 - 以 `python-adk-runtime` 的 `RemoteTool` 連線：`DETECTVIZ_TOOLBRIDGE_ADDR=127.0.0.1:5002`

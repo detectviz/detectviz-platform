@@ -99,14 +99,14 @@ async def run_postmortem_analysis(incident_request: Dict[str, Any]) -> Dict[str,
 
 ### 核心 Tools 功能表
 
-| Tool | 類型 | 職責 | 實現位置 |
-|------|------|------|----------|
-| **HealthAggregator** | RemoteTool | 從 InfluxDB 查詢指標數據，多維度健康分析 | Go Plugin |
+| Tool / Capability | 類型 | 職責 | 實現位置 |
+|:---|:---|:---|:---|
+| **HealthAggregator** | RemoteTool | 查詢指標數據，進行多維度健康分析 | Go Plugin |
 | **ReportGenerator** | RemoteTool | 根據模板生成 Markdown/JSON 報告 | Go Plugin |
 | **EventCollector** | RemoteTool | 從日誌和事件系統收集相關事件 | Go Plugin |
-| **KnowledgeRetriever** | Local Tool | 從歷史庫檢索相似事故經驗 | Python |
-| **TimelineAnalyzer** | Capability | 分析時間序列數據，識別異常模式 | Python |
-| **RootCauseEngine** | Capability | 基於規則和 ML 的根因分析引擎 | Python |
+| **KnowledgeRetriever** | Python Agent Capability | 從歷史庫檢索相似事故經驗 | Python Agent |
+| **TimelineAnalyzer** | Python Agent Capability | 分析時間序列數據，識別異常模式 | Python Agent |
+| **RootCauseEngine** | Python Agent Capability | 基於規則和 ML 的根因分析引擎 | Python Agent |
 
 ### 目錄結構
 

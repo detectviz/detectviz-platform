@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Module Card",
+  "description": "Schema for defining a module's metadata, dependencies, and capabilities.",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "language",
+    "entrypoint",
+    "classification",
+    "dependencies"
+  ],
+  "properties": {
+    "name": {
+      "description": "Unique name of the module, e.g., 'observability.health_aggregator'",
+      "type": "string",
+      "pattern": "^[a-z0-9_\\.]+$"
+    },
+    "version": {
+      "description": "Semantic version of the module.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "description": {
+      "description": "A brief description of the module's purpose.",
+      "type": "string",
+      "maxLength": 256
+    },
+    "language": {
+      "description": "The primary programming language of the module.",
+      "type": "string",
+      "enum": ["go", "python", "typescript", "java"]
+    },
+    "entrypoint": {
+      "description": "The main entrypoint file of the module.",
+      "type": "string"
+    },
+    "classification": {
+      "type": "object",
+      "required": ["role", "category"],
+      "properties": {
+        "role": {
+          "description": "The primary role of the module within the system.",
+          "type": "string",
+           "enum": ["agent.coordinator", "agent.specialist", "agent.tool_exec", "tool", "capability", "plugin.gateway", "memory.backend", "security.module", "observability.module", "storage.module"]
+        },
+        "category": {
+          "description": "The functional category of the module.",
+          "type": "string"
+        },
+        "subcategory": {
+          "description": "A more specific subcategory.",
+          "type": "string"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "version": {"type": "string"},
+              "type": {"type": "string", "enum": ["proto", "library", "service"]}
+            },
+            "required": ["name", "version", "type"]
+          }
+        },
+        "contracts": {
+          "type": "object",
+          "properties": {
+            "min_proto_version": {
+              "type": "string",
+              "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            }
+          }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "object",
+          "properties": {
+            "min_memory_mb": {"type": "integer", "minimum": 16},
+            "min_cpu_cores": {"type": "number", "minimum": 0.01},
+            "max_memory_mb": {"type": "integer"},
+            "max_cpu_cores": {"type": "number"}
+          }
+        },
+        "config_schema": {
+          "description": "Path to the module's specific configuration schema.",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 600
+        }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "properties": {
+        "metrics_enabled": {"type": "boolean"},
+        "tracing_enabled": {"type": "boolean"},
+        "logging_level": {"type": "string", "enum": ["debug", "info", "warn", "error"]},
+        "tags": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "permissions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "sandbox": {"type": "boolean"}
+      }
+    }
+  }
+}
