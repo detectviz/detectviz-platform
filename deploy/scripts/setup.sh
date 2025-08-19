@@ -297,10 +297,17 @@ EOF
 create_env_file() {
     echo -e "${YELLOW}創建環境變數文件...${NC}"
     
+<<<<<<< HEAD
     if [ -f .env ]; then
         echo -e "${YELLOW}⚠️  .env 文件已存在，跳過創建${NC}"
     else
         cat > .env << 'EOF'
+=======
+    if [ -f ../.env ]; then
+        echo -e "${YELLOW}⚠️  .env 文件已存在，跳過創建${NC}"
+    else
+        cat > ../.env << 'EOF'
+>>>>>>> 08fa581 (update)
 # Detectviz Platform Environment Variables
 
 # Core Configuration

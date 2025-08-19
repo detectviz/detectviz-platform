@@ -80,6 +80,17 @@ scrape_configs:
           service: 'alloy'
           type: 'collector'
 
+<<<<<<< HEAD
+=======
+  # Detectviz Metrics from Alloy OTEL Prometheus Exporter
+  - job_name: 'detectviz-metrics'
+    static_configs:
+      - targets: ['alloy:9464']
+        labels:
+          service: 'detectviz'
+          type: 'application'
+
+>>>>>>> 08fa581 (update)
   # Loki Monitoring
   - job_name: 'loki'
     static_configs:

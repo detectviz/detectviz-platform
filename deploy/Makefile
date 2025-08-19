@@ -12,7 +12,11 @@ RED := \033[0;31m
 NC := \033[0m # No Color
 
 # 變數
+<<<<<<< HEAD
 DOCKER_COMPOSE := docker-compose
+=======
+DOCKER_COMPOSE := docker-compose --env-file ../.env
+>>>>>>> 08fa581 (update)
 GO_CMD := go
 PYTHON_CMD := python3
 PROJECT_NAME := detectviz
@@ -34,9 +38,15 @@ setup: ## 初始化開發環境（第一次運行）
 
 env: ## 檢查環境變數
 	@echo "$(YELLOW)📋 環境變數檢查...$(NC)"
+<<<<<<< HEAD
 	@test -f .env || (echo "$(RED)❌ .env 文件不存在，請先運行 make setup$(NC)" && exit 1)
 	@echo "$(GREEN)✅ .env 文件存在$(NC)"
 	@grep -E "^[A-Z_]+=" .env | head -10
+=======
+	@test -f ../.env || (echo "$(RED)❌ .env 文件不存在，請先運行 make setup$(NC)" && exit 1)
+	@echo "$(GREEN)✅ .env 文件存在$(NC)"
+	@grep -E "^[A-Z_]+=" ../.env | head -10
+>>>>>>> 08fa581 (update)
 
 # ============================================
 # Docker 服務管理

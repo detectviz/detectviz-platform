@@ -36,6 +36,18 @@
 
 ## 核心功能：ADK Agent 系統
 
+### 📋 架構概覽
+
+符合 **AGENT.md** 和 **ARCHITECTURE.md** 規範的完整實現：
+
+```
+Agent (決策層)           Tool (執行層)
+────────────────         ──────────────
+WHY - 為什麼做           HOW - 如何做
+WHAT - 做什麼           WHERE - 在哪做
+WHEN - 何時做           WITH - 用什麼做
+```
+
 ### postmortem_orchestrator（ADK Root Agent）
 
 **職責範圍**：
@@ -43,6 +55,16 @@
 - **工作流編排**：協調多個 Tool 完成複雜的複盤流程
 - **知識整合**：結合歷史經驗和當前數據，生成有洞察力的分析報告
 - **學習優化**：從複盤過程中學習，持續改進分析質量
+
+### 🛠️ 核心 Tools（執行層）
+
+- **report_tools.py**: 報告生成工具
+  - `generate_postmortem_report`: 事後複盤報告生成
+  - `generate_chart`: 圖表生成
+- **adk_tools.py**: 數據查詢工具
+  - `get_health_metrics`: 健康指標查詢
+  - `create_dashboard`: 儀表板創建
+- **memory_tools.py**: 記憶管理工具
 
 **核心方法**：
 ```python

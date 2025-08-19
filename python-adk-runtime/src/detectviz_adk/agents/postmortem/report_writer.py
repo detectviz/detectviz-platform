@@ -3,7 +3,7 @@
 基於 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 模式 - 專門負責報告產生的代理
 """
 from google import adk
-from ...tools.adk_tools import generate_report, create_dashboard, update_knowledge_base
+from ...tools.adk_tools import generate_postmortem_report, generate_chart, create_dashboard, update_knowledge_base
 
 
 # 報告撰寫代理（子代理）
@@ -24,7 +24,7 @@ report_writer = adk.Agent(
     - 改善措施和預防建議
     - 學習重點
     
-    使用 generate_report、create_dashboard 和 update_knowledge_base 工具。""",
+    使用 generate_postmortem_report、generate_chart、create_dashboard 和 update_knowledge_base 工具。""",
     description="產生專業的事後檢討報告和文件",
-    tools=[generate_report, create_dashboard, update_knowledge_base]
+    tools=[generate_postmortem_report, generate_chart, create_dashboard, update_knowledge_base]
 )

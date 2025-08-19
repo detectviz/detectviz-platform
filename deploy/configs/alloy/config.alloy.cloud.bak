@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 otelcol.receiver.otlp "default" {
 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.receiver.otlp/
 
@@ -136,36 +135,6 @@ otelcol.processor.filter "fix_temporality" {
 }
 
 otelcol.processor.batch "default" {
-=======
-// 極簡版本 - 只測試基本的 OTLP 和日誌
-
-logging {
-	level = "debug"
-	format = "logfmt"
-}
-
-// OTLP Receiver
-otelcol.receiver.otlp "default" {
-	grpc {
-		endpoint = "0.0.0.0:4317"
-	}
-	http {
-		endpoint = "0.0.0.0:4318"
-	}
-
-	output {
-		metrics = [otelcol.processor.batch.default.input]
-		logs    = [otelcol.processor.batch.default.input]
-		traces  = [otelcol.processor.batch.default.input]
-	}
-}
-
-// 簡單批次處理器
-otelcol.processor.batch "default" {
-	timeout = "10s"
-	send_batch_size = 100
-	
->>>>>>> 08fa581 (update)
 	output {
 		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
 		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
@@ -173,7 +142,6 @@ otelcol.processor.batch "default" {
 	}
 }
 
-<<<<<<< HEAD
 otelcol.exporter.otlphttp "grafana_cloud" {
 	client {
 		endpoint = "https://otlp-gateway-prod-us-central-0.grafana.net/otlp"
@@ -181,14 +149,10 @@ otelcol.exporter.otlphttp "grafana_cloud" {
 	}
 }
 
-=======
-// Cloud authentication
->>>>>>> 08fa581 (update)
 otelcol.auth.basic "grafana_cloud" {
 	username = env("GF_CLOUD_OTEL_ID")
 	password = env("GCLOUD_RW_API_KEY")
 }
-<<<<<<< HEAD
  
 // --- Logs: go-platform 檔案日誌 -> Grafana Cloud Loki ---
 loki.write "grafana_cloud_loki" {
@@ -227,67 +191,3 @@ pyroscope.write "grafana_cloud" {
     }
   }
 }
-=======
-
-// Export to Grafana Cloud OTLP
-otelcol.exporter.otlphttp "grafana_cloud" {
-	client {
-		endpoint = "https://otlp-gateway-prod-us-central-0.grafana.net/otlp"
-		auth     = otelcol.auth.basic.grafana_cloud.handler
-		timeout  = "30s"
-	}
-	retry_on_failure {
-		enabled = true
-		initial_interval = "5s"
-		max_interval = "30s"
-	}
-}
-
-// Loki 日誌寫入器
-loki.write "grafana_cloud_loki" {
-	endpoint {
-		url = env("GCLOUD_HOSTED_LOGS_URL")
-		basic_auth {
-			username = env("GCLOUD_HOSTED_LOGS_ID")
-			password = env("GCLOUD_RW_API_KEY")
-		}
-	}
-}
-
-// 檔案日誌收集 - 各種服務
-loki.source.file "service_logs" {
-	targets = [
-		// 原有的應用日誌
-		{__path__ = "/tmp/service-logs/app.log", service = "detectviz-app", job = "original-app"},
-		// 新的服務日誌
-		{__path__ = "/tmp/service-logs/detectviz-app.log", service = "detectviz-app", job = "application"},
-		{__path__ = "/tmp/service-logs/detectviz-api.log", service = "detectviz-api", job = "api-server"},
-		{__path__ = "/tmp/service-logs/detectviz-db.log", service = "detectviz-db", job = "database"},
-		{__path__ = "/tmp/service-logs/detectviz-errors.log", service = "detectviz-errors", job = "error-logs"},
-		{__path__ = "/tmp/service-logs/generator.log", service = "log-generator", job = "utility"},
-	]
-	forward_to = [loki.write.grafana_cloud_loki.receiver]
-}
-
-// Pyroscope 寫入器
-pyroscope.write "grafana_cloud" {
-	endpoint {
-		url = env("GF_CLOUD_PROFILES_URL")
-		basic_auth {
-			username = env("GF_CLOUD_PROFILES_ID")
-			password = env("GCLOUD_RW_API_KEY")
-		}
-	}
-}
-
-// Profile 刮取 - 帶錯誤容忍
-pyroscope.scrape "detectviz_pprof" {
-	targets = [{
-		"__address__" = coalesce(env("DETECTVIZ_PPROF_ADDR"), "host.docker.internal:6060"),
-		"service_name" = "detectviz-go-platform",
-	}]
-	forward_to = [pyroscope.write.grafana_cloud.receiver]
-	scrape_interval = "60s"  // 降低頻率
-	scrape_timeout = "10s"   // 縮短超時
-}
->>>>>>> 08fa581 (update)

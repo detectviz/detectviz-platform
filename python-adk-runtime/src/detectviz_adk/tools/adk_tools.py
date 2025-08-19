@@ -6,6 +6,7 @@ from google.adk.tools import FunctionTool
 from typing import Dict, List, Any, Optional
 import asyncio
 from .remote_tool import RemoteTool
+from .report_tools import generate_postmortem_report, generate_chart
 
 
 async def get_health_metrics_func(

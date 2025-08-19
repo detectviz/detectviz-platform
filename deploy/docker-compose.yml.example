@@ -1,5 +1,8 @@
 version: '3.8'
 
+# Detectviz Platform Docker Compose Example
+# Copy this file to docker-compose.yml and modify the values as needed
+
 services:
   prometheus:
     image: prom/prometheus:latest
@@ -10,18 +13,14 @@ services:
       - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.enable-lifecycle'
-<<<<<<< HEAD
-=======
-      - '--web.enable-remote-write-receiver'
->>>>>>> 08fa581 (update)
-      - '--storage.tsdb.retention.time=30d'
-    networks:
-      - detectviz
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+      - --web.enable-remote-write-receiver
+      - --storage.tsdb.retention.time=30d
+    networks: [detectviz]
     restart: unless-stopped
 
   grafana:
@@ -30,17 +29,17 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel,redis-datasource
-      - GF_UNIFIED_ALERTING_ENABLED=true
-      - GF_ALERTING_ENABLED=false
+      # CHANGE THESE DEFAULT CREDENTIALS IN PRODUCTION
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: CHANGE_ME_IN_PRODUCTION
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,redis-datasource
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+      GF_ALERTING_ENABLED: "false"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./configs/grafana/provisioning:/etc/grafana/provisioning
       - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
-    networks:
-      - detectviz
+    networks: [detectviz]
     restart: unless-stopped
     depends_on:
       - prometheus
@@ -51,47 +50,36 @@ services:
     ports:
       - "12345:12345"
       - "4317:4317"
-<<<<<<< HEAD
-      - "4318:4318"
-=======
       - "4319:4318"
->>>>>>> 08fa581 (update)
       - "9999:9999"
     volumes:
       - ./configs/alloy/config.alloy:/etc/alloy/config.alloy
       - alloy_data:/var/lib/alloy
-<<<<<<< HEAD
-=======
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /tmp/service-logs:/tmp/service-logs:ro
->>>>>>> 08fa581 (update)
     command:
       - run
       - /etc/alloy/config.alloy
       - --storage.path=/var/lib/alloy/data
       - --server.http.listen-addr=0.0.0.0:12345
     environment:
-      - HOSTNAME=alloy-01
-<<<<<<< HEAD
-    networks:
-      - detectviz
-    restart: unless-stopped
-=======
-      - GF_CLOUD_OTEL_ID=396924
-      - GCLOUD_RW_API_KEY=glc_eyJvIjoiNjc2MjUwIiwibiI6ImdsY19leWp2aWpvaW5qYzJtanV3aWl3aWJpaTZpbm4weXducmx0bTVuamt5bmMxaGJneHZlczFoYmd4dmVzaSIsImsiOiJUN0Y0WVI1WUYwdDE3aG8zMDBPUjRFYVciLCJtIjp7InIiOiJ1cyJ9fQ==
-      - GCLOUD_HOSTED_LOGS_ID=246219
-      - GCLOUD_HOSTED_LOGS_URL=https://logs-prod3.grafana.net/loki/api/v1/push
-      - GF_CLOUD_PROFILES_ID=396924
-      - GF_CLOUD_PROFILES_URL=https://profiles-prod-003.grafana.net
-    networks:
-      - detectviz
+      HOSTNAME: alloy-01
+      # REPLACE WITH YOUR GRAFANA CLOUD CREDENTIALS
+      GF_CLOUD_OTEL_ID: YOUR_OTEL_ID
+      GCLOUD_RW_API_KEY: YOUR_API_KEY
+      GCLOUD_HOSTED_LOGS_ID: YOUR_LOGS_ID
+      GCLOUD_HOSTED_LOGS_URL: https://logs-prod3.grafana.net/loki/api/v1/push
+      GF_CLOUD_PROFILES_ID: YOUR_PROFILES_ID
+      GF_CLOUD_PROFILES_URL: https://profiles-prod-003.grafana.net
+      # Optional OTLP endpoint used by Alloy (set to your region endpoint if needed)
+      GF_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-YOURREGION.grafana.net/otlp
+    networks: [detectviz]
     restart: unless-stopped
     depends_on:
       - prometheus
       - loki
       - tempo
       - pyroscope
->>>>>>> 08fa581 (update)
 
   postgres:
     image: postgres:15-alpine
@@ -99,24 +87,26 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=detectviz
-      - POSTGRES_USER=detectviz
-      - POSTGRES_PASSWORD=detectviz123
-      - POSTGRES_INIT_DB_ARGS=--encoding=UTF-8
+      # CHANGE THESE DATABASE CREDENTIALS IN PRODUCTION
+      POSTGRES_DB: detectviz
+      POSTGRES_USER: detectviz
+      POSTGRES_PASSWORD: CHANGE_ME_IN_PRODUCTION
+      POSTGRES_INIT_DB_ARGS: --encoding=UTF-8
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./configs/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-<<<<<<< HEAD
-=======
       - /tmp/service-logs:/var/log/service-logs
-    command: >
-      postgres -c logging_collector=on 
-      -c log_directory='/var/log/service-logs'
-      -c log_filename='postgres-%Y-%m-%d.log'
-      -c log_statement=all
->>>>>>> 08fa581 (update)
-    networks:
-      - detectviz
+    command:
+      - postgres
+      - -c
+      - logging_collector=on
+      - -c
+      - log_directory=/var/log/service-logs
+      - -c
+      - log_filename=postgres-%Y-%m-%d.log
+      - -c
+      - log_statement=all
+    networks: [detectviz]
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U detectviz"]
@@ -129,21 +119,14 @@ services:
     container_name: detectviz-redis
     ports:
       - "6379:6379"
-<<<<<<< HEAD
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-=======
-    command: >
-      sh -c "redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru 
-      --logfile /var/log/service-logs/redis.log --loglevel notice 2>&1 | 
-      tee /var/log/service-logs/redis-console.log"
+    command: [
+      "sh", "-c",
+      "redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --logfile /var/log/service-logs/redis.log --loglevel notice 2>&1 | tee /var/log/service-logs/redis-console.log"
+    ]
     volumes:
       - redis_data:/data
       - /tmp/service-logs:/var/log/service-logs
->>>>>>> 08fa581 (update)
-    networks:
-      - detectviz
+    networks: [detectviz]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -159,9 +142,8 @@ services:
     volumes:
       - ./configs/loki/loki-config.yaml:/etc/loki/local-config.yaml
       - loki_data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - detectviz
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    networks: [detectviz]
     restart: unless-stopped
 
   tempo:
@@ -170,18 +152,13 @@ services:
     user: "root"
     ports:
       - "3200:3200"
-<<<<<<< HEAD
-      - "9095:9095"
-=======
->>>>>>> 08fa581 (update)
       - "14268:14268"
       - "9411:9411"
     volumes:
       - ./configs/tempo/tempo-config.yaml:/etc/tempo.yaml
       - tempo_data:/tmp/tempo
     command: ["-config.file=/etc/tempo.yaml"]
-    networks:
-      - detectviz
+    networks: [detectviz]
     restart: unless-stopped
 
   pyroscope:
@@ -190,11 +167,10 @@ services:
     ports:
       - "4040:4040"
     environment:
-      - PYROSCOPE_LOG_LEVEL=info
+      PYROSCOPE_LOG_LEVEL: info
     volumes:
       - pyroscope_data:/var/lib/pyroscope
-    networks:
-      - detectviz
+    networks: [detectviz]
     restart: unless-stopped
 
   node-exporter:
@@ -207,12 +183,11 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude'
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude
       - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
-    networks:
-      - detectviz
+    networks: [detectviz]
     restart: unless-stopped
 
   postgres-exporter:
@@ -221,9 +196,9 @@ services:
     ports:
       - "9187:9187"
     environment:
-      - DATA_SOURCE_NAME=postgresql://detectviz:detectviz123@postgres:5432/detectviz?sslmode=disable
-    networks:
-      - detectviz
+      # UPDATE THIS CONNECTION STRING WITH YOUR POSTGRES CREDENTIALS
+      DATA_SOURCE_NAME: postgresql://detectviz:CHANGE_ME_IN_PRODUCTION@postgres:5432/detectviz?sslmode=disable
+    networks: [detectviz]
     restart: unless-stopped
     depends_on:
       - postgres
@@ -234,9 +209,8 @@ services:
     ports:
       - "9121:9121"
     environment:
-      - REDIS_ADDR=redis://redis:6379
-    networks:
-      - detectviz
+      REDIS_ADDR: redis://redis:6379
+    networks: [detectviz]
     restart: unless-stopped
     depends_on:
       - redis

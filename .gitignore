@@ -38,6 +38,7 @@ go-platform/bin/
 # .idea/
 # .vscode/
 .DS_Store
+detectviz
 var/
 references/
 .claude/
@@ -45,10 +46,73 @@ references/
 *note.md
 config.yaml
 
-# Python bytecode cache directories
+# Python
 __pycache__/
 *.py[cod]
 *.$py.class
+*.so
+*.egg
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.python-version
+
+# Python reports and artifacts
+python-adk-runtime/reports/
+python-adk-runtime/charts/
+python-adk-runtime/.pytest_cache/
+python-adk-runtime/htmlcov/
+
+# Node.js (if any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+deploy/docker-compose.yml
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
 
 # GitHub Actions
 .github/

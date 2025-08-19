@@ -1,0 +1,45 @@
+{
+  "specVersion": "1.1.0",
+  "kind": "capability",
+  "id": "detectviz.knowledge_provider",
+  "name": "knowledge_provider",
+  "version": "1.0.0",
+  "responsibility": "Provides knowledge management capabilities for storing and retrieving postmortem knowledge",
+  "category": "capability",
+  "capabilities": [
+    "knowledge_storage",
+    "similarity_search",
+    "knowledge_retrieval",
+    "metadata_indexing"
+  ],
+  "dependencies": [],
+  "permissions": [
+    "net",
+    "fs:read",
+    "fs:write"
+  ],
+  "resources": {
+    "cpu": "200m",
+    "memory": "256Mi",
+    "storage": "1Gi"
+  },
+  "observability": {
+    "metrics": [
+      "plugin_runs_total",
+      "plugin_duration_seconds_bucket",
+      "knowledge_provider_queries_total",
+      "knowledge_provider_query_duration_seconds",
+      "knowledge_provider_storage_size_bytes",
+      "knowledge_provider_similarity_search_duration_seconds"
+    ],
+    "spans": [
+      "knowledge_provider.store",
+      "knowledge_provider.search",
+      "knowledge_provider.retrieve",
+      "knowledge_provider.similarity_search"
+    ],
+    "logs_required": true
+  },
+  "author": "Detectviz Platform Team",
+  "license": "MIT"
+}
