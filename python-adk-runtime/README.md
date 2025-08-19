@@ -4,7 +4,7 @@
 
 > **環境狀態 (2025-08-19)**：✅ **Google ADK v1.11.0 正常運作** - 所有依賴問題已修復，環境完全可用。
 
-> **AI 開發者注意**：進行任何變更前請先閱讀 [`../AGENT.md`](../AGENT.md) 中的 AI 開發守則與協作指南。詳細環境設置請參考 [PYTHON_ENV_SETUP.md](PYTHON_ENV_SETUP.md)。
+> **AI 開發者注意**：進行任何變更前請先閱讀 [`../AGENT.md`](../AGENT.md) 中的 AI 開發守則與協作指南。詳細環境設置請參考 [`../README.md` 快速開始指南](../README.md#快速開始-quick-start)。
 
 ---
 
@@ -110,7 +110,7 @@ async def run_postmortem_analysis(incident_request: Dict[str, Any]) -> Dict[str,
 
 ### 目錄結構
 
-```
+```bash
 python-adk-runtime/
 ├── src/detectviz_adk/
 │   ├── __init__.py                 # 核心模組匯出
@@ -530,7 +530,7 @@ class TestPostmortemIntegration:
 1. **ToolBridge 連接失敗**：
    ```bash
    # 檢查 Go Platform 是否啟動
-   curl -s http://127.0.0.1:8081/readyz
+   curl -s http://127.0.0.1:8080/health
    
    # 檢查 gRPC 端口
    telnet 127.0.0.1 5002
@@ -612,12 +612,11 @@ python -m detectviz_adk.tools.test_generator \
 ### 本地開發環境
 1. **啟動依賴服務**：
    ```bash
-   # 啟動 Go Platform
-   cd ../go-platform
-   go run ./cmd/detectviz plugin serve --config ../config.yaml
+   # 啟動 Go Platform (從專案根目錄)
+   ./detectviz plugin serve --config config.yaml
    
    # 確認服務健康
-   curl -s http://127.0.0.1:8081/readyz
+   curl -s http://127.0.0.1:8080/health
    ```
 
 2. **啟動 Python Agent**：

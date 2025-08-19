@@ -18,7 +18,7 @@
 **閱讀路徑**：
 - **後續閱讀**：[AGENT.md - AI協作指南](AGENT.md#ai協作原則) - 了解AI協作規範
 - **深入了解**：[ARCHITECTURE.md - 系統架構](ARCHITECTURE.md#系統架構設計) - 理解系統設計
-- **技術實作**：[SPEC.md - 技術規格](SPEC.md#技術棧與依賴) - 獲取實作細節
+- **技術實作**：[技術實作](SPEC.md#技術棧現狀) - 獲取實作細節
 
 ---
 
@@ -327,9 +327,3 @@ detectviz-platform/
 ## 📄 授權條款
 
 MIT License - 詳見 [LICENSE](./LICENSE) 檔案
-
----
-
-*最後更新：2025-08-17*  
-*版本：1.0.0*  
-*維護者：Detectviz Platform 開發團隊*

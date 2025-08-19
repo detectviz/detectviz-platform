@@ -11,7 +11,7 @@
 ---
 
 ## 目錄結構
-```
+```bash
 contracts/
   buf.yaml
   buf.gen.yaml
@@ -24,10 +24,10 @@ contracts/
     config.schema.json          # 平台組態規範
     module.card.schema.json     # 模組卡規範
     plugin.schema.json          # 插件規範
-  samples/
-    config.yaml                 # 樣本設定（建議複製到專案根）
-    module.card.json            # 模組卡樣本
-    plugin.yaml                 # 插件配置樣本
+  templates/                      # 樣本模板 (待建立)
+    config.yaml                 # 配置樣本模板
+    module.card.json            # 模組卡樣本模板
+    plugin.yaml                 # 插件配置樣本模板
   specs/                        # 技術規格文檔
     error_model.md              # 錯誤模型規範
     memory_bank_contract.md     # 記憶體契約規範
@@ -119,7 +119,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 ---
 
 ## Config Schema（`schemas/config.schema.json`）
-供 `go-platform` 與 `python-adk-runtime` 共同載入與驗證的平台組態，`samples/config.yaml` 為對齊樣本。
+供 `go-platform` 與 `python-adk-runtime` 共同載入與驗證的平台組態。實際配置文件位於專案根目錄 `config.yaml`。
 
 重點欄位：
 - `grpc.listen/max_recv_bytes/max_send_bytes/tls`（最小值限制 ≥ 1 MiB）
@@ -134,8 +134,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 1. 旗標或函式參數：`--config /path/to/config.yaml`
 2. 環境變數：`DETECTVIZ_CONFIG_FILE=/path/to/config.yaml`
 3. 工作目錄：`./config.yaml`
-4. 合約覆蓋：`./contracts/config.yaml`
-5. 樣本兜底：`./contracts/samples/config.yaml`
+4. 預設兜底：使用專案根目錄的 `config.yaml`
 
 常見驗證錯誤：
 - `Additional property profiling.* is not allowed`：`config.yaml` 殘留舊欄位（`mode/endpoint/username/password`）。
@@ -144,7 +143,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 ---
 
 ## Alloy Profiles 樣板（選配）
-- `profiles/alloy/` 內提供本地 LGTM、Grafana Cloud、GCP 的 Collector 管線示例。
+- `profiles/` 內提供本地 LGTM、Grafana Cloud、GCP 的 Collector 管線示例。
 - 原則：應用端不持有雲端憑證；由 Collector（Alloy）負責傳輸與認證。
 - Profiles 僅使用 pprof scrape 路徑（`pyroscope.scrape` → `pyroscope.write`）。
 
@@ -158,7 +157,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 ## 開發工作流（強制）
 1. 任何跨語言介面或設定變更，**先改 `contracts/`**。
 2. `buf lint && buf generate` 產生最新 Go/Python 生成碼。
-3. 更新 `samples/config.yaml`，並確保下游載入程式可通過 Schema 驗證。
+3. 更新專案根目錄 `config.yaml`，並確保下游載入程式可通過 Schema 驗證。
 4. 編修或新增 `module.card.json`，以工具驗證分類與相依。
 5. 在 `go-platform` 執行 `go mod tidy`，在 `python-adk-runtime` 確認 gRPC stub 可匯入。
 6. 執行端到端測試（Logs/Traces/Metrics/Profiles）。
@@ -167,7 +166,7 @@ python3 contracts/tools/validate_module_card.py path/to/module.card.json
 
 ## 相容性與版本
 - Proto 採 SemVer；新增以向後相容方式進行。
-- Schema 變更需同步更新 `samples/config.yaml` 與下游 README。
+- Schema 變更需同步更新專案根目錄 `config.yaml` 與下游 README。
 - 嚴禁手動修改任何生成檔案；如需調整，請回到契約端更新。
 
 ---

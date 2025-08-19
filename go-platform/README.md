@@ -49,15 +49,16 @@ cp contracts/samples/config.yaml ./config.yaml
 
 # 可選：覆蓋常用環境變數
 export DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=127.0.0.1:4317
-export DETECTVIZ_HEALTH_ADDR=":8081"
+export DETECTVIZ_HEALTH_ADDR=":8080"
 
 # 啟動 ToolBridge 與示範 HTTP（優化版：模組化啟動、結構化錯誤處理）
-go run ./cmd/detectviz plugin serve --config ./config.yaml \
+# 從專案根目錄執行
+./detectviz plugin serve --config ./config.yaml \
   --http-demo \
   --http-demo-listen :7777
 
 # 驗證服務健康狀態
-curl -sS http://127.0.0.1:8081/readyz  # 等待服務就緒（200 OK）
+curl -sS http://127.0.0.1:8080/readyz  # 等待服務就緒（200 OK）
 curl -sS http://127.0.0.1:7777/hello   # 產生示範 traces
 ```
 
@@ -96,7 +97,7 @@ curl -sS http://127.0.0.1:7777/hello   # 產生示範 traces
 ---
 
 ## 健康檢查與優雅關機（已優化）
-- HTTP 健康檢查服務（預設 `:8081`，可用 `DETECTVIZ_HEALTH_ADDR` 覆蓋）：
+- HTTP 健康檢查服務（預設 `:8080`，可用 `DETECTVIZ_HEALTH_ADDR` 覆蓋）：
   - `GET /livez`：存活檢查（程序存活即 200）
   - `GET /readyz`：就緒檢查（ToolBridge 成功啟動後返回 200）
 - gRPC Health：註冊 `grpc.health.v1.Health` 服務，便於 gRPC 層探測。
@@ -225,7 +226,7 @@ go run tools/scaffold.go gateway/api_client
 常用環境變數：
 ```bash
 # 健康服務位置
-export DETECTVIZ_HEALTH_ADDR=":8081"
+export DETECTVIZ_HEALTH_ADDR=":8080"
 
 # ToolBridge gRPC
 export DETECTVIZ__GRPC__LISTEN=":5002"
@@ -269,8 +270,11 @@ export DETECTVIZ__OBSERVABILITY__OTLP__INSECURE=true
 
 ## 編譯與執行
 ```bash
-go build -o ./bin/detectviz ./go-platform/cmd/detectviz
-./bin/detectviz --config ./config.yaml --http-demo --http-demo-listen :8080
+# 從專案根目錄編譯
+go build -o ./detectviz ./go-platform/cmd/detectviz
+
+# 執行
+./detectviz plugin serve --config ./config.yaml --http-demo --http-demo-listen :7777
 ```
 
 ---
@@ -283,4 +287,4 @@ go build -o ./bin/detectviz ./go-platform/cmd/detectviz
 - **契約變更**：任何 gRPC 介面變更需先在 `../contracts/` 進行
 
 ### 故障排查
-詳細故障排查指南請參考：[`../AGENT.md - 常見錯誤與排查`](../AGENT.md#常見錯誤與排查)
+詳細故障排查指南請參考：[`../AGENT.md - 故障排除與支援`](../AGENT.md#故障排除與支援)
