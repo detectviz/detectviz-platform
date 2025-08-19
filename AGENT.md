@@ -62,7 +62,7 @@ sequenceDiagram
 
 ### Agent vs Tool 職責劃分
 
-> **術語定義**：參見 [術語索引 - AI與協作術語](.kiro/specs/documentation-normalization/terminology-index.md#ai-與協作相關術語)  
+> **術語定義**：本文檔定義 AI 協作相關的核心術語與概念  
 > **詳細架構說明**：參見 [ARCHITECTURE.md - Agent協作模式](ARCHITECTURE.md#agent-協作模式)
 
 #### Agent 職責範圍
@@ -506,7 +506,7 @@ Learning_Process:
 - **技術文檔**：[SPEC.md - 技術規格](SPEC.md#技術棧與依賴)
 - **架構設計**：[ARCHITECTURE.md - 系統架構](ARCHITECTURE.md#系統架構設計)
 - **開發任務**：[TASKS.md - 當前任務](TASKS.md#實作任務清單)
-- **術語索引**：[完整術語對照表](.kiro/specs/documentation-normalization/terminology-index.md)
+- **術語索引**：詳見各文檔中的術語定義節
 - **模組指南**：各模組的 `llm.txt` 檔案
 - **契約規範**：[SPEC.md - 配置管理與模組規範](SPEC.md#配置管理與模組規範)
 

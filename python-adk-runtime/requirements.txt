@@ -1,8 +1,22 @@
-# Core ADK Framework
-google-adk
+# ✅ ADK Framework 依賴 (已修復 2025-08-19)
+# 
+# 解決方案: 升級到 google-adk 1.11.0
+# - 原問題: 舊版本 0.0.1 為佔位符套件
+# - 現狀況: 新版本 1.11.0 包含完整功能
+# - 導入方式: from google.adk.agents import Agent
+# 
+# 驗證狀態:
+# ✅ google.adk.agents.Agent 導入成功
+# ✅ google.adk.tools 模組可用
+# ✅ 完整的 ADK 功能可用
+
+# Google ADK Framework
+google-adk>=1.11.0
+
+# LLM 整合
 litellm
 
-# Dependencies for ADK and platform integration
+# 平台整合依賴
 grpcio==1.66.1
 protobuf==5.27.3
 PyYAML==6.0.2

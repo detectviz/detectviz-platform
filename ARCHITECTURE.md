@@ -26,7 +26,7 @@ README.md → AGENT.md → [ARCHITECTURE.md] → SPEC.md → TASKS.md
 
 #### Agent vs Tool 職責劃分
 
-> **術語定義**：參見 [術語索引 - AI與協作術語](.kiro/specs/documentation-normalization/terminology-index.md#ai-與協作相關術語)
+> **術語定義**：本節定義系統架構中的核心概念與職責劃分
 
 ```
 Agent (決策大腦)           Tool (執行手臂)

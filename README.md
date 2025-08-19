@@ -28,7 +28,7 @@
 [![SSOT: contracts](https://img.shields.io/badge/SSOT-contracts-0A84FF)](./contracts)
 [![Go 1.24](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go)](#)
 [![Python >= 3.11](https://img.shields.io/badge/Python-%3E%3D%203.11-3776AB?logo=python)](#)
-[![Google ADK aligned](https://img.shields.io/badge/Google%20ADK-aligned-4285F4?logo=google)](https://google.github.io/adk-docs/)
+[![Google ADK](https://img.shields.io/badge/Google%20ADK-v1.11.0%20aligned-4285F4?logo=google)](https://google.github.io/adk-docs/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 ## 🚀 快速開始
@@ -166,7 +166,7 @@ AGENT.md → ARCHITECTURE.md → SPEC.md → TASKS.md
 - **API 規格**：[SPEC.md](SPEC.md) → [API 規格與介面定義](SPEC.md#api-規格與介面定義)
 - **開發環境**：[docs/guides/DEVELOPMENT_SETUP.md](docs/guides/DEVELOPMENT_SETUP.md)
 - **部署指南**：[SPEC.md](SPEC.md) → [配置管理與模組規範](SPEC.md#配置管理與模組規範)
-- **故障排除**：[SPEC.md](spec.md) → [故障排除與除錯指南](spec.md#故障排除與除錯指南)
+- **故障排除**：[SPEC.md](SPEC.md) → [故障排除與除錯指南](SPEC.md#故障排除與除錯指南)
 
 #### 🎯 按任務類型查找
 - **新功能開發**：[TASKS.md](TASKS.md) → [實作任務清單](TASKS.md#實作任務清單)
@@ -178,13 +178,13 @@ AGENT.md → ARCHITECTURE.md → SPEC.md → TASKS.md
 - **Go Platform**：[go-platform/README.md](go-platform/README.md)
 - **Python ADK Runtime**：[python-adk-runtime/README.md](python-adk-runtime/README.md)
 - **Contracts SSOT**：[contracts/README.md](contracts/README.md)
-- **依賴服務總覽**：[depoly/](depoly/)
+- **依賴服務總覽**：[deploy/](deploy/)
 
 #### 📖 術語索引
-- **完整術語對照表**：[術語統一系統](.kiro/specs/documentation-normalization/terminology-index.md)
-- **AI協作術語**：[術語索引 - AI與協作](.kiro/specs/documentation-normalization/terminology-index.md#ai-與協作相關術語)
-- **系統架構術語**：[術語索引 - 系統架構](.kiro/specs/documentation-normalization/terminology-index.md#系統架構相關術語)
-- **技術實作術語**：[術語索引 - 技術實作](.kiro/specs/documentation-normalization/terminology-index.md#技術實作相關術語)
+- **完整術語對照表**：詳見各文檔中的術語定義
+- **AI協作術語**：參見 [AGENT.md](AGENT.md) 中的術語定義
+- **系統架構術語**：參見 [ARCHITECTURE.md](ARCHITECTURE.md) 中的術語定義
+- **技術實作術語**：參見 [SPEC.md](SPEC.md) 中的術語定義
 
 ## 🛠️ 開發指南
 
@@ -215,7 +215,7 @@ detectviz-platform/
 │   ├── src/            # 核心程式碼
 │   ├── agents/         # AI 代理實作
 │   └── tools/          # 工具集合
-├── depoly/             # 依賴服務總覽
+├── deploy/             # 依賴服務總覽
 ├── docs/               # 📚 文檔體系
 └── scripts/            # 🔧 自動化腳本
 ```
@@ -230,7 +230,7 @@ detectviz-platform/
 ## 🤝 社群與貢獻
 
 ### 貢獻指南
-- **程式碼貢獻**：參見 [CONTRIBUTING.md](CONTRIBUTING.md)
+- **程式碼貢獻**：請參考 [GitHub Issues](../../issues) 和 [GitHub Discussions](../../discussions)
 - **文檔改進**：參見 [docs/development/DOCUMENTATION_AUTOMATION.md](docs/development/DOCUMENTATION_AUTOMATION.md)
 - **問題回報**：使用 [GitHub Issues](../../issues)
 - **功能建議**：使用 [GitHub Discussions](../../discussions)
@@ -245,7 +245,7 @@ detectviz-platform/
 
 - **當前版本**：v0.1.0-MVP
 - **開發階段**：Phase 3 - 事後複盤系統
-- **完成進度**：參見 [專案狀態](docs/status/PROJECT_STATUS.md)
+- **完成進度**：參見 [TASKS.md](TASKS.md#專案狀態概覽)
 - **下一里程碑**：完整 SRE 生命週期整合
 
 ### 最新更新

@@ -2,7 +2,9 @@
 
 以 **Google Agent Development Kit（ADK）** 為核心的 Python 執行環境。此 Runtime 完全遵循 [agent_team](https://github.com/google/adk-docs/tree/main/examples/python/tutorial/agent_team) 的官方模式，實現符合 ADK 標準的智慧代理系統，並與 `go-platform` 透過 **gRPC ToolBridge** 解耦互通。
 
-> **AI 開發者注意**：進行任何變更前請先閱讀 [`../AGENT.md`](../AGENT.md) 中的 AI 開發守則與協作指南。
+> **環境狀態 (2025-08-19)**：✅ **Google ADK v1.11.0 正常運作** - 所有依賴問題已修復，環境完全可用。
+
+> **AI 開發者注意**：進行任何變更前請先閱讀 [`../AGENT.md`](../AGENT.md) 中的 AI 開發守則與協作指南。詳細環境設置請參考 [PYTHON_ENV_SETUP.md](PYTHON_ENV_SETUP.md)。
 
 ---
 

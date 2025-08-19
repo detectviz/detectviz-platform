@@ -34,7 +34,7 @@ README.md → AGENT.md → ARCHITECTURE.md → [SPEC.md] → TASKS.md
 - **目錄結構與配置**：專案組織、配置檔案、部署腳本
 - **實作指南與範例**：程式碼範例、最佳實踐、故障排除
 
-> **術語索引**：參見 [完整術語對照表](.kiro/specs/documentation-normalization/terminology-index.md)
+> **術語索引**：本文檔使用的技術術語定義詳見各章節
 
 * * *
 
