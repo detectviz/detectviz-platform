@@ -52,15 +52,18 @@ contracts/
 │   ├── module.card.schema.json         # 模組卡規範
 │   ├── plugin.schema.json              # 插件規範  
 │   └── postmortem-request.schema.json  # MVP: 事後複盤請求規範
+├── specs/                              # 詳細規格文件
+│   ├── error_model.md                  # 錯誤模型定義
+│   ├── memory_bank_contract.md         # 記憶體知識庫契約
+│   └── telemetry_conventions.md        # 遙測數據約定
+├── profiles/                           # 部署環境配置
+│   ├── local/                          # 本地部署配置
+│   ├── gcp/                            # GCP 部署配置
+│   └── grafana-cloud/                  # Grafana Cloud 部署配置
 ├── gen/                                # 自動生成的程式碼
 │   ├── go/detectviz/contracts/v1/      # Go 生成碼
 │   ├── python/detectviz/contracts/v1/  # Python 生成碼
 │   └── metadata/version.json           # 版本元數據
-├── samples/                            # 配置範例檔案
-│   ├── .env.template                   # 環境變數範例
-│   ├── config.yaml                     # 完整配置範例
-│   ├── module.card.json                # 模組卡範例
-│   └── plugin.yaml                     # 插件配置範例
 ├── tools/                              # 驗證與開發工具
 │   ├── validate_config.py              # 配置驗證工具
 │   ├── validate_module_card.py         # 模組卡驗證工具
@@ -74,20 +77,30 @@ contracts/
 
 ```bash
 ├── docs/                           # 技術文檔目錄
+│   ├── architecture/               # 架構設計
+│   │   └── DOCUMENT_HIERARCHY_RESTRUCTURE.md
 │   ├── development/                # 開發指南
 │   │   ├── AGENT_DEVELOPMENT_GUIDE.md
+│   │   ├── AI_COLLABORATION_RULES.md
+│   │   ├── AUTOMATION_TOOLS.md
+│   │   ├── DOCUMENTATION_AUTOMATION.md
+│   │   ├── MODULE_STANDARDS.md
 │   │   ├── TOOL_DEVELOPMENT_GUIDE.md
-│   │   └── TESTING_GUIDELINES.md
+│   │   └── documentation_restructure.py
 │   ├── guides/                     # 使用指南
 │   │   ├── DEVELOPMENT_SETUP.md
+│   │   ├── MVP_MANUAL_TEST_PLAN.md
 │   │   └── TESTING_GUIDE.md
-│   └── reference/                  # 參考文檔
-│       └── QUICK_REFERENCE.md
+│   ├── reference/                  # 參考文檔
+│   │   └── QUICK_REFERENCE.md
+│   └── status/                     # 專案狀態
+│       ├── PROJECT_STATUS.md
+│       └── TECHNICAL_DEBT_STATUS.md
 ├── .github/workflows/              # CI/CD 自動化
 │   ├── contracts-validation.yml    # 契約驗證流程
 │   ├── go-tests.yml                # Go 測試流程
 │   └── python-tests.yml            # Python 測試流程
-├── depoly/alloy/                   # 監控配置
+├── deploy/alloy/                   # 監控配置
 │   └── config.alloy                # Alloy 收集器配置
 └── assets/                         # 靜態資源
     ├── diagrams/                   # 架構圖表
@@ -115,7 +128,10 @@ go-platform/                           # Go 高性能執行平台
     │   └── server.go                  # 健康檢查 HTTP 服務
     ├── metrics/                       # 指標管理
     │   ├── factory.go                 # 指標工廠
-    │   └── provider.go                # 指標提供者介面
+    │   ├── provider.go                # 指標提供者介面
+    │   ├── prometheus_metrics.go      # Prometheus 指標實作
+    │   ├── prometheus_provider.go     # Prometheus 提供者
+    │   └── prometheus_provider_test.go # Prometheus 提供者測試
     ├── observability/                 # 可觀測性
     │   ├── logging.go                 # 結構化日誌
     │   └── otel_init.go              # OpenTelemetry 初始化
@@ -142,8 +158,13 @@ python-adk-runtime/                    # Python AI Agent 運行時
 ├── requirements.txt                   # Python 依賴清單
 ├── example_usage.py                   # 使用範例
 ├── web_server.py                      # 開發用 Web 服務
-├── test_adk_integration.py           # 整合測試
-├── test_simple_adk.py                # 單元測試
+├── tests/                             # 測試目錄
+│   ├── test_adk_compliance.py        # ADK 合規性測試
+│   ├── test_adk_integration.py       # 整合測試
+│   ├── test_advanced_state_manager.py # 進階狀態管理器測試
+│   ├── test_docker_integration.py    # Docker 整合測試
+│   ├── test_report_engine.py         # 報告引擎測試
+│   └── test_simple_adk.py            # 簡單 ADK 測試
 ├── agents/                           # Agent 實作範例
 │   └── postmortem/                   # MVP: 事後複盤 Agent
 │       ├── __init__.py
@@ -1477,7 +1498,7 @@ spec:
 
 #### Grafana Alloy 配置
 
-**檔案位置**：`depoly/alloy/config.alloy`
+**檔案位置**：`deploy/alloy/config.alloy`
 
 ```hcl
 // 日誌收集

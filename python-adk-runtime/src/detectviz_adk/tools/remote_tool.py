@@ -38,10 +38,9 @@ except Exception:  # 容錯處理，用於樣板/測試
 
 # ---- 設定：對齊 DetectViz SSOT ------------------------------------------
 try:
-    from detectviz_adk.config.loader import get_toolbridge_addr  # 統一以 DETECTVIZ_TOOLBRIDGE_ADDR 為主
+    from detectviz_adk.config import loader
 except Exception:
-    def get_toolbridge_addr(default: str = "127.0.0.1:5002") -> str:  # 後備功能
-        return os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR", default)
+    loader = None  # type: ignore
 
 # ---- 可選：從 OpenTelemetry Context 注入 traceparent/tracestate --------------------
 try:
@@ -57,12 +56,10 @@ class RemoteTool(BaseTool):
     符合 ADK 標準的遠端工具
     透過 ToolBridge.Invoke（gRPC）呼叫 Go Platform 端的工具
 
-    設定來源（優先序）：
-    - 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`，預設 127.0.0.1:5002
-    - 安全性：
-      - `DETECTVIZ_TOOLBRIDGE_TLS_CERT`/`DETECTVIZ_TOOLBRIDGE_TLS_KEY`/`DETECTVIZ_TOOLBRIDGE_TLS_CA`
-      - `DETECTVIZ_TOOLBRIDGE_INSECURE`（true/false）
-    - 時限：`timeout_ms` 以建構參數為主
+    設定來源：
+    - 統一由 `detectviz_adk.config.loader` 載入的設定檔與環境變數管理
+    - 端點位址：`DETECTVIZ_TOOLBRIDGE_ADDR` 環境變數優先，其次為 `grpc.listen`
+    - TLS 設定：由 `grpc.tls` 區塊控制
 
     特色：
     - 本類別使用 `grpc.aio`，避免阻塞 ADK 的事件迴圈
@@ -74,6 +71,7 @@ class RemoteTool(BaseTool):
         self.tool_id = tool_id
         self.tool_version = tool_version
         self.timeout_ms = timeout_ms
+        self.config: Dict[str, Any] = loader.load_config() if loader else {}
 
         self._channel: Optional[grpc.aio.Channel] = None
         self._stub: Optional[pbg.ToolBridgeStub] = None  # type: ignore
@@ -82,37 +80,45 @@ class RemoteTool(BaseTool):
 
     # ---- 連線初始化 -------------------------------------------------------
     def _init_channel_and_stub(self) -> None:
-        if not pbg:
+        if not pbg or not self.config:
             return
 
-        addr = os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR") or get_toolbridge_addr()
-        insecure = _env_bool("DETECTVIZ_TOOLBRIDGE_INSECURE", default=False)
+        # 1. 決定連線位址
+        addr = os.getenv("DETECTVIZ_TOOLBRIDGE_ADDR") or self.config.get("grpc", {}).get("listen", "127.0.0.1:5002")
 
-        # 直接從環境變數讀取 PEM 內容 (可以是 base64 編碼)
-        cert_pem_str = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CERT_PEM")
-        key_pem_str = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_KEY_PEM")
-        ca_pem_str = os.getenv("DETECTVIZ_TOOLBRIDGE_TLS_CA_PEM")
+        # 2. 處理 TLS 設定
+        tls_config = self.config.get("grpc", {}).get("tls", {})
+        tls_enabled = tls_config.get("enabled", False)
 
-        cert_pem, key_pem, ca_pem = None, None, None
+        if not tls_enabled:
+            self._channel = grpc.aio.insecure_channel(addr)
+            self._stub = pbg.ToolBridgeStub(self._channel) # type: ignore
+            return
 
-        if cert_pem_str:
-            cert_pem = _decode_pem(cert_pem_str)
-        if key_pem_str:
-            key_pem = _decode_pem(key_pem_str)
-        if ca_pem_str:
-            ca_pem = _decode_pem(ca_pem_str)
+        # 3. 讀取憑證檔案
+        try:
+            ca_cert = _read_file_bytes(tls_config.get("ca_cert"))
+            client_key = _read_file_bytes(tls_config.get("client_key"))
+            client_cert = _read_file_bytes(tls_config.get("client_cert"))
+        except IOError as e:
+            raise RuntimeError(f"Failed to read TLS certificate file: {e}") from e
 
-        if cert_pem and key_pem:  # mTLS/TLS 優先
-            creds = grpc.ssl_channel_credentials(
-                root_certificates=ca_pem, private_key=key_pem, certificate_chain=cert_pem
+        # 4. 建立 gRPC Channel Credentials
+        # mTLS 需要客戶端憑證和私鑰
+        if client_cert and client_key:
+            credentials = grpc.ssl_channel_credentials(
+                root_certificates=ca_cert,
+                private_key=client_key,
+                certificate_chain=client_cert
             )
-            self._channel = grpc.aio.secure_channel(addr, creds)
-        elif insecure:
-            self._channel = grpc.aio.insecure_channel(addr)
+        # 單向 TLS，僅驗證伺服器
+        elif ca_cert:
+            credentials = grpc.ssl_channel_credentials(root_certificates=ca_cert)
         else:
-            # 若無憑證也未明確設為 insecure，則預設為 insecure (適用於本地開發)
-            self._channel = grpc.aio.insecure_channel(addr)
+            # 如果啟用 TLS 但未提供任何憑證，這是一個錯誤配置
+            raise ValueError("TLS is enabled, but no CA certificate or client certificates were provided.")
 
+        self._channel = grpc.aio.secure_channel(addr, credentials)
         self._stub = pbg.ToolBridgeStub(self._channel)  # type: ignore
 
     # ---- 公開 API ---------------------------------------------------------
@@ -227,21 +233,9 @@ class RemoteTool(BaseTool):
 
 
 # ---- 本地輔助函數 --------------------------------------------------------
-def _env_bool(key: str, default: bool = False) -> bool:
-    """將環境變數轉換為布林值"""
-    v = os.getenv(key)
-    if v is None:
-        return default
-    s = v.strip().lower()
-    return s in ("1", "true", "t", "yes", "y", "on")
-
-
-def _decode_pem(pem_str: str) -> bytes:
-    """解碼 PEM 字串，可處理可選的 base64 編碼。"""
-    if "-----BEGIN" in pem_str:
-        return pem_str.encode("utf-8")
-    try:
-        return base64.b64decode(pem_str)
-    except (ValueError, TypeError):
-        # Return as is if not valid base64
-        return pem_str.encode("utf-8")
+def _read_file_bytes(path: Optional[str]) -> Optional[bytes]:
+    """讀取檔案內容為 bytes。如果路徑為空或無效，則返回 None。"""
+    if not path:
+        return None
+    with open(path, "rb") as f:
+        return f.read()

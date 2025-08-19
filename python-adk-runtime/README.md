@@ -237,6 +237,8 @@ class OldPostmortemAgent:
 
 ### RemoteTool 使用方法
 
+> **注意**：`RemoteTool` 的 gRPC 連線（包括 TLS 安全設定）會自動透過中央設定檔 (`config.yaml`) 或環境變數進行管理。您**無需**在初始化時傳遞任何連線或憑證參數。詳細設定請參考下方的「連線與安全」章節。
+
 **基本使用**：
 ```python
 from detectviz_adk.tools.remote_tool import RemoteTool
@@ -339,10 +341,35 @@ async def _robust_tool_call(self, tool: RemoteTool, params: dict, max_retries: i
 ```
 
 ### 連線與安全
-- 端點：`DETECTVIZ_TOOLBRIDGE_ADDR`（預設 127.0.0.1:5002）
-- 明文：`DETECTVIZ_TOOLBRIDGE_INSECURE=true`
-- TLS／mTLS：`DETECTVIZ_TOOLBRIDGE_TLS_{CERT,KEY,CA}_PEM` (環境變數應包含 PEM 內容，可選用 base64 編碼)
-- OTel：若安裝 OpenTelemetry，`RemoteTool` 會嘗試自動注入 `traceparent`／`tracestate`
+
+`RemoteTool` 的 gRPC 連線設定由 `config.yaml` 或環境變數統一管理。
+
+**設定方式**：
+
+1.  **端點位址**：
+    - 環境變數：`DETECTVIZ_TOOLBRIDGE_ADDR` (優先)
+    - 配置文件：`grpc.listen` 欄位 (後備)
+    - 預設值：`127.0.0.1:5002`
+
+2.  **TLS/mTLS 安全連線**：
+    - 在 `config.yaml` 的 `grpc.tls` 區塊中設定。
+    - **啟用 TLS**：`enabled: true`
+    - **CA 憑證**：`ca_cert: /path/to/ca.pem` (用於驗證伺服器)
+    - **客戶端憑證 (mTLS)**：
+        - `client_cert: /path/to/client.pem`
+        - `client_key: /path/to/client.key`
+
+**環境變數覆蓋**：
+
+| 環境變數 | 對應 `config.yaml` 鍵 | 說明 |
+|:---|:---|:---|
+| `DETECTVIZ__GRPC__TLS__ENABLED` | `grpc.tls.enabled` | 是否啟用 TLS (`true`/`false`) |
+| `DETECTVIZ__GRPC__TLS__CA_CERT` | `grpc.tls.ca_cert` | CA 憑證檔案路徑 |
+| `DETECTVIZ__GRPC__TLS__CLIENT_CERT` | `grpc.tls.client_cert` | 客戶端憑證檔案路徑 |
+| `DETECTVIZ__GRPC__TLS__CLIENT_KEY` | `grpc.tls.client_key` | 客戶端私鑰檔案路徑 |
+
+**OpenTelemetry 整合**：
+- 若環境中安裝了 OpenTelemetry，`RemoteTool` 會自動從當前的 Span Context 中提取 `traceparent` 和 `tracestate`，並注入到 gRPC 的 metadata 中，以實現端到端的追蹤。
 
 ---
 

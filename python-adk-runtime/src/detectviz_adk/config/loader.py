@@ -48,6 +48,7 @@ def load_config(path: Optional[str] = None) -> Dict[str, Any]:
         "Configuration effective",
         extra={
             "env": config.get("env"),
+            "grpc.tls.enabled": _dget(config, "grpc.tls.enabled"),
             "observability.mode": _dget(config, "observability.mode"),
             "otlp.protocol": _dget(config, "observability.otlp.protocol"),
             "otlp.endpoint": _dget(config, "observability.otlp.endpoint"),
@@ -66,6 +67,15 @@ def get_toolbridge_addr(default: str = "127.0.0.1:5002") -> str:
 
 _DEF: Dict[str, Any] = {
     "env": "development",
+    "grpc": {
+        "listen": ":5002",
+        "tls": {
+            "enabled": False,
+            "ca_cert": "",
+            "client_cert": "",
+            "client_key": "",
+        },
+    },
     "observability": {
         "mode": "lgtm_local",
         "otlp": {
@@ -116,6 +126,11 @@ def _apply_env_overrides(cfg: Dict[str, Any]) -> None:
 
     mapping = {
         "DETECTVIZ_ENV": ("env", _as_str),
+        # gRPC / TLS
+        "DETECTVIZ__GRPC__TLS__ENABLED": ("grpc.tls.enabled", _as_bool),
+        "DETECTVIZ__GRPC__TLS__CA_CERT": ("grpc.tls.ca_cert", _as_str),
+        "DETECTVIZ__GRPC__TLS__CLIENT_CERT": ("grpc.tls.client_cert", _as_str),
+        "DETECTVIZ__GRPC__TLS__CLIENT_KEY": ("grpc.tls.client_key", _as_str),
         # Observability / OTLP
         "DETECTVIZ__OBSERVABILITY__MODE": ("observability.mode", _as_str),
         "DETECTVIZ__OBSERVABILITY__OTLP__PROTOCOL": ("observability.otlp.protocol", _as_str),

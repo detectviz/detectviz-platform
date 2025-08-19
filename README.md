@@ -31,30 +31,92 @@
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-v1.11.0%20aligned-4285F4?logo=google)](https://google.github.io/adk-docs/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-## 🚀 快速開始
+## 🚀 快速開始 (Quick Start)
 
-### 30秒體驗
+本指南提供兩種快速入門路徑，請根據您的需求選擇：
+
+- **路徑 A：體驗完整平台 (Docker)** - 適合希望**運行完整 SRE 監控堆疊**並與平台互動的使用者。
+- **路徑 B：設定開發環境 (本地)** - 適合希望**貢獻程式碼**的開發者。
+
+---
+
+### 路徑 A：體驗完整平台 (Docker)
+
+此方法將使用 Docker Compose 啟動所有後端服務（Grafana、Prometheus 等），並在本機運行 Detectviz 主程式。
+
+**步驟 1：啟動後端監控服務**
+
 ```bash
-# 快速啟動完整平台
-make quick-start
-# 訪問 http://localhost:8080 查看監控面板
+# 1. 進入部署目錄
+cd deploy
+
+# 2. 複製環境變數檔案 (此為關鍵步驟)
+# 注意：是將根目錄的 .env.example 複製到 deploy 目錄下
+cp ../.env.example .env
+
+# 3. 啟動所有服務 (此過程可能需要幾分鐘)
+make start
+
+# 4. 檢查服務狀態，確保所有服務 (Services) 的狀態為 "Up" 或 "healthy"
+make status
+```
+> **提示**：初次啟動，您無需修改 `.env` 檔案。服務啟動後，可訪問 [Grafana 儀表板](http://localhost:3001) (帳號: `admin`, 密碼: `admin123`)。
+
+**步驟 2：啟動 Detectviz 主程式**
+
+在**另一個終端機視窗**中，從**專案根目錄**執行以下指令：
+
+```bash
+# 5. 啟動 Detectviz 主程式 (包含 HTTP Demo)
+# 此指令會讀取先前建立的 .env 檔案
+source deploy/.env && \
+    DETECTVIZ_HTTP_DEMO=1 \
+    ./detectviz plugin serve --config config.yaml
 ```
 
-### 5分鐘入門
+**步驟 3：驗證平台**
+
 ```bash
-# 1. 克隆專案
-git clone <repository-url>
-cd detectviz-platform
+# 6. 對 Detectviz 主程式發送測試請求
+curl http://localhost:7777/business
 
-# 2. 生成跨語言契約
-cd contracts && make gen
-
-# 3. 啟動開發環境
-make dev-setup
-
-# 4. 驗證安裝
-make verify
+# 7. 查詢 Tempo API，確認是否收到 trace 數據
+# 預期應返回包含 traceID 的 JSON 數據
+curl "http://localhost:3200/api/search"
 ```
+> ✅ **設定完成！** 您現在擁有一個完整的本地監控與應用環境。
+
+---
+
+### 路徑 B：設定開發環境 (本地)
+
+此方法將設定您的本機環境，以便直接修改和測試 Go/Python 原始碼，**此路徑不會啟動後端監控服務**。
+
+**步驟 1：安裝開發工具與依賴**
+
+```bash
+# 1. 執行開發環境安裝腳本
+# 此命令會安裝 protoc, buf, Go/Python 相關工具
+make setup-development
+```
+
+**步驟 2：驗證與生成程式碼**
+
+```bash
+# 2. 執行契約健康檢查，確保 proto 檔案正確
+make health-check-proto
+
+# 3. 生成所有基於 proto 的 Go 和 Python 程式碼
+make gen
+```
+
+**步驟 3：執行完整性驗證**
+
+```bash
+# 4. 執行專案的完整性驗證，這是開發前最重要的檢查步驟
+make validate-implementation
+```
+> ✅ **設定完成！** 成功執行後，您即可開始修改 `go-platform` 或 `python-adk-runtime` 的程式碼。若遇到問題，可嘗試執行 `make fix-common-issues`。
 
 ## 📋 專案概覽
 

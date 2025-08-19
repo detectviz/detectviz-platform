@@ -164,17 +164,17 @@
               "type": "boolean",
               "default": false
             },
-            "cert_path": {
+            "ca_cert": {
               "type": "string",
-              "description": "Path to the TLS server certificate file."
+              "description": "Path to the CA certificate file for verifying the server."
             },
-            "key_path": {
+            "client_cert": {
               "type": "string",
-              "description": "Path to the TLS server key file."
+              "description": "Path to the client certificate file for mTLS."
             },
-            "ca_path": {
+            "client_key": {
               "type": "string",
-              "description": "Path to the TLS CA certificate file for mTLS."
+              "description": "Path to the client private key file for mTLS."
             }
           },
           "additionalProperties": false
