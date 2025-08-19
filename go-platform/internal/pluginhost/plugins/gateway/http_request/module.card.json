@@ -1,5 +1,6 @@
 {
   "$schema": "https://detectviz.dev/schemas/module.card.schema.json",
+  "specVersion": "1.1.0",
   "name": "http_request",
   "version": "1.0.0",
   "description": "A gateway plugin to make external HTTP requests.",

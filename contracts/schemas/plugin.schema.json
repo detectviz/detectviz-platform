@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Plugin Configuration",
+  "description": "Schema for a plugin's configuration file (plugin.yaml).",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "runtime"
+  ],
+  "properties": {
+    "name": {
+      "description": "Unique name of the plugin, e.g., 'observability.health_aggregator'",
+      "type": "string",
+      "pattern": "^[a-z0-9_\\.]+$"
+    },
+    "version": {
+      "description": "Semantic version of the plugin.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "description": {
+      "description": "A brief description of the plugin's purpose.",
+      "type": "string",
+      "maxLength": 256
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "The runtime environment for the plugin.",
+          "type": "string",
+          "enum": ["go", "python"]
+        },
+        "entrypoint": {
+          "description": "The main entrypoint for the plugin.",
+          "type": "string"
+        }
+      },
+      "required": ["type", "entrypoint"]
+    },
+    "config": {
+      "description": "Plugin-specific configuration.",
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
