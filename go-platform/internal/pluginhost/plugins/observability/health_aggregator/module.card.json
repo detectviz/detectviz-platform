@@ -1,36 +1,43 @@
 {
-  "specVersion": "1.1.0",
-  "kind": "capability",
-  "id": "detectviz.health_aggregator",
+  "$schema": "https://detectviz.dev/schemas/module.card.schema.json",
   "name": "health_aggregator",
   "version": "1.0.0",
-  "responsibility": "Aggregates health metrics from various sources using configurable providers",
-  "category": "capability",
-  "capabilities": [
-    "metrics_query",
-    "batch_query",
-    "aggregation",
-    "caching"
-  ],
-  "dependencies": [],
-  "permissions": ["net"],
-  "resources": {
-    "cpu": "100m",
-    "memory": "128Mi"
+  "description": "Aggregates health data from various sources via the MetricsProvider interface.",
+  "language": "go",
+  "entrypoint": "plugin.go",
+  "classification": {
+    "role": "plugin.gateway",
+    "category": "observability",
+    "subcategory": "metrics"
+  },
+  "dependencies": {
+    "requires": [
+      {
+        "name": "detectviz.contracts",
+        "version": ">=1.0.0",
+        "type": "proto"
+      }
+    ]
+  },
+  "runtime": {
+    "resources": {
+      "min_memory_mb": 64,
+      "max_memory_mb": 256
+    },
+    "timeout_seconds": 30
   },
   "observability": {
-    "metrics": [
-      "plugin_runs_total",
-      "plugin_duration_seconds_bucket",
-      "health_aggregator_queries_total",
-      "health_aggregator_query_duration_seconds"
-    ],
-    "spans": [
-      "health_aggregator.query",
-      "health_aggregator.batch_query"
-    ],
-    "logs_required": true
+    "metrics_enabled": true,
+    "tracing_enabled": true,
+    "logging_level": "info",
+    "tags": {
+      "component": "health_aggregator"
+    }
   },
-  "author": "Detectviz Platform Team",
-  "license": "MIT"
+  "security": {
+    "permissions": [
+      "metrics:read"
+    ],
+    "sandbox": true
+  }
 }

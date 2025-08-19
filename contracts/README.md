@@ -78,14 +78,13 @@ make validate-cards # 僅驗證 module.card.json（若已定義）
 ---
 
 ## Proto 契約（`proto/detectviz/contracts/v1/adk_bridge.proto`）
-- **HealthService**：健康檢查、版本與能力列舉（gRPC Health v1 另行註冊）。
-- **ToolBridge**：
-  - `Invoke(ToolInvokeRequest) returns (ToolInvokeReply)`：工具執行（目前採用單次回應）。
-  - 預留串流與會話化 RPC（必要時新增 `ExecuteTool`/`OpenSession`/`CloseSession` 等）。
-- **MemoryService（預留）**：供 ADK Runtime 透過平台代理特定記憶體操作。
+- **ToolBridgeService**：
+  - `Invoke(InvokeRequest) returns (InvokeResponse)`：單次請求/回應模式的工具執行。
+  - `InvokeStream(InvokeStreamRequest) returns (stream InvokeStreamResponse)`：支援串流回應的工具執行。
+  - `Healthz(HealthzRequest) returns (HealthzResponse)`：服務健康檢查。
 - **主要訊息**：
-  - `ToolInvokeRequest`：`tool_id`、`tool_version`、`payload`（`google.protobuf.Struct`）、`timeout_ms`、`metadata`（`map<string,string>`）
-  - `ToolInvokeReply`：`status`（`code/message`）、`result`（`Struct`）、`exec_meta`（`attempt/duration_ms/plugin_id/route_id`）
+  - `InvokeRequest`：包含 `tool_id`、`tool_version`、`payload`（`google.protobuf.Struct`）、`timeout_ms`，以及可選的 `TenantContext`、`TraceContext` 等。
+  - `InvokeResponse`：包含 `result`（`Struct`）、`status`（`google.rpc.Status`）、`exec_meta`（執行元數據）。
 
 版本策略：
 - 遵循 SemVer；相容新增採 optional 欄位與新 RPC；禁止破壞性變更。
