@@ -110,11 +110,11 @@ make health-check-proto
 make gen
 ```
 
-**步驟 3：執行完整性驗證**
+**步驟 3：驗證與生成程式碼**
 
 ```bash
-# 4. 執行專案的完整性驗證，這是開發前最重要的檢查步驟
-make validate-implementation
+# 4. 執行契約健康檢查與程式碼生成
+make health-check-proto && make gen
 ```
 > ✅ **設定完成！** 成功執行後，您即可開始修改 `go-platform` 或 `python-adk-runtime` 的程式碼。若遇到問題，可嘗試執行 `make fix-common-issues`。
 
@@ -250,18 +250,6 @@ AGENT.md → ARCHITECTURE.md → SPEC.md → TASKS.md
 
 ## 🛠️ 開發指南
 
-### 環境設置
-```bash
-# 完整開發環境設置
-make dev-setup
-
-# 驗證環境配置
-make verify
-
-# 執行測試套件
-make test
-```
-
 ### 專案結構
 ```
 detectviz-platform/
@@ -309,12 +297,6 @@ detectviz-platform/
 - **開發階段**：Phase 3 - 事後複盤系統
 - **完成進度**：參見 [TASKS.md](TASKS.md#專案狀態概覽)
 - **下一里程碑**：完整 SRE 生命週期整合
-
-### 最新更新
-- ✅ **Phase 1**：事前預防系統 - 已完成
-- ✅ **Phase 2**：事中響應系統 - 已完成  
-- 🔄 **Phase 3**：事後複盤系統 - 進行中
-- 📋 **Phase 4**：系統整合與優化 - 規劃中
 
 ## 🎯 核心設計原則
 

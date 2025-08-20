@@ -73,8 +73,11 @@ make status
 # 進入專案根目錄
 cd /path/to/detectviz-platform
 
+# 複製設定檔
+cp config.yaml.example config.yaml
+
 # 讀取 .env 檔案並啟動應用 (包含 HTTP Demo)
-source .env && \
+source deploy/.env && \
 DETECTVIZ_HTTP_DEMO=1 \
 ./detectviz plugin serve --config config.yaml
 ```

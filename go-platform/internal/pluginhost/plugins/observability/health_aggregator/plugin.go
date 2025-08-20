@@ -57,20 +57,19 @@ type Statistics struct {
 }
 
 // New 創建新的健康聚合器插件
-func New() *Plugin {
-	factory := metrics.NewSimpleFactory(zap.NewNop())
-	provider := factory.CreateMemoryProvider()
+func New(provider metrics.MetricsProvider, logger *zap.Logger) *Plugin {
+	if provider == nil {
+		// 如果未提供 provider，則使用預設的 MemoryProvider 作為後備
+		factory := metrics.NewSimpleFactory(zap.NewNop())
+		provider = factory.CreateMemoryProvider()
+	}
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 
 	return &Plugin{
 		provider: provider,
-		logger:   zap.NewNop(),
-	}
-}
-
-// Initialize 初始化插件（可選，用於配置）
-func (p *Plugin) Initialize(logger *zap.Logger) {
-	if logger != nil {
-		p.logger = logger
+		logger:   logger,
 	}
 }
 

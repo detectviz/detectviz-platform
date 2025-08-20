@@ -460,20 +460,19 @@ from detectviz_adk import run_postmortem_analysis, PostmortemRunner
 class TestPostmortemIntegration:
     @pytest.fixture(scope="class")
     async def test_environment(self):
-        """啟動測試環境：Go Platform + InfluxDB + Grafana"""
+        """啟動測試環境：Go Platform + Prometheus"""
         client = docker.from_env()
         
         # 啟動測試容器
         containers = []
         try:
-            # InfluxDB
-            influx = client.containers.run(
-                "influxdb:2.7",
-                environment={"DOCKER_INFLUXDB_INIT_MODE": "setup"},
-                ports={"8086/tcp": 8086},
+            # Prometheus
+            prometheus = client.containers.run(
+                "prom/prometheus:v2.47.0",
+                ports={"9090/tcp": 9090},
                 detach=True
             )
-            containers.append(influx)
+            containers.append(prometheus)
             
             # Go Platform
             go_platform = client.containers.run(
@@ -529,8 +528,8 @@ class TestPostmortemIntegration:
 
 1. **ToolBridge 連接失敗**：
    ```bash
-   # 檢查 Go Platform 是否啟動
-   curl -s http://127.0.0.1:8080/health
+   # 檢查 Go Platform 是否啟動 (預設 8080 端口)
+   curl -s http://127.0.0.1:8080/readyz
    
    # 檢查 gRPC 端口
    telnet 127.0.0.1 5002

@@ -21,6 +21,7 @@ import (
 	"github.com/detectviz/detectviz-platform/go-platform/internal/configx"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/contracts"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/health"
+	"github.com/detectviz/detectviz-platform/go-platform/internal/metrics"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/observability"
 	"github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost"
 	register "github.com/detectviz/detectviz-platform/go-platform/internal/pluginhost/plugins/register"
@@ -265,7 +266,7 @@ func executeStartupSequence(ctx *StartupContext, flags *ServeFlags) error {
 
 // initHealthService 初始化健康檢查服務
 func initHealthService(ctx *StartupContext) error {
-	healthAddr := getenvDefault("DETECTVIZ_HEALTH_ADDR", ":8081")
+	healthAddr := getenvDefault("DETECTVIZ_HEALTH_ADDR", ":8080")
 	ctx.HealthSrv = health.NewServer(healthAddr)
 	ctx.HealthSrv.Start()
 	return nil
@@ -307,9 +308,13 @@ func initObservability(ctx *StartupContext) error {
 
 // setupPluginSystem 設置插件系統
 func setupPluginSystem(ctx *StartupContext, flags *ServeFlags) error {
-	// 載入 TLS 配置
-	// loader 已根據設定中的路徑將憑證檔案讀入記憶體。
-	// 此處傳遞的是憑證的位元組內容，而非路徑。
+	// 1. 創建 Metrics Provider
+	metricsProvider, err := createMetricsProvider(ctx.Config)
+	if err != nil {
+		return fmt.Errorf("無法創建 metrics provider: %w", err)
+	}
+
+	// 2. 載入 TLS 配置
 	tlsCfg, err := pluginhost.LoadTLSConfig(
 		ctx.Config.GRPC.TLS.CertData,
 		ctx.Config.GRPC.TLS.KeyData,
@@ -319,20 +324,20 @@ func setupPluginSystem(ctx *StartupContext, flags *ServeFlags) error {
 		return fmt.Errorf("載入 mTLS 憑證失敗: %w", err)
 	}
 
-	// 創建和註冊插件
+	// 3. 創建和註冊插件 (注入依賴)
 	reg := pluginhost.NewRegistry()
-	if err := register.RegisterAll(reg); err != nil {
+	if err := register.RegisterAll(reg, metricsProvider); err != nil {
 		return fmt.Errorf("插件註冊失敗: %w", err)
 	}
 
-	// 決定最終的監聽地址（配置檔案優先於命令行預設值）
+	// 4. 決定最終的監聽地址
 	finalListen := flags.Listen
 	if flags.Listen == getenvDefault("DETECTVIZ__GRPC__LISTEN", ":6606") && ctx.Config.GRPC.Listen != "" {
 		finalListen = ctx.Config.GRPC.Listen
 		zap.L().Info("使用配置檔案中的 gRPC 監聽地址", zap.String("address", finalListen))
 	}
 
-	// 創建 Runtime
+	// 5. 創建 Runtime
 	ctx.Runtime = pluginhost.NewRuntime(finalListen, tlsCfg, reg)
 	ctx.Runtime.SetOnReady(func() {
 		ctx.HealthSrv.SetReady(true)
@@ -340,6 +345,38 @@ func setupPluginSystem(ctx *StartupContext, flags *ServeFlags) error {
 	})
 
 	return nil
+}
+
+// createMetricsProvider 根據配置創建並返回相應的 MetricsProvider
+func createMetricsProvider(cfg *configx.Config) (metrics.MetricsProvider, error) {
+	logger := zap.L().Named("metrics_provider_factory")
+
+	// 檢查 metrics_provider 配置是否存在
+	if cfg.MetricsProvider == nil {
+		logger.Warn("metrics_provider 配置缺失，將使用 memory provider 作為後備")
+		return metrics.NewSimpleFactory(logger).CreateMemoryProvider(), nil
+	}
+
+	providerType := cfg.MetricsProvider.Type
+	logger.Info("正在創建 metrics provider", zap.String("type", providerType))
+
+	switch providerType {
+	case "prometheus":
+		if cfg.MetricsProvider.Prometheus == nil {
+			return nil, fmt.Errorf("prometheus provider 配置缺失")
+		}
+		provider, err := metrics.NewPrometheusProvider(cfg.MetricsProvider.Prometheus, logger)
+		if err != nil {
+			return nil, fmt.Errorf("創建 prometheus provider 失敗: %w", err)
+		}
+		return provider, nil
+	case "memory":
+		logger.Info("使用 memory provider (用於測試或開發)")
+		return metrics.NewSimpleFactory(logger).CreateMemoryProvider(), nil
+	default:
+		logger.Warn("未知的 metrics provider 類型，將使用 memory provider 作為後備", zap.String("type", providerType))
+		return metrics.NewSimpleFactory(logger).CreateMemoryProvider(), nil
+	}
 }
 
 // startHTTPDemo 啟動 HTTP Demo 服務

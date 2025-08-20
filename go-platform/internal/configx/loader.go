@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/detectviz/detectviz-platform/go-platform/internal/metrics"
 	"github.com/xeipuuv/gojsonschema"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -38,8 +39,16 @@ import (
 //   resource/sampling 為可選，用於後續擴充
 // 其他區塊維持最小可運行：grpc / plugin / memory
 
+// MetricsProviderConfig defines the configuration for the metrics provider factory.
+type MetricsProviderConfig struct {
+	Type       string                    `yaml:"type" json:"type"`
+	Prometheus *metrics.PrometheusConfig `yaml:"prometheus,omitempty" json:"prometheus,omitempty"`
+}
+
 type Config struct {
 	Env string `yaml:"env" json:"env"`
+
+	MetricsProvider *MetricsProviderConfig `yaml:"metrics_provider,omitempty" json:"metrics_provider,omitempty"`
 
 	Observability struct {
 		Mode string `yaml:"mode" json:"mode"`

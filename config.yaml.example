@@ -47,60 +47,34 @@ http:
 # Metrics Provider Configuration
 # ============================================
 metrics_provider:
-  # Provider type: prometheus, mimir (future), memory (testing)
-  type: ${METRICS_PROVIDER_TYPE:-prometheus}
+  # Provider type: "prometheus" or "memory" (for testing)
+  type: "prometheus"
 
-  # Query routing configuration (for future multi-provider setup)
-  routing:
-    short_term_days: 30
-    long_term_provider: mimir # Reserved for future
-
-  # Prometheus configuration
+  # Prometheus provider configuration
   prometheus:
-    url: ${PROMETHEUS_URL:-http://localhost:9090}
+    url: "http://localhost:9090"
     timeout: 30s
-    retry:
-      enabled: true
-      max_attempts: 3
-      backoff: 2s
-    query:
-      max_samples: 50000000
-      max_concurrent: 10
-      cache:
-        enabled: true
-        ttl: 5m
-        max_size: 1000
-
-    # Circuit Breaker configuration (optional)
-    circuit_breaker:
-      enabled: true
-      failure_threshold: 5
-      recovery_timeout: 30s
-
-    # Basic auth (optional)
+    bearer_token: ""
     basic_auth:
-      username: ${PROMETHEUS_USERNAME:-}
-      password: ${PROMETHEUS_PASSWORD:-}
-
-    # TLS configuration (optional)
+      username: ""
+      password: ""
     tls:
       enabled: false
       insecure_skip_verify: false
       cert_file: ""
       key_file: ""
       ca_file: ""
-
-  # Mimir configuration (reserved for future)
-  mimir:
-    enabled: false
-    url: ${MIMIR_URL:-}
-    tenant_id: ${MIMIR_TENANT_ID:-}
-    # Additional Mimir config will be added when implemented
-
-  # Memory provider (for testing)
-  memory:
-    seed_data: true
-    data_points: 1000
+    query:
+      max_samples: 10000
+      max_concurrent: 10
+    cache:
+      enabled: true
+      ttl: 5m
+      max_size: 1000
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      recovery_timeout: 30s
 
 # ============================================
 # Observability Configuration

@@ -208,7 +208,7 @@ go run tools/scaffold.go gateway/api_client
 1. **生成腳手架**：`go run tools/scaffold.go <category>/<name>`
 2. **實作邏輯**：編輯 `plugin.go` 實作 `Invoke` 方法
 3. **配置模組**：更新 `module.card.json` 設定
-4. **註冊插件**：在 `internal/pluginhost/plugins/register/all.go` 中註冊
+- **註冊插件**：在 `internal/pluginhost/plugins/register/all.go` 中註冊。注意：如果您的插件需要依賴（例如 `MetricsProvider`），請確保在註冊時將其注入。
 5. **編寫測試**：完善單元測試和整合測試
 6. **更新文檔**：補充 README 和使用範例
 

@@ -23,19 +23,15 @@ type CircuitBreakerConfig struct {
 	RecoveryTimeout  time.Duration `yaml:"recovery_timeout" json:"recovery_timeout"`
 }
 
-// PrometheusConfig Prometheus Provider 配置
+// PrometheusConfig Prometheus Provider 配置 (對齊 config.yaml.example)
 type PrometheusConfig struct {
-	// Prometheus 服務器地址
-	Address string `yaml:"address" json:"address"`
-
-	// 基本認證
-	Username string `yaml:"username" json:"username"`
-	Password string `yaml:"password" json:"password"`
-
-	// Bearer Token 認證
-	BearerToken string `yaml:"bearer_token" json:"bearer_token"`
-
-	// TLS 配置
+	URL         string        `yaml:"url" json:"url"`
+	Timeout     time.Duration `yaml:"timeout" json:"timeout"`
+	BearerToken string        `yaml:"bearer_token" json:"bearer_token"`
+	BasicAuth   struct {
+		Username string `yaml:"username" json:"username"`
+		Password string `yaml:"password" json:"password"`
+	} `yaml:"basic_auth" json:"basic_auth"`
 	TLS struct {
 		Enabled            bool   `yaml:"enabled" json:"enabled"`
 		InsecureSkipVerify bool   `yaml:"insecure_skip_verify" json:"insecure_skip_verify"`
@@ -43,26 +39,15 @@ type PrometheusConfig struct {
 		KeyFile            string `yaml:"key_file" json:"key_file"`
 		CAFile             string `yaml:"ca_file" json:"ca_file"`
 	} `yaml:"tls" json:"tls"`
-
-	// 查詢配置
 	Query struct {
-		Timeout    time.Duration `yaml:"timeout" json:"timeout"`
-		MaxSamples int           `yaml:"max_samples" json:"max_samples"`
+		MaxSamples    int `yaml:"max_samples" json:"max_samples"`
+		MaxConcurrent int `yaml:"max_concurrent" json:"max_concurrent"`
 	} `yaml:"query" json:"query"`
-
-	// 快取配置
 	Cache struct {
 		Enabled bool          `yaml:"enabled" json:"enabled"`
 		TTL     time.Duration `yaml:"ttl" json:"ttl"`
 		MaxSize int           `yaml:"max_size" json:"max_size"`
 	} `yaml:"cache" json:"cache"`
-
-	// 並發控制
-	Concurrency struct {
-		MaxConcurrent int `yaml:"max_concurrent" json:"max_concurrent"`
-	} `yaml:"concurrency" json:"concurrency"`
-
-	// 電路斷路器配置
 	CircuitBreaker CircuitBreakerConfig `yaml:"circuit_breaker" json:"circuit_breaker"`
 }
 
@@ -130,8 +115,8 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 	}
 
 	// 設置默認值
-	if config.Query.Timeout == 0 {
-		config.Query.Timeout = 30 * time.Second
+	if config.Timeout == 0 {
+		config.Timeout = 30 * time.Second
 	}
 	if config.Query.MaxSamples == 0 {
 		config.Query.MaxSamples = 10000
@@ -142,8 +127,8 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 	if config.Cache.MaxSize == 0 {
 		config.Cache.MaxSize = 1000
 	}
-	if config.Concurrency.MaxConcurrent == 0 {
-		config.Concurrency.MaxConcurrent = 10
+	if config.Query.MaxConcurrent == 0 {
+		config.Query.MaxConcurrent = 10
 	}
 
 	// 設置電路斷路器默認值
@@ -158,7 +143,7 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 
 	// 創建 HTTP 客戶端
 	httpClient := &http.Client{
-		Timeout: config.Query.Timeout,
+		Timeout: config.Timeout,
 		Transport: &http.Transport{
 			MaxIdleConns:        100,
 			MaxIdleConnsPerHost: 10,
@@ -171,7 +156,7 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 
 	// 創建 Prometheus 客戶端
 	clientConfig := api.Config{
-		Address: config.Address,
+		Address: config.URL,
 		Client:  httpClient,
 	}
 
@@ -181,10 +166,10 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 			token: config.BearerToken,
 			rt:    httpClient.Transport,
 		}
-	} else if config.Username != "" && config.Password != "" {
+	} else if config.BasicAuth.Username != "" && config.BasicAuth.Password != "" {
 		clientConfig.RoundTripper = &basicAuthRoundTripper{
-			username: config.Username,
-			password: config.Password,
+			username: config.BasicAuth.Username,
+			password: config.BasicAuth.Password,
 			rt:       httpClient.Transport,
 		}
 	}
@@ -200,7 +185,7 @@ func NewPrometheusProvider(config *PrometheusConfig, logger *zap.Logger) (*Prome
 		logger:             logger,
 		cache:              make(map[string]*CachedResult),
 		inflight:           make(map[string]chan struct{}),
-		concurrencyLimiter: make(chan struct{}, config.Concurrency.MaxConcurrent),
+		concurrencyLimiter: make(chan struct{}, config.Query.MaxConcurrent),
 		cbState:            StateClosed,
 	}
 
