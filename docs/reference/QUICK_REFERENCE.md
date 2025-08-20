@@ -243,6 +243,8 @@ DETECTVIZ__MEMORY__BACKEND=redis
 DETECTVIZ__MEMORY__DSN=redis://localhost:6379/0
 ```
 
+> **完整配置範例**：請參考 [.env.example](../../.env.example) 文件
+
 ### 觀測性
 
 #### 分散式追蹤

@@ -57,9 +57,9 @@ detectviz-platform/
 ├── contracts/           # 📋 SSOT - 跨語言契約定義 (重要)
 ├── go-platform/         # ⚡ Go 平台核心
 ├── python-adk-runtime/  # 🧠 Python ADK Runtime
-├── deploy/             # 🐳 依賴服務 Docker Compose
-├── docs/               # 📚 文檔體系
-└── scripts/            # 🔧 自動化腳本
+├── deploy/              # 🐳 依賴服務 Docker Compose
+├── docs/                # 📚 文檔體系
+└── scripts/             # 🔧 自動化腳本
 ```
 
 ### 契約與配置目錄（contracts/）
@@ -67,9 +67,9 @@ detectviz-platform/
 **實際結構** (基於 contracts/ 的存在)：
 ```bash
 contracts/
-├── proto/detectviz/contracts/v1/    # Protocol Buffers 定義
-│   └── adk_bridge.proto            # ToolBridge 核心服務定義
-├── schemas/                        # JSON Schema 驗證規範
+├── proto/detectviz/contracts/v1/  # Protocol Buffers 定義
+│   └── adk_bridge.proto           # ToolBridge 核心服務定義
+├── schemas/                       # JSON Schema 驗證規範
 ├── gen/                           # 自動生成的程式碼
 │   ├── go/                        # Go 生成碼
 │   └── python/                    # Python 生成碼
@@ -242,7 +242,7 @@ DETECTVIZ__GRPC__LISTEN=:5002
 DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=localhost:4317
 ```
 
-> **完整配置範例**：請參考 `.env.example` 文件
+> **完整配置範例**：請參考 [.env.example](.env.example) 文件
 
 ### 配置驗證
 
@@ -255,7 +255,7 @@ DETECTVIZ__OBSERVABILITY__OTLP__ENDPOINT=localhost:4317
 # 驗證契約一致性
 make health-check-proto
 
-# 完整驗證湁程
+# 完整驗證流程
 make validate-implementation
 ```
 

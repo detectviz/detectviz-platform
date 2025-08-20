@@ -488,6 +488,17 @@ func applyEnvOverrides(c *Config) {
 			c.Memory.DefaultTTLSeconds = iv
 		}
 	}
+
+	// Metrics Provider
+	if c.MetricsProvider != nil {
+		setStr(&c.MetricsProvider.Type, os.Getenv("DETECTVIZ__METRICS_PROVIDER__TYPE"))
+		if c.MetricsProvider.Prometheus != nil {
+			setStr(&c.MetricsProvider.Prometheus.URL, os.Getenv("DETECTVIZ__METRICS_PROVIDER__PROMETHEUS__URL"))
+			setStr(&c.MetricsProvider.Prometheus.BearerToken, os.Getenv("DETECTVIZ__METRICS_PROVIDER__PROMETHEUS__BEARER_TOKEN"))
+			setStr(&c.MetricsProvider.Prometheus.BasicAuth.Username, os.Getenv("DETECTVIZ__METRICS_PROVIDER__PROMETHEUS__BASIC_AUTH__USERNAME"))
+			setStr(&c.MetricsProvider.Prometheus.BasicAuth.Password, os.Getenv("DETECTVIZ__METRICS_PROVIDER__PROMETHEUS__BASIC_AUTH__PASSWORD"))
+		}
+	}
 }
 
 func setStr(dst *string, v string) {
